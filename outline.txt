@@ -1,0 +1,64 @@
+
+* Intro
+
+** Problems
+
+*** Third party js libraris way to powerful.  (Examples:  jquery if
+    compromised, password strength checker.)
+
+*** Mashup example (NEED GOOD EXAMPLE)
+
+*** Extensions are too privileged (reduces to problem 1).  We need to
+    stop treating extensions as their own category.
+
+*** You can't build certain apps today (mint.com, password manager)
+
+** Underlying issue:  need better confinement
+
+*** Currently have privilege separation in the form of iframes
+
+*** Have very crude confinement through CSP (but doesn't solve
+    mint.com or mashups or even password strength checker that
+    downloads a dictionary)
+
+Don't mention IFC in intro, talk mostly about confinement
+
+* Background
+
+Short tutorial--who are the principals (content provider, server,
+third-party library author).  How does executable content work.
+
+Existing mechanisms (SoP, CSP, CORS, etc.)
+
+* "Browbound" Javascript extension
+
+* Leveraging Browbound for web security
+
+** Walk through all problems and examples of intro
+
+E.g., how extensions work
+
+* Evaluation
+
+** Expressivity
+
+*** Lines of code for all examples
+    Lines of code for examples you can do with CSP and iframes
+
+*** How many lines of code required to modify existing applications?
+
+** Performance
+
+*** Microbenchmarks (postMessage)
+
+*** Performance impact on existing (legacy) websites
+
+*** Performance impact on less trusted jquery
+
+* Related work
+
+* Discussion
+
+Open questions, security issues
+
+* Summary
