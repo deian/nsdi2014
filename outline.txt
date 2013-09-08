@@ -1,17 +1,52 @@
 
 * Intro
 
+** Design of typical web applications
+
+Page developer cobbles together multiple JS libraries from various
+sources; adds own application code.
+
+Browser user may elect to enhance browser functionality by installing
+"extensions"---also JS code from various sources.
+
+Observe: many parties, including app (page) developer (or multiple
+developers, in the case of mashups), library developers, extension
+developers, user. Possibly goals that compose.  Possibly goals that
+conflict.
+
+Overall approach to privacy:
+	- extensions execute with (more or less) absolute privilege
+        - third-party scripts execute with privilege of enclosing app
+	- SOP: privilege separation for web mashups; provides a measure
+	  of inter-origin isolation. Sometimes too restrictive (some
+	  mashups), sometimes not restrictive enough (e.g., third-party
+	  script inclusion legal; URLs sent to other origins may leak
+	  data from page)
+
 ** Problems
 
 *** Third party js libraris way to powerful.  (Examples:  jquery if
     compromised, password strength checker.)
 
-*** Mashup example (NEED GOOD EXAMPLE)
+*** Users unwilling to trust web applications with highly sensitive
+    information. Examples: password manager, encrypted web mail, "I
+    don't want my passwords/cleartext email exposed to a third party."
 
-*** Extensions are too privileged (reduces to problem 1).  We need to
-    stop treating extensions as their own category.
+    "Solution": make the app an extension. Now you're not
+    sending your information to a remote site. You're just running code
+    of unknown provenance, which could (a) be out and out malicious, or
+    (b) vulnerable to privilege escalation. (cite SP)
 
-*** You can't build certain apps today (mint.com, password manager)
+    In fact, distinction between web applications and extensions seems
+    largely meaningless with respect to trust: in both cases, running
+    untrusted code. Hardly matters whether that code runs remotely or
+    locally! Suggestion: eliminate "extensions," as the notion doesn't
+    help. If we can prevent untrusted JS in *pages* from leaking
+    sensitive information, then extensions might as well be implemented
+    as pages.
+
+*** Mashup example (app that reconciles Amazon purchase history with
+    credit card statement)
 
 ** Underlying issue:  need better confinement
 
@@ -20,6 +55,12 @@
 *** Have very crude confinement through CSP (but doesn't solve
     mint.com or mashups or even password strength checker that
     downloads a dictionary)
+
+** Summary: if we can provide better confinement, we can:
+   - make it safe to incorporate 3rd-party libraries in pages
+   - eliminate the meaningless distinction between pages and extensions,
+     effectively implementing extensions as properly confined pages
+   - allow the building of new web applications heretofore impossible
 
 Don't mention IFC in intro, talk mostly about confinement
 
@@ -31,6 +72,14 @@ third-party library author).  How does executable content work.
 Existing mechanisms (SoP, CSP, CORS, etc.)
 
 * "Browbound" Javascript extension
+
+** Use password strength-checker as motivating example.
+
+Show "before" and "after" architectural diagrams. Succinctly
+state what the "blocks" in the "after" diagram do. (Sandboxes,
+raising of current label, postMessage between Sandbox and DOM.)
+
+Introduce our additions to JS one by one...
 
 * Leveraging Browbound for web security
 
@@ -49,16 +98,28 @@ E.g., how extensions work
 
 ** Performance
 
-*** Microbenchmarks (postMessage)
+*** Microbenchmarks (postMessage, iFrame Creation, creating and
+    		    ?invoking? Sandbox)
 
-*** Performance impact on existing (legacy) websites
+*** Performance impact (page-render time) on existing (legacy) websites
 
-*** Performance impact on less trusted jquery
+*** Performance comparison (page-render times) between legacy web site and
+    "opted-in" version, rewritten to use or JS enhancements
+
+*** Performance impact (page-render time) on less trusted jquery
 
 * Related work
 
+** JSFlow, DCS, FlowFox, Caja, [other references from HotOS, more or less]
+
+** ScriptPolice (focused on limiting privilege of today's Chrome
+   extensions; doesn't constrain scripts in pages)
+
 * Discussion
 
-Open questions, security issues
+Open questions, security issues:
+     - covert channels
+     - parts of extension API we've not yet addressed
+     - granularity of labeling: fine-grained for DOM elements?
 
 * Summary
