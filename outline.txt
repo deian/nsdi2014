@@ -87,6 +87,11 @@ Introduce our additions to JS one by one...
 
 E.g., how extensions work
 
+* Implementation
+
+Short section illustrating that it's not overly difficult to
+implement, it's somewhat isolated/non-intrusive, etc.
+
 * Evaluation
 
 ** Expressivity
@@ -138,5 +143,9 @@ untrusted code that is implemented atop our extension system.
 
 TODO: make sure that we do not violate concerns brought up in Porter
 Felt's paper.
+
+Speculate how hard it would be to implement in WebKit (probably not in
+IE) and plans for real-world deployment/standardization (deepening on
+what the Moz guys think/are comfortable with)
 
 * Summary
