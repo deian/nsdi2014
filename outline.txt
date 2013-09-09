@@ -110,7 +110,11 @@ E.g., how extensions work
 
 * Related work
 
-** JSFlow, DCS, FlowFox, Caja, [other references from HotOS, more or less]
+** BFlow, JSFlow, DCS, FlowFox, Caja, [other references from HotOS,
+   more or less]
+
+On BFlow, need to carefully differentiate, as if I recall
+correctly, BFlow worked at iframe granularity, too.
 
 ** ScriptPolice (focused on limiting privilege of today's Chrome
    extensions; doesn't constrain scripts in pages)
