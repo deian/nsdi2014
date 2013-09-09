@@ -96,6 +96,10 @@ E.g., how extensions work
 
 *** How many lines of code required to modify existing applications?
 
+
+*** Port top X extensions to our extension system
+
+
 ** Performance
 
 *** Microbenchmarks (postMessage, iFrame Creation, creating and
@@ -125,5 +129,14 @@ Open questions, security issues:
      - covert channels
      - parts of extension API we've not yet addressed
      - granularity of labeling: fine-grained for DOM elements?
+
+Modifying an existing extension to reduce the amount of trusted code,
+by moving components into our extension system. This effectively comes
+down to a privilege separated system wherein the trusted code
+corresponds to current extensions that can access privileged APIs and
+untrusted code that is implemented atop our extension system.
+
+TODO: make sure that we do not violate concerns brought up in Porter
+Felt's paper.
 
 * Summary
