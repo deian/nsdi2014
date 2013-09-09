@@ -25,7 +25,7 @@ Overall approach to privacy:
 
 ** Problems
 
-*** Third party js libraris way to powerful.  (Examples:  jquery if
+*** Third party js libraries way too powerful.  (Examples:  jquery if
     compromised, password strength checker.)
 
 *** Users unwilling to trust web applications with highly sensitive
