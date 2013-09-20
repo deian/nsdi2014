@@ -1,1 +1,39 @@
-\subsection*{Abstract}
+\begin{abstract}
+
+Modern web applications are a conglomeration of JavaScript written by
+multiple authors: third-party libraries included by a site's
+developer, scripts that implement site-specific functionality written
+by the site's developer herself, and third-party extension scripts
+installed by the user into the browser. Recent years have seen the
+continual discovery of practical attacks on web users' privacy---from
+the leaking of sensitive data within pages by malicious third-party
+library code, to similar leaks by malicious browser extensions, to
+more subtle leaks, such as those via image resources. Fundamentally,
+these privacy violations are possible because today's web browsers do
+not provide sufficient mechanisms for {\em confining untrusted code.}
+We present Browbound, a simple but powerful design for robust
+confinement of JavaScript code in modern web browsers. Browbound
+prevents malicious third-party libraries from violating users'
+privacy. Its flexible confinement mechanisms allow one to safely
+implement mashup web applications that cannot today be built while
+ensuring privacy for users. They further obviate giving powerful
+privileges to untrusted browser extensions, instead permitting many of
+today's extensions to be implemented as untrusted web
+pages. Measurements of implementations of Browbound for both the
+Firefox and Chromium open-source browsers demonstrate that its privacy
+guarantees incur virtually imperceptible added page-load latency.
+
+%% - privacy vulnerabilities, lack of flexibility in mashups
+%% - SOP, CORS, CSP: a patchwork of ad hoc mechanisms
+%% - Browbound, a simple architecture for confining JavaScript code by limiting
+%%   its privileges.
+%% - implementations for both Firefox and Chrome open-source browsers.
+%% - new portable web applications built on Browbound that demonstrate how
+%%   Browbound simplifies the writing of web applications that robustly preserve
+%%   the user's privacy
+%% - Measurements of implementations of Browbound for both the Firefox
+%%   and Chromium open-source browsers demonstrate that Browbound's privacy
+%%   guarantees incur virtually imperceptible added page-load latency.
+
+\end{abstract}
+
