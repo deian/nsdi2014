@@ -142,6 +142,21 @@ strength-checker that, for example, fetches a list of commonly used
 passwords before checking the strength of the password---a completely
 safe and useful operation.
 
+\begin{lstlisting}
+var url = "http://checker.ru/checker.js";
+// 1. Create a fresh privilege:
+var p = new FreshPrivilege();
+// 2. Start executing the checker:
+var chkw = new LWorker(p.asLabel, url);
+// 3. Send the checker the password:
+chkw.postMessage(password);
+// 4. Take ownership of privilege:
+Browbound.own(p);
+// 5. Register handler to get reply:
+chkw.onmessage = function() {
+  alert("Your password is: "+chkw.message);
+}
+\end{lstlisting}
 
 
 \subsection{Confining iframes}
