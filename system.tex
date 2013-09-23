@@ -60,17 +60,16 @@ and privileges corresponding to fresh, unique principals/origins
 In ideal confinement systems, code can typically read arbitrary data
 at the cost of raising its label and giving up write privileges.
 %
-However, in practical systems, covert channels may be present and
-exploitable.
+Unfortunately, practical systems typically have covert channels which
+may be exploitable.
 %
 Hence, as in HiStar~\tocite{histar} and Hails~\tocite{hails},
 we use clearance to impose a limit on the kind of data a piece of code
 can access.
 %
-Specifically, clearance is a label that serves as an upper bound on
-the context label---code cannot read from or write to entities labeled
-``above'' the clearance.
-
+Specifically, clearance serves as an upper bound on the context label,
+code cannot read from or write to entities labeled ``above'' the
+clearance.
 
 In the rest of this section, we describe the \sys{} design through
 three concrete examples: a password-strength checker
@@ -92,56 +91,56 @@ Password-strength checkers are common to many websites;
 given a password, a checker computes the strength of the input,
 according to some metric.
 %
-Naturally, when using third-party password-strength checkers
+Naturally, when using a third-party password-strength checker
 (e.g.,~\tocite{checker1, checker2}) we would like to ensure that the
-code does not leak the password.
+code does not leak the user's password.
 %
 A malicious checker should at worst lie about the strength of a
 password.
 
 With server-side support and existing browser mechanisms, we can
-incorporate and partially confine a simple third-party strength
+incorporate and partially ``confine'' a simple third-party strength
 checker.
 %
-Specifically, we must host the checker source on a trusted domain and
+To this end, we must host the checker source on a trusted domain and
 execute the code in a Worker; since Workers have separate, fresh
 browsing contexts with no access to the page DOM, this ensures that
-the password cannot be leaked by e.g., inserting images, loading
-scripts, etc.
+the password cannot be leaked by inserting images, loading scripts,
+etc.
 %
-As Workers have access to the \xhr{} constructor, the checker Worker
-must, in turn, be created in an iframe that has a CSP policy
-restricting network communication (e.g., \texttt{connect-src 'self'}
-if the checker source is hosted on the same domain as the page
+However, Workers have access to the \xhr{} constructor and we must, in
+turn, create the checker Worker object in an iframe that has a CSP
+policy that restricts network communication (e.g., \texttt{connect-src
+'self'} if the checker source is hosted on the same domain as the page
 incorporating it); this is necessary since Workers inherit the CSP
 policy of the owner document~\tocite{csp}.
 %
 Finally, we need to implement the messaging layers between the Worker,
-iframe incorporating the checker, and main page.
+the iframe incorporating it, and main page.
 
-This approach suffers from four main reasons.
+Unfortunately, this approach is unsatisfactory due to four main reasons.
 %
-First, to avoid trusting the checker website the source code must be
-hosted by the library user, wherein a CSP policy can be used to
-restrict the checker's exfiltration capabilities. 
+First, to avoid trusting the checker website, the checker source code
+must be hosted by the library user, wherein a CSP policy can be used
+to restrict the checker's communication capabilities. 
 %
-This need for server-side support is an issue when developers do not
-have access on the server to set such headers or host arbitrary code.
+This need for server-side support is problematic for developers that
+do not have server-side access to set such headers.
+\Red{dherman put this very nicely; can we fish that sentence?}
 %
 Second, the fact that we require server-side support to set policies
 that restrict communication means that the password-checker cannot
-incorporate code it itself does not trust---the same-origin policy
-does not allow for such scenarios.
+incorporate code it itself does not trust.
 %
 Third, the CSP policy of the checker cannot be more restricting than
-that of the owner document---hence, the checker can potentially leak
-carry out a self-exfiltration attack~\tocite{self-exifiltration} and
-leak the password to a public page on the trusted domain.
+that of the owner document---hence, the checker can potentially carry
+out a self-exfiltration attack and leak the password to a public page
+on the trusted domain~\tocite{self-exfiltration}.
 %
 Finally, this approach cannot be used to confine a password
 strength-checker that, for example, fetches a list of commonly used
 passwords before checking the strength of the password---a completely
-safe operation.
+safe and useful operation.
 
 
 
