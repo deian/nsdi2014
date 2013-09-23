@@ -4,6 +4,13 @@
 \usepackage[square,comma,numbers,sort&compress]{natbib}
 
 \newcommand{\sys}{Browbound}
+\newcommand{\xhr}{XMLHttpRequest}
+
+\usepackage[usenames,dvipsnames]{color}
+\newcommand{\Red}[1]{{\color{red} #1}}
+
+\newcommand{\tocite}[1]{\Red{\cite{#1}}}
+\newcommand{\toref}[1]{\Red{XX}}
 
 \begin{document}
 
@@ -17,7 +24,7 @@ Protecting Users by Confining JavaScript with \sys
 \and {\rm Bobby Holley}\\Mozilla
 \and {\rm Blake Kaplan}\\Mozilla
 \and {\rm Brad Karp}\\UCL
-\and {\rm Petr Marchenko}\\Google
+\and {\rm Petr Marchenko}\\UCL, Google
 \and {\rm David Mazi\`eres}\\Stanford
 \and {\rm Deian Stefan}\\Stanford
 }
@@ -31,11 +38,14 @@ Protecting Users by Confining JavaScript with \sys
 
 \input{abstract}
 \input{intro}
+\input{background}
+\input{system}
 \input{conclusion}
 
 
 
+
 \bibliographystyle{abbrvnat}
-\bibliography{ref}
+\bibliography{local}
 
 \end{document}
