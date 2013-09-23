@@ -1,14 +1,87 @@
 \section{The \sys{} system}
 \label{sec:system}
 
-We describe the \sys{} design through three concrete examples: a
-password-strength checker (section~\ref{sec:system:worker}), a
-password manager (section~\ref{sec:system:iframe}), and an extension
-that converts phone numbers to links
-(section~\ref{sec:system:script}).
+In \sys, every browsing context has an associated security \emph{label},
+\emph{privilege}, and \emph{clearance}.
 %
-For completeness, we summarize the different system components in
-Table~\toref{table:components}.
+The label of the browsing context serves as a ``taint,'' indicating
+the sensitivity of data the code executing within the context has
+read.
+%
+Labels are specified in terms of \emph{principals}, which
+correspond to origins, whose privacy is at stake.\footnote{
+  We note that our system also handles integrity, or trust, which
+  serves as the dual of privacy.
+  %
+  For simplicity of exposition we omit integrity from our discussion.
+}
+%
+For example, the label
+\js|Label("http://bank.ch").and("http://amazon.com")| specifies that
+the context potentially contains data sensitive to \http{bank.ch}
+\emph{and} \http{amazon.com}.
+%
+In turn, \sys{} uses the context label to confine code by restricting
+writes---code in the context is restricted to communicating with other
+browsing contexts (using \js|postMessage|) if their labels are at
+least as restricting; without privileges, network communication and
+local storage is not allowed since the effective labels of these
+end-points are less restricting (end-point labels protect the privacy
+of a single origin).
+
+Privileges are objects with which code can assert the authority of
+principals. 
+%
+In \sys, scripts are granted the privilege corresponding to the
+page origin.\footnote{
+More specifically, only \emph{privileged} scripts, as described in
+Section~\ref{sec:system:script}, are granted the privilege of the page
+origin.
+}
+For example, a script running in an \http{amazon.com} page has the
+privilege of the origin, allowing it to declassify data sensitive to
+\http{amazon.com}.
+%
+Specifically if the context label is
+\js|Label("http://bank.ch").and("http://amazon.com")|, this privilege
+can be used to downgrade the label to \js|Label("http://bank.ch")|
+and, as a result, allow code to communicate with additional browsing
+contexts and even perform network requests (to \http{bank.ch}).
+%
+Importantly, code cannot synthesize arbitrary privileges, e.g., for
+\http{bank.ch}---this would trivially violate any confinement
+guarantees;
+%
+in our system, code can only create the empty privilege
+(\js|new Privilege()|) 
+and privileges corresponding to fresh, unique principals/origins
+(\js|new FreshPrivilege()|).
+
+In ideal confinement systems, code can typically read arbitrary data
+at the cost of raising its label and giving up write privileges.
+%
+However, in practical systems, covert channels may be present and
+exploitable.
+%
+Hence, as in HiStar~\tocite{histar} and Hails~\tocite{hails},
+we use clearance to impose a limit on the kind of data a piece of code
+can access.
+%
+Specifically, clearance is a label that serves as an upper bound on
+the context label---code cannot read from or write to entities labeled
+``above'' the clearance.
+
+
+In the rest of this section, we describe the \sys{} design through
+three concrete examples: a password-strength checker
+(Section~\ref{sec:system:worker}), a password manager
+(Section~\ref{sec:system:iframe}), and an extension that converts
+phone numbers to links (Section~\ref{sec:system:script}).
+%
+For completeness, we summarize the different system components and
+security mechanisms in Table~\toref{table:components}.
+
+
 
 \subsection{Isolating third-party code}
 \label{sec:system:worker}
@@ -31,9 +104,10 @@ incorporate and partially confine a simple third-party strength
 checker.
 %
 Specifically, we must host the checker source on a trusted domain and
-execute the code in a Worker; since Workers cannot access the DOM,
-this ensures that the password cannot be leaked by e.g., inserting
-images, loading scripts, etc.
+execute the code in a Worker; since Workers have separate, fresh
+browsing contexts with no access to the page DOM, this ensures that
+the password cannot be leaked by e.g., inserting images, loading
+scripts, etc.
 %
 As Workers have access to the \xhr{} constructor, the checker Worker
 must, in turn, be created in an iframe that has a CSP policy
