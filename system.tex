@@ -73,16 +73,18 @@ clearance.
 
 In the rest of this section, we describe the \sys{} design through
 three concrete examples: a password-strength checker
-(Section~\ref{sec:system:worker}), a password manager
-(Section~\ref{sec:system:iframe}), and an extension that converts
-phone numbers to links (Section~\ref{sec:system:script}).
+(Section~\ref{sec:system:worker}), a third-party mashup
+(Section~\ref{sec:system:mashup}), a
+password manager (Section~\ref{sec:system:iframe}), and an extension
+that converts phone numbers to links
+(Section~\ref{sec:system:script}).
 %
 For completeness, we summarize the different system components and
 security mechanisms in Table~\toref{table:components}.
 
 
 
-\subsection{Isolating third-party code}
+\subsection{Confining third-party DOM-less code}
 \label{sec:system:worker}
 %Password-strength checker: 
 
@@ -100,19 +102,19 @@ password.
 
 With server-side support and existing browser mechanisms, we can
 incorporate and partially ``confine'' a simple third-party strength
-checker.
+checker that does not require DOM access.
 %
 To this end, we must host the checker source on a trusted domain and
-execute the code in a Worker; since Workers have separate, fresh
+execute the code in a Worker; since workers have separate, fresh
 browsing contexts with no access to the page DOM, this ensures that
 the password cannot be leaked by inserting images, loading scripts,
 etc.
 %
-However, Workers have access to the \xhr{} constructor and we must, in
+However, workers have access to the \xhr{} constructor and we must, in
 turn, create the checker Worker object in an iframe that has a CSP
 policy that restricts network communication (e.g., \texttt{connect-src
 'self'} if the checker source is hosted on the same domain as the page
-incorporating it); this is necessary since Workers inherit the CSP
+incorporating it); this is necessary since workers inherit the CSP
 policy of the owner document~\tocite{csp}.
 %
 Finally, we need to implement the messaging layers between the Worker,
@@ -142,6 +144,36 @@ strength-checker that, for example, fetches a list of commonly used
 passwords before checking the strength of the password---a completely
 safe and useful operation.
 
+The above limitations arise in part because existing browser
+techniques do not allow developers to express confinement, event for
+code that does not rely on the DOM.
+%
+Addressing these limitations, \sys{} allows developers to distinguish
+between such code and confine it in turn.
+%
+Below we consider confining code that does not rely on the DOM; in
+Sections~\ref{sec:system:iframe}-\ref{sec:system:script} we
+address confinement of third-party code that has access to the DOM.
+
+Specifically, we extend the Worker DOM API~\tocite{workers} with
+a Labeled worker (LWorker).
+%
+Like a standard Worker, an LWorker is a fresh browsing context that
+exposes a limited number of objects and properties to the code running
+in this context.
+%
+Namely, we expose the \sys{} API (including the \js|LWorker|
+constructor used to construct additional workers), the \xhr{}
+constructor used to perform network requests, and \js|onmessage| and
+\js|postMessage| used for communicating with the creator.
+%
+Unlike... Importantly we enforce the code executing within such workers
+\Red{HERE, very much in progress}
+
+Different from standard workers, the LWorker constructor
+Unlike standard browsing contexts, we enforce confinement on code
+executing in an LWorker.
+
 \begin{lstlisting}
 var url = "http://checker.ru/checker.js";
 // 1. Create a fresh privilege:
@@ -158,8 +190,11 @@ chkw.onmessage = function() {
 }
 \end{lstlisting}
 
+\subsection{Relaxing SOP for confined code}
+\label{sec:system:mashup}
+%Password manager 
 
-\subsection{Confining iframes}
+\subsection{Cross-iframes confinement}
 \label{sec:system:iframe}
 %Password manager 
 
