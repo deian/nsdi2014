@@ -324,15 +324,57 @@ untrusted, but if the checker could itself create fresh privileges and
 an LWorker in which it can execute code it itself does not consider
 trustworthy!
 
+\subsection{Cross-iframes confinement}
+\label{sec:system:iframe}
+%Password manager 
+
+In the previous section, the \http{instagra.me} page imposed the
+requirement that the password-strength checker, executing in an
+LWorker, have a sufficiently high context label (such that it cannot
+exfiltrate the password) before receiving the password.
+%
+More generally, our confinement mechanism allows developers to control
+where their data flows, even once said data is made available to an
+untrusted browsing context.
+%
+Below, we illustrate the notion of first-class confinement used
+in building a mostly untrusted password manager.
+
+\paragraph{Current approach}
+%
+Today's browser security mechanisms are not amendable for building a
+password manager as a website.
+%
+Using existing mechanisms users are forced to either trust a password
+manager website with their website-specific (e.g., \http{fb.com})
+credentials or trust arbitrary websites (e.g., \http{fb.com}) with a
+master password they use to protect other site-specific
+credentials.\footnote{
+  Without loss of generality, we assume client-side encryption where
+  the credentials are decrypted by either the password manager or
+  \http{fb.com}.
+}
+%
+This issue of handling sensitive data is so grave, that all major
+browsers have build-in password managers.
+%
+This simply requires the user to place trust on the browser, which
+they already trust to handle sensitive data, with credentials.
+%
+Unfortunately, this also increases the TCB of the browser.
+%
+Moreover, this is not scalable; do we keep integrating apps into the
+browser TCB simply because there exists no mechanism that allows
+developers to express security policy on code that handles sensitive
+data?
+
+
+
 
 
 \subsection{Relaxing SOP for confined code}
 \label{sec:system:mashup}
-%Password manager 
-
-\subsection{Cross-iframes confinement}
-\label{sec:system:iframe}
-%Password manager 
+%Third-party Mashup
 
 \subsection{Privilege separation within iframes}
 \label{sec:system:script}

@@ -149,3 +149,11 @@ IE) and plans for real-world deployment/standardization (deepening on
 what the Moz guys think/are comfortable with)
 
 * Summary
+
+
+
+==== Misc notes ====
+what  makes our system different from DCS  and BFlow is that
+confinement first-class. There is no asymmetry between browsing
+contexts -- that is an iframe can impose restrictions on it's parent
+by raising it's label.
