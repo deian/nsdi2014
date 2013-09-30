@@ -17,9 +17,9 @@ correspond to origins, whose privacy is at stake.\footnote{
 }
 %
 For example, the label
-\js|Label("http://bank.ch").and("http://amazon.com")| specifies that
-the context potentially contains data sensitive to \http{bank.ch}
-\emph{and} \http{amazon.com}.
+\js|Label("https://bank.ch").and("https://amazon.com")| specifies that
+the context potentially contains data sensitive to \https{bank.ch}
+\emph{and} \https{amazon.com}.
 %
 In turn, \sys{} uses the context label to confine code by restricting
 writes---code in the context is restricted to communicating with other
@@ -38,18 +38,18 @@ More specifically, only \emph{privileged} scripts, as described in
 Section~\ref{sec:system:script}, are granted the privilege of the page
 origin.
 }
-For example, a script running in an \http{amazon.com} page has the
+For example, a script running in an \https{amazon.com} page has the
 privilege of the origin, allowing it to declassify data sensitive to
-\http{amazon.com}.
+\https{amazon.com}.
 %
 Specifically if the context label is
-\js|Label("http://bank.ch").and("http://amazon.com")|, this privilege
-can be used to downgrade the label to \js|Label("http://bank.ch")|
+\js|Label("https://bank.ch").and("https://amazon.com")|, this privilege
+can be used to downgrade the label to \js|Label("https://bank.ch")|
 and, as a result, allow code to communicate with additional browsing
-contexts and even perform network requests (to \http{bank.ch}).
+contexts and even perform network requests (to \https{bank.ch}).
 %
 Importantly, code cannot synthesize arbitrary privileges, e.g., for
-\http{bank.ch}---this would trivially violate any confinement
+\https{bank.ch}---this would trivially violate any confinement
 guarantees;
 %
 in our system, code can only create the empty privilege
@@ -100,20 +100,21 @@ code does not leak the user's password.
 A malicious checker should at worst lie about the strength of a
 password.
 
-\paragraph{Current approach}
-With server-side support and existing browser mechanisms, a page
-(e.g., \http{instagra.me}) can incorporate and partially ``confine'' a
-simple third-party strength checker (e.g.,
-\http{checker.ru/checker.js}) that does not require DOM access.
+\subsubsection{Current approach}
 %
-To this end, \http{instagra.me} must host the checker source on a
+With server-side support and existing browser mechanisms, a page
+(e.g., \https{instagra.me}) can incorporate and partially ``confine'' a
+simple third-party strength checker (e.g.,
+\https{checker.ru/checker.js}) that does not require DOM access.
+%
+To this end, \https{instagra.me} must host the checker source on a
 trusted domain and execute the checker code in a Worker; since workers
 have separate, fresh browsing contexts with no access to the page DOM,
 this ensures that the password cannot be leaked by inserting images,
 loading scripts, etc.
 %
 However, workers have access to the \xhr{} constructor and
-\http{instagra.me} must, in turn, create the checker Worker object in
+\https{instagra.me} must, in turn, create the checker Worker object in
 an iframe that has a CSP policy that restricts network communication
 (e.g., \texttt{connect-src 'self'} if the checker source is hosted on
 the same domain as the page incorporating it); this is necessary since
@@ -125,7 +126,7 @@ incorporating it, and main page are trivial.
 Unfortunately, this approach is unsatisfactory due to four main reasons.
 %
 First, to avoid trusting the checker website, the checker source code
-must be hosted by \http{instagra.me}, wherein a CSP policy can be used
+must be hosted by \https{instagra.me}, wherein a CSP policy can be used
 to restrict the checker's communication capabilities. 
 %
 This need for server-side support is problematic for developers that
@@ -139,14 +140,14 @@ cannot incorporate code it itself does not trust.
 Third, the CSP policy of the checker cannot be more restricting than
 that of the owner document---hence, the checker can potentially carry
 out a self-exfiltration attack and leak the password to a public page
-on the trusted domain, \http{instagra.me}~\tocite{self-exfiltration}.
+on the trusted domain, \https{instagra.me}~\tocite{self-exfiltration}.
 %
 Finally, this approach cannot be used to confine a password
 strength-checker that, for example, fetches a list of commonly used
 passwords before checking the strength of the password---a completely
 safe and useful operation.
 
-\paragraph{\sys{} approach}
+\subsubsection{\sys{} approach}
 %
 In part, the above limitations arise because existing browser
 techniques do not allow developers to express confinement, event for
@@ -178,7 +179,7 @@ running in the worker browsing context.
 For example, we can create a new LWorker that executes the
 password-strength checker code as follows:
 \begin{lstlisting}
-var url = "http://checker.ru/checker.js";
+var url = "https://checker.ru/checker.js";
 var l = new Label(window.location.origin);
 // 1. Execute checker in new context
 var checker = new LWorker(url, l);
@@ -233,7 +234,7 @@ message.
 %
 This ensures that the message is dispatched to the checker only ifs
 context label is at least as sensitive as \js|l|---thereby ensuring
-that the privacy of \http{instagra.me} is preserved by the checker.
+that the privacy of \https{instagra.me} is preserved by the checker.
 %
 Since this code ``owns'' the principal corresponding to the page
 origin, we register the \js|onmessage| hander without needing to raise
@@ -253,7 +254,7 @@ function checkPassword(pass) { /* ... */ }
 
 // 2. Raise context label & register handler
 Browbound.label = Brobound.clearance;
-// ...label == Label("http://instagra.me")
+// ...label == Label("https://instagra.me")
 onmessage = function(event) {
   var password = event.data;
   // 4. Check score & send it to parent:
@@ -269,7 +270,7 @@ communication privileges.
 %
 As shown in Figure~\toref{fig:strength-3}, it can now receive the
 sensitive password, but it can only use \xhr{} to communicate with
-\http{instagra.me}.
+\https{instagra.me}.
 %
 Hence, the checker registers an event handler which takes the
 parent-supplied password and checks its strength with
@@ -281,12 +282,12 @@ The life-cycle of the this application is shown in
 Figure~\toref{fig:system:strength}.
 %
 In this example we used we relied on the page having ownership of the
-privilege corresponding to \http{instagra.me}.
+privilege corresponding to \https{instagra.me}.
 %
 Unfortunately, this also means that our confinement of the checker was
 limited: we cannot confine the code with this label, while also
 disallowing it from using \xhr{} to self-exfiltrate data to
-\http{instagra.me}.
+\https{instagra.me}.
 %
 Hence, code can generate fresh privileges that correspond to a unique
 principal/origin whose scheme, prefixed by \texttt{x-}, ensures that
@@ -328,7 +329,7 @@ trustworthy!
 \label{sec:system:iframe}
 %Password manager 
 
-In the previous section, the \http{instagra.me} page imposed the
+In the previous section, the \https{instagra.me} page imposed the
 requirement that the password-strength checker, executing in an
 LWorker, have a sufficiently high context label (such that it cannot
 exfiltrate the password) before receiving the password.
@@ -340,19 +341,19 @@ untrusted browsing context.
 Below, we illustrate the notion of first-class confinement used
 in building a mostly untrusted password manager.
 
-\paragraph{Current approach}
+\subsubsection{Current approach}
 %
 Today's browser security mechanisms are not amendable for building a
 password manager as a website.
 %
 Using existing mechanisms users are forced to either trust a password
-manager website with their website-specific (e.g., \http{fb.com})
-credentials or trust arbitrary websites (e.g., \http{fb.com}) with a
+manager website with their website-specific (e.g., \https{fb.com})
+credentials or trust arbitrary websites (e.g., \https{fb.com}) with a
 master password they use to protect other site-specific
 credentials.\footnote{
   Without loss of generality, we assume client-side encryption where
   the credentials are decrypted by either the password manager or
-  \http{fb.com}.
+  \https{fb.com}.
 }
 %
 This issue of handling sensitive data is grave; insomuch, that all
@@ -370,8 +371,98 @@ into the browser TCB simply because there exists no mechanism that
 allows developers to express security policy on code that handles
 sensitive data?
 
+\subsubsection{\sys{} approach}
+%
+With \sys{}, we can leverage confinement to build a password manager
+as a website.
+%
+Our password manager is
+divided into two mutually distrusting components: a
+management layer (provided by e.g., \https{pwd.eff.org}) and a storage
+layer (provided by e.g., \https{dropcu.be}).
+%
+This mutual distrust is instrumental to ensuring that neither party
+individually can compromise the user's privacy (and thus be wholly
+trusted).
+%
+
+%
+Though a user can use such a password manager to store and fetch
+secrets directly, for simplicity, we assume that a website (e.g.,
+\https{fb.com}) integrates with the manager to save and load login
+credentials,\footnote{
+  \Red{TODO: mention the extension stuff}
+} as shown in Figure~\toref{fig:manager-1}.
+%
+In this scenario, the security guarantees and trust concerns are as follows.
+\begin{itemize}
+\item The management layer never learns the site-specific
+  (\https{fb.com}) credentials. The user need only trust this
+  component with their master password (which without the collusion
+  of the storage layer is not useful).
+\item The storage layer never learns the site-specific credentials
+  or master password. The user need only trust this component to
+  not collude with the management layer.
+\item Finally, the integrator never learns the master password or
+  credentials private to other websites (e.g., \https{goo.gl}).
+\end{itemize}
+%
+Importantly, these guarantees must be preserved when both, the
+password manager is used to save and retrieve the credentials.
+%
+Below we respectively describe the interaction of all the components
+in saving and retrieving credentials.
+
+\paragraph{Saving credentials}
+%
+To save credentials, the integrator \https{fb.com} simply opens a new
+window (or frame) to the \https{pwd.eff.org} management layer, sending
+it a \js|postMessage| with the credentials. 
+%
+The label of the message is \js|Label("https://dropcu.be")|; this ensures
+that the management layer must raise its context label from the public
+label to \js|Label("https://dropcu.be")|---thus giving up arbitrary
+communication abilities---in order to read the credentials.
+%
+As shown in Figure~\toref{fig:manager-2}, upon receiving the
+credentials (\js|credentials|), the management layer requests the
+master password (\js|mpass|) from the user, generates a salt
+(\js|salt|) and encrypts the credentials using the following key:
+$k = H(\texttt{mpass}\|\https{fb.com}\|\texttt{salt})$.
+%
+Here, $H$ is a hash function such as SHA-256.
+%
+The encrypted credentials and salt are subsequently sent to the
+\https{dropcu.be}, who simply stores them.
+%
+
+\paragraph{Retrieving credentials}
 
 
+%%
+Attack scenarios:
+\\
+What happens if the management layer does not encrypt the data?
+Well when we read we can guarantee that only fb sees the data and
+nobody else! Pyahh!
+\\
+Why can't the management layer send the credentials directly to the
+storage layer
+
+
+%% let p = {username, password}
+%% let c = E_(sha(mp||fb.com||salt))({username, password})
+%% 
+%% 1. fb.com sends the password manager the credentials, first raising
+%% its label:
+%% 
+%% fb@<storage> -->  p --> pwd@<storage>
+%% 
+%% 2. the password manager encrypts the credentials and sends
+%% the encrypted stuff to the storage layer:
+%% 
+%% pwd@<storage> --> c, salt  --> storage@<storage>
+%% 
 
 
 \subsection{Relaxing SOP for confined code}
