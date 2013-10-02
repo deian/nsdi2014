@@ -1,0 +1,200 @@
+\documentclass[letterpaper,twocolumn, 10pt]{article}
+\usepackage[square,comma,numbers,sort&compress]{natbib}
+\usepackage{graphicx, url}
+\usepackage[square,comma,numbers,sort&compress]{natbib}
+
+\newcommand{\sys}{Browbound}
+\newcommand{\xhr}{\js|XMLHttpRequest|}
+
+\usepackage[usenames,dvipsnames]{color}
+\newcommand{\Red}[1]{{\color{red} #1}}
+
+\newcommand{\tocite}[1]{{\cite{#1}}}
+\newcommand{\toref}[1]{\Red{XX}}
+\newcommand{\https}[1]{\texttt{\small https://#1}}
+\usepackage[text={6.in,9.1in},centering]{geometry}
+
+\usepackage[small,bf]{caption}
+\setlength{\textfloatsep}{0.20cm}
+\usepackage[compact,nonindentfirst]{titlesec}
+\titlespacing{\section}{0pt}{0.1ex}{0.1ex}
+\titlespacing{\subsection}{0pt}{1ex}{0.37ex}
+\titlespacing{\subsubsection}{0pt}{0.47ex}{0.0ex}
+
+%% code related
+\usepackage{listings}
+\definecolor{lightgray}{rgb}{.95,.95,.95}
+\definecolor{darkgray}{rgb}{.4,.4,.4}
+\definecolor{purple}{rgb}{0.65, 0.12, 0.82}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
+
+\lstset{
+   language=JavaScript,
+   backgroundcolor=\color{lightgray},
+   extendedchars=true,
+   basicstyle=\ttfamily,
+   showstringspaces=false,
+   showspaces=false,
+   tabsize=2,
+   breaklines=true,
+   showtabs=false,
+}
+
+\newcommand{\js}{\lstinline[backgroundcolor=\color{white},breakatwhitespace=true,breaklines=true,basicstyle=\ttfamily]}
+
+%%
+%%
+\begin{document}
+
+\title{
+  \vspace*{-0.21in}
+\Large \bf
+Protecting Users by Confining JavaScript with \sys
+\vspace*{-0.1in}
+}
+
+\author{
+     {\rm Dave Herman$^1$}
+\and {\rm Brad Karp$^2$}
+\and {\rm Petr Marchenko$^{2,3}$}
+\and {\rm David Mazi\`eres$^4$}
+\and {\rm Alejandro Russo$^{4,5,*}$}
+\and {\rm\bf Deian Stefan$^{4,}$\footnote{Alejandro Russo is a visiting
+associate professor at Stanford. Deian Stefan is a student.}}
+}
+\date{
+\vspace*{-0.1in}
+{\it
+      $^1$Mozilla
+\quad $^2$UCL
+\quad $^3$Google
+\quad $^4$Stanford
+\quad $^5$Chalmers
+}
+\vspace*{-0.2in}}
+
+\maketitle
+\thispagestyle{empty}
+
+
+\section{Introduction}
+%
+Modern web applications are a conglomeration of JavaScript written by
+multiple authors: third-party libraries included by a site's
+developer, scripts that implement site-specific functionality written
+by the site's developer herself, and third-party extension scripts
+installed by the user into the browser.
+%
+Recent years have seen the continual discovery of practical attacks on
+web users' privacy---from the leaking of sensitive data within pages
+by malicious third-party library code, to similar leaks by malicious
+browser extensions, to more subtle leaks, such as those via image
+resources.
+%
+Fundamentally, these privacy violations are possible because browsers
+do not provide sufficient mechanisms for {\em confining} code. 
+
+The gravity of this limitation is highlighted when considering the
+architecture of web applications that handle sensitive data.
+%
+For example, a third-party password-strength checker can only be
+confined from leaking the password with server-side support (e.g., to
+set Content Security Policy~\tocite{csp}).
+%
+Similarly, a password manager or encrypted webmail cannot be built as
+a website without requiring the code to be trusted.
+%
+It is no surprise that users resort to built-in password managers and
+extensions for encrypting email---privileged code that should be even
+less trusted.
+%
+
+In this work, we present \sys, a simple but powerful design for robust
+confinement of JavaScript code in modern web browsers.
+%
+\sys\ prevents untrusted third-party libraries from violating users'
+privacy.
+%
+Its flexible confinement mechanism, exposed as a first-class DOM API,
+allows programmers to safely implement mashup web applications that cannot
+today be built while ensuring privacy for users.
+%
+It further obviates giving powerful privileges to untrusted browser
+extensions, instead permitting many of today's extensions to be
+implemented as untrusted web pages.
+%
+Preliminary measurements of implementations of \sys\  for both the
+Firefox and Chromium open-source browsers demonstrate that its privacy
+guarantees incur virtually imperceptible added page-load latency.
+
+
+\section{\sys{} design}
+%
+In \sys, every browsing context (e.g., iframe, or
+Worker) has an associated security \emph{label} and
+\emph{privilege}.
+%
+%% This design is akin to labeling threads in HiStar~\tocite{histar} and
+%% Hails/LIO~\tocite{hails, lio}.
+%
+The label of the browsing context serves as a ``taint,'' that
+indicates the sensitivity of data the code executing within the
+context has read.
+%
+Labels are specified in terms of origins whose privacy is at stake 
+(e.g., \js|Label("https://a.ch").and("https://b.cn")| protects the
+privacy of \https{a.ch} and \https{b.cn}).
+%
+In turn, \sys{} uses the context label to confine code by restricting
+writes---code in the context is restricted to communicating with other
+browsing contexts (using \js|postMessage|) if their labels are at
+least as restricting; without privileges, network communication and
+local storage is not allowed since the effective labels of these
+end-points are less restricting (end-point labels protect the privacy
+of a single origin).
+%
+As in~\cite{hotos, hails}, privileges, provided to scripts, are
+unforgeable objects with which code can assert the authority of the
+origin.
+
+Using these mechanisms, a website can integrate a password manager---as
+a website---without having to trust it with the user's credentials.
+%
+Specifically, by requiring the manager to be tainted with a ``high''
+label we can ensure that it cannot exfiltrate the credentials---we use
+labels to ensure it can only communicate with an approved storage
+layer.
+%
+In a similar way, we can ensure that a webmail provider can integrate
+an encryption service---both in mutual distrust.
+%
+In this scenario both parties (as iframes) impose a policy on the
+other before sending sensitive data, simply by ensuring that the label
+of the message is less restricting than the respective context label.
+%
+In turn, privileges can be used to downgrade data, for example, once
+it is encrypted.
+
+
+
+{
+\scriptsize
+\bibliographystyle{abbrvnat}
+\bibliography{local}
+}
+
+\end{document}
