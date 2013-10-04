@@ -3,42 +3,37 @@
 
 
 
-% Javascript Sandboxing 
-Focusing on  different security policies, 
-several language-based approaches has been divised to sandbox Javascript.  These
-approaches usually work in a similar manner: they mediate security critical
-operations and some of the browser API (e.g. the DOM).  
-%
-JSand wraps setters (\js|set|) and getters (\js|get|)  of Javascript
-objects. Additionally, it propagates policies to newly created objects via  
-a membrane pattern~\cite{XX}. Application-specific DOM-nodes are 
-freely accessed withtin the sandbox. For global properties
-(e.g. \js|window.document|), JSand simply wraps the \js|window| object in 
-order to enforce a given policy.
-% 
-Similar to our work, TreeHouse uses workers to provide a fresh and isolated
-execution context for Javascript code. Workers communicate by \js|postMessage|,
-which guarantees that no references to outside objects can be passed into the
-sandbox. TreeHouse provides virtualized DOM-nodes with the
-restriction that workers cannot share them. 
+% Javascript Sandboxing: JSand and TreeHouse
+Focusing on different security policies, several language-based approaches has
+been divised to sandbox Javascript.  These approaches usually work in a similar
+manner: they mediate security critical operations and some of the browser API
+(e.g. the DOM).
+% JSand
+JSand~\cite{Agten:2012:JCC} wraps setters (\js|set|) and getters (\js|get|) of Javascript
+objects. Additionally, it propagates policies to newly created objects via a
+membrane pattern~\cite{RobustComposition}. Application-specific DOM-nodes are freely accessed
+withtin the sandbox. For global properties (e.g. \js|window.document|), JSand
+simply wraps the \js|window| object in order to enforce a given policy.
+% TreeHouse
+Similar to our work, TreeHouse~\cite{Ingram:2012} uses workers to provide a
+fresh and isolated execution context for Javascript code. Workers communicate by
+\js|postMessage|, which guarantees that no references to outside objects can be
+passed into the sandbox. TreeHouse provides virtualized DOM-nodes with the
+restriction that workers cannot share them.
+% Limitations
+Aiming to target legacy code, JSand and TreeHouse present some limitations
+related to performance and completeness.
+% Performance
+While exposing significant performance degradation in micro benchmarking (in
+some cases more than 400\%!), authors claim that the impact on the user
+experience is acceptable.
+% Completeness
+On the completeness side, JSand parses dynamically loaded scripts either
+asynchronously, potentially changing the semantics of the application, or
+through a library, which might interpret them differently from the
+browser. Similarly, TreeHouse changes a synchronous call semantics to the DOM
+API by an asynchronous one.
 
-
-
-
-
-
-Aiming to target legacy code, the main drawback of these approaches is two fold:
-performance and completeness. While exposing significant performance degradation
-in micro benchmarking (in some cases more than 400\%!), authors claim that the
-impact on the user experience is acceptable.  On the completeness side,
-JSand parses dynamically loaded scripts either asynchronously, potentially
-changing the semantics of the application, or through a library, which might
-interpret them differently from the browser. 
-\Red{TODO:The problem with TreeHouse mentioned by Deian?}
-
-
-
-%
 
 %
 
