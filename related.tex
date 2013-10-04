@@ -2,6 +2,36 @@
 \label{sec:related}
 
 
+% JSFlow 
+Tracking IFC at the granularity level of JavaScript instructions is indeed
+challenging. The main reason for that being the need for tracking hysterical
+amounts of side-effects, e.g., implicit coercions, live collections updates, and
+others. Hedin and Sabelfeld~\cite{Hedin:2012} formally describe a sound IFC for
+a subset of JavaScript and their ideas are being currently applied to
+JSFlow~\Red{think how to cite this since it is unpublished}, a IFC-aware
+JavaScript interpreter.  JSFlow is designed to apply IFC in legacy code, and
+because of that, it does an impressive effort to obtain fine-grain IFC. This is
+achieved at the price of proposing detailed models for capturing big parts of
+the browser semantics (e.g. interaction with the DOM). We provide a more
+coarse-grain approach: \emph{we do not care for most of the JavaScript and DOM
+  API internals}. Instead, \sys~ uses IFC-aware compartments (LWorkers and
+iframes) and simply mediates among them to preserve security. With our approach,
+webpage developers can obtain fine-grain IFC by restructuring their code
+for security reasons.
+
+% BFlow
+BFlow~\cite{Yip:2009:PBS} is a IFC system for web browsers. It tracks flows of information at the
+granularity of \emph{secure zones}, i.e., compartments composed of one or
+several iframes.  {\sys} does not require such abstraction, it relies on the
+compartment notions already provided by browsers, i.e., iframes and
+workers. Similar to our approach, BFlow uses \js|postMessage| for communication
+across secure zones. BFlow does not allow JavaScript code in different secure
+zones to write to shared DOM variables and cookies regardless their 
+security labels.  While \sys~ supports more expressive labels, potentially
+including different domains, BFlow can propagates labeled data to the server
+side. It is stated as future work to achieve a similar feature.
+
+
 
 % Javascript Sandboxing: JSand and TreeHouse
 Focusing on different security policies, several language-based approaches has
