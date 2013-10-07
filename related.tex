@@ -20,14 +20,14 @@ webpage developers can obtain fine-grain IFC by restructuring their code
 for security reasons.
 
 % BFlow
-BFlow~\cite{Yip:2009:PBS} is a IFC system for web browsers. It tracks flows of information at the
-granularity of \emph{secure zones}, i.e., compartments composed of one or
-several iframes.  {\sys} does not require such abstraction, it relies on the
-compartment notions already provided by browsers, i.e., iframes and
-workers. Similar to our approach, BFlow uses \js|postMessage| for communication
-across secure zones. BFlow does not allow JavaScript code in different secure
-zones to write to shared DOM variables and cookies regardless their 
-security labels.  While \sys~ supports more expressive labels, potentially
+BFlow~\cite{Yip:2009:PBS} is a IFC system for web browsers. It tracks flows of
+information at the granularity of \emph{secure zones}, i.e., compartments
+composed of one or several iframes.  {\sys} does not require such abstraction,
+it relies on the compartment notions already provided by browsers, i.e., iframes
+and workers. Similar to our approach, BFlow uses \js|postMessage| for
+communication across secure zones. BFlow does not allow JavaScript code in
+different secure zones to write to shared DOM variables and cookies regardless
+their security labels.  While \sys~ supports more expressive labels, potentially
 including different domains, BFlow can propagates labeled data to the server
 side. It is stated as future work to achieve a similar feature.
 
@@ -65,7 +65,17 @@ browser. Similarly, TreeHouse changes a synchronous call semantics to the DOM
 API by an asynchronous one.
 
 
-%
+% DCS 
+Recently, and different from other sandboxes approaches, the data-confined
+sandbox system~\cite{Akhawe2013} (DCS) restricts propagation of information by using
+\js|iframes| and mediating cross-domain operations (e.g. access to local
+storage, fragment-IDs, network communication, etc.).  Every sandbox communicates
+by \js!postMessage! only with its designated parent. The parent defines the
+confinement policy and plays the role of man-in-the-middle when a sandbox wish
+to communicate with another one. While having similar goals, DCS is more
+restrictive than \sys. DCS disallows dynamic code evaluation inside sandboxes
+and presents a not egalitarian design, i.e., a sandbox (\js|iframe|) cannot host
+another sandbox. Clearly, the DCS client-side TCB is smaller than ours.
 
 
 % Local Variables:
