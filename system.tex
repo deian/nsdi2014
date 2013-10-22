@@ -461,9 +461,9 @@ To save credentials, the integrator, \https{fb.com}, simply opens a
 new window (or frame) to the \https{pwd.eff.org} management layer,
 sending it a \js|postMessage| with the credentials. 
 %
-The label of the message is \js|Label("https://dropcu.be")|; this ensures
+The label of the message is \js|Label("https://fb.com")|; this ensures
 that the management layer must raise its context label from the public
-label to \js|Label("https://dropcu.be")|---thus giving up arbitrary
+label to \js|Label("https://fb.com")|---thus giving up arbitrary
 communication abilities---in order to read the credentials.
 %
 As shown in Figure~\toref{fig:manager-s-2}, upon receiving the
@@ -474,8 +474,12 @@ $k = H(\texttt{mpass}\|\https{fb.com}\|\texttt{salt})$.
 %
 (Here, $H$ is a hash function such as SHA-256.)
 %
-The encrypted credentials and salt are subsequently sent to the
-\https{dropcu.be}, who simply stores them.
+The encrypted credentials and salt are subsequently sent back to the
+\https{fb.com}, who simply forwards them to \https{dropcu.be} (using
+\js|postMessage| labeled with the public label). 
+%
+The \js|dropcu.be|'s sole role is to store the data on the
+server-side.
 %
 
 \paragraph{Retrieving credentials}
