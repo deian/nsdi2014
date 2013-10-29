@@ -586,3 +586,43 @@ cross-origin data---in a safe manner---to build applications that are
 not otherwise possible today.
 %
 As an example, we consider third-party mashups.
+
+In a third-party mashup, a party, such as \https{mint.ru},
+incorporates user-sensitive data from unaffiliated parties, such as
+\https{bank.ch} and \https{amazon.com}, to present users with new
+interfaces or functionality.
+%
+The third party, \https{mint.ru}, may wish to present the user with a
+visualization of their spending habits, or identify fraudulent
+\https{amazon.com} purchases using their \https{bank.ch} account, etc.
+%
+Of course, SOP does not allow \https{mint.ru} to access the user's
+\https{amazon.com} and\https{bank.ch} data, e.g., using \xhr{}, unless
+the parties explicitly trust \https{mint.ru} by setting correct CORS
+headers~\tocite{CORS}.
+
+However, with \sys{} we can allow \https{mint.ru} to access such data,
+provided that future writes respect the privacy of the retrieved data.
+%
+To this end, we can allow code executing in certain labeled workers to
+inspect the response of an \xhr{} request at the cost of raising the
+context label (and thereby giving up write-privileges).
+%
+These cross-origin labeled workers (COLWorkers), are identical, in
+both their API and semantics to the LWorkers detailed in
+Section~\ref{sec:system:worker}, and only differ in two ways.
+%
+First, the privacy label supplied to the \js|COLWorker| constructor
+must correspond to a single origin (e.g.,
+\js|Label("https://bank.ch")|); conversely, the \js|LWorker|
+constructor does not impose any restrictions on the label.
+%
+Second, \xhr{} responses from this origin can be inspected by the
+COLWorker code, regardless of the page (that created the COLWorker)
+origin or explicit CORS headers set on the response.
+%
+This is different from LWorkers, who can only inspect \xhr{} responses
+according to 1) SOP: the worker can inspect responses from the origin
+of the document containing the LWorker, and 2) CORS: the worker can
+inspect a response from any origin if flexible CORS headers accompany
+the response.
