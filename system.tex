@@ -275,10 +275,10 @@ sends it a message (step 3 above):
 // checker.js ...
 function checkPassword(pass) { /* ... */ }
 
-// Browbound.label == Label()
+// Nappy.label == Label()
 
 // 2. Raise context label & register handler
-Browbound.label = Brobound.clearance;
+Nappy.label = Brobound.clearance;
 // ...label == Label("https://instagra.me")
 onmessage = function(event) {
   var password = event.data;
@@ -288,7 +288,7 @@ onmessage = function(event) {
 \end{lstlisting}
 %
 Here, the LWorker first raises the context label to the clearance by
-setting \js|Browbound.label|.
+setting \js|Nappy.label|.
 %
 In doing so, the code is effectively stating that it is ready to
 receive data at sensitivity level \https{instagra.me}, at the cost of
@@ -341,7 +341,7 @@ Th modified code is shown below.
 // Create fresh unique privilege
 var p = new FreshPrivilege();
 // Take ownership of this privilege
-Browbound.own(p);
+Nappy.own(p);
 // Use it to confine the worker completely:
 var checker = new LWorker(url, p.asLabel);
 checker.postMessage(password, p.asLabel);
@@ -516,7 +516,7 @@ receive the encrypted credentials, and requests the master password
 The master password and salt are then used to create key $k$, which
 used to decrypt the encrypted credentials.
 %
-Finally, the credentials are subequently sent (via \js|postMessage|)
+Finally, the credentials are subsequently sent (via \js|postMessage|)
 to the \https{fb.com} browsing context.
 %
 The latter, as shown in Figure~\toref{fig:manager-r-3}, can then lower
@@ -563,11 +563,26 @@ interface.
 %
 \end{itemize}
 
+\subsection{Privilege separation within iframes}
+\label{sec:system:extension}
+%Phone2Links extension
+\Red{TODO: change section title; this should talk about stashing
+privileges and extending LWorkers with DOM objects}
+
 
 \subsection{Relaxing SOP for confined code}
 \label{sec:system:mashup}
 %Third-party Mashup
-
-\subsection{Privilege separation within iframes}
-\label{sec:system:extension}
-%Phone2Links extension
+%
+\sys{} restricts the communication capabilities of a
+browsing context once it has read sensitive data, i.e., cross-origin
+data from another browsing context.
+%
+As envisioned in~\tocite{hotos}, by equipping the browser with such
+confinement mechanism we can safely relax the SOP.
+%
+This, in turn, allows developers to build applications that access
+cross-origin data---in a safe manner---to build applications that are
+not otherwise possible today.
+%
+As an example, we consider third-party mashups.
