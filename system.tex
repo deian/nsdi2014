@@ -1,4 +1,4 @@
-\section{The \sys{} system}
+\section{The \sys{} confinement system}
 \label{sec:system}
 
 In \sys, every browsing context has an associated security \emph{label},
@@ -67,7 +67,8 @@ clearance to impose a limit on the kind of data a piece of code can
 access.
 %
 In \sys, clearance is a label that is used to restrit code from
-reading and writing to entities labeled ``above'' this label.
+reading and writing to entities labeled ``above'' this label, i.e.,
+more sensitive entities.
 
 In the rest of this section, we describe the \sys{} design through
 three concrete examples: 
@@ -80,6 +81,103 @@ an extension that converts phone numbers to links
 For completeness, we summarize the different system components and
 security mechanisms in Table~\toref{table:components}.
 
+\begin{table*}[t]
+\centering
+\begin{tabular}{l | m{2.3in} | m{3.6in}}
+\hline
+\textbf{Component} & \textbf{API} & \textbf{Description} 
+\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Labels &  
+\begin{webidl}
+Label {
+  Label Label(optional String)
+  Label and(String or Label)
+  Label or(String or Label)
+  bool subsumes(Label)
+}
+\end{webidl}
+&
+\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Privileges &  
+\begin{webidl}
+Privilege {
+  Privilege Privilege()
+  Privilege FreshPrivilege()
+  Privilege and(Privilege)
+  Label asLabel(Privilege)
+}
+\end{webidl}
+&
+\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Context label &  
+\begin{webidl}
+Nappy {
+  prop Label privacyLabel
+}
+\end{webidl}
+&
+The context label is used to restrict reads and writes from the
+current browsing context.
+%
+Code can only write to entities above the current label.
+%
+Code can read from entities whose label is at most as restricting as
+the context label---when wishing to read more sensitive data, the
+context label can be raised (set) to the more restricting label,
+clearance permitting (see below).
+%
+\todo{ds}{Loading content}
+\todo{ds}{postMessage}
+\todo{ds}{XHR}
+%
+
+\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Context clearance  &  
+\begin{webidl}
+Nappy {
+  prop Label privacyClearance
+}
+\end{webidl}
+&
+Clearance is a label that is used to restrict access to data.
+%
+Code cannot read form or write to entities more sensitive than the
+clearance.
+%
+In the case of reads, this simply implies that the clearance is an
+upper bound on the context label.
+%
+The clearance can be set by code running in the context, but only to a
+label that is more restricting than the context label and less
+restricting than the current clearance.
+\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Context privileges  &  
+\begin{webidl}
+Nappy {
+  prop Privilege privileges
+}
+\end{webidl}
+&
+Privileges are used to relax label comparisons when performing reads
+and writes.
+%
+Code running in the context can get and set the current privileges.
+\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Labeled Workers  &  
+\begin{webidl}
+LWorker {
+  LWorker LWorker(String, Label)
+  LWorker SOLWorker(String, Label)
+  postMessage(Object)
+  prop EventHandler onmessage
+  void grant(Privilege)
+}
+\end{webidl}
+&
+\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{tabular}
+\caption{\sys{} design components and API}
+\end{table*}
 
 
 \subsection{Confining third-party DOM-less code}
@@ -101,49 +199,54 @@ password.
 
 \subsubsection{Current approach}
 %
-A page (e.g., \https{instagra.me}) can incorporate and partially
-``confine'' a simple third-party strength checker (e.g.,
-\https{checker.ru/checker.js}) that does not require DOM access using
-existing browser mechanisms.
+Using existing mechanisms, a page hosted, for instance, on
+\https{instagra.me}, can incorporate and partially ``confine'' a
+simple third-party strength checker (e.g.,
+\https{checker.ru/checker.js}).
 %
-To accomplish this, \https{instagra.me} executes the checker code in a
-Worker~\tocite{worker};
+For simplicity we consider a password strength checker that does not
+require access to the DOM.
 %
-since every Worker has a separate, fresh browsing context with no access
-to the page DOM, this ensures that the password cannot be leaked by
-inserting images, loading scripts, etc.
+As such, to ``confine'' the strength checker, \https{instagra.me}
+can execute the code in a Worker~\tocite{worker};
 %
-However, since Workers have access to the \xhr{} constructor,
+since every worker has a separate, fresh browsing context with no
+access to the page DOM, this ensures that the password cannot be
+leaked by inserting images, loading scripts, etc.
+%
+However, workers do have access to the \xhr{} constructor, and, thus,
 \https{instagra.me} must additionally host the checker source and set
 a CSP policy that restricts its network communication (e.g.,
-\texttt{connect-src 'self'}).
+\texttt{connect-src: 'self'}).
 \footnote{
   Workers inherit the CSP policy of the containing page~\tocite{csp},
-  hence we create the Worker in a ``dummy'' iframe which has the
-  policy set.
+  hence \https{instagra.me} can create the worker in a ``dummy''
+  iframe which has the set policy.
   %
-  We assume that the messaging layers between the Worker, the iframe
-  incorporating it, and main page are trivial.
+  We assume that the messaging layers between the worker, its parent
+  iframe, and main page are straight forward to implement.
 }
 %
 
-Unfortunately, this approach is unsatisfactory due to four main reasons.
+Though this approach (mostly) accomplishes the desired goal of
+protecting the password, the approach is widely unsatisfactory.
 %
-First, to avoid trusting the checker website, the checker source code
+First, to avoid trusting the checker's origin, the checker source code
 must be hosted by \https{instagra.me}, wherein a CSP policy, in the
-form of a header, can be used to restrict the checker's communication
-capabilities. 
+form of a HTTP  header, can be used to restrict the checker's
+communication capabilities. 
 %
 This need for server-side support is problematic for developers that
 do not have server-side access to set such headers.
+\todo{dherman}{you had a much better argument for why client-side-only
+a la developers is so important.}
 %
-Second, since this approach requires server-side support to set
-security policies this means that the password-strength checker cannot
-incorporate code it itself does not trust---the SOP would require
-\https{instagra.me} to host all the code and express such security
-concerns.
+Moreover, the need for server-side support also means that the
+password-strength checker cannot incorporate code it itself does not
+trust---the SOP would require \https{instagra.me} to host all the code
+and express the security concerns of the strength checker as well.
 %
-Third, the CSP policy of the checker cannot be more restricting than
+Second, the CSP policy of the checker cannot be more restricting than
 that of the containing document---hence, the checker can potentially
 carry out a self-exfiltration attack~\tocite{self-exfiltration} and
 leak the password to a public page on \https{instagra.me}.
@@ -154,26 +257,30 @@ passwords before checking the strength of the password---a completely
 safe operation.
 %
 
-\subsubsection{\sys{} approach}
+\subsubsection{New approach}
 %
 In part, the above limitations arise because existing browser
-techniques do not allow developers to express confinement, event for
+techniques do not allow developers to express confinement, even for
 code that does not require DOM access.
 %
 (Rather today's mechanisms give developers a limited form of access
 control.)
 %
 Addressing these limitations, \sys{} allows developers to treat a
-piece of code as untrusted and confine it, in turn.
+piece of code as untrusted and confine it in turn.
 %
-Below we consider confining ``DOM-less'' code; in
-Sections~\ref{sec:system:iframe}-\ref{sec:system:script} we address
-confinement of third-party code with access to the DOM.
+Below we consider the confinement of ``DOM-less'' code; in
+Sections~\ref{sec:system:iframe} and \ref{sec:system:extension} we
+address confinement of third-party code with access to the DOM.
 
-We extend the Worker DOM API~\tocite{workers} with a labeled Worker
-(LWorker).
+As described above, workers are a good first step towards reasoning
+about the security implications of untrusted code that does not need
+to access the DOM.
 %
-Like a standard Worker, an LWorker executes a piece of code in a fresh
+Hence, we extend the Worker DOM API~\tocite{workers} with a
+Labeled-Worker (LWorker).
+%
+Like a standard worker, an LWorker executes a piece of code in a fresh
 browsing context that exposes a limited set of objects and properties.
 %
 Specifically, we expose the \sys{} API (including the \js|LWorker|
@@ -186,28 +293,38 @@ Different from the \js|Worker| constructor, the \js|LWorker|
 constructor takes an additional argument: a label that specifies the
 clearance on the code running in the worker browsing context.
 
-For example, we can create a new LWorker that executes the
+An LWorker is created using the \js|LWorker| constructor,
+which takes two arguments: the source of the code to execute in the
+worker, and the worker label.
+%
+For example, we create a new LWorker that executes the
 password-strength checker code as follows:
-\begin{lstlisting}
+\begin{jscode}
 var url = "https://checker.ru/checker.js";
-var l = new Label(window.location.origin);
+var label = new Label(window.location.origin);
 // 1. Execute checker in new context
-var checker = new LWorker(url, l);
-\end{lstlisting}
+var checker = new LWorker(url, label);
+\end{jscode}
 %
 Assuming the browsing context (main page) creating the worker has not
-enabled ``confinement-mode,'' \sys{} first enables confinement-mode an
-sets the page label to the public label (\js|Label()|).
+enabled \emph{confinement-mode}, \sys{} first enables confinement-mode
+and sets the page label to the public label \js|Label()|.
 %
+A context can explicitly enable confinement-mode and set the context
+label to a label more restricting than the current label; when
+enabling confinement-mode implicitly, \sys{} takes a permissive
+approach and sets the current label to the public label.
+ 
 Subsequently, we ensure that the current page is allowed to make a
-request to \js|url| to fetch the source code.\footnote{
-  Since we allow LWorkers to execute inline scripts (via
-  data-URLs~\tocite{data-url}) that can be fetched with \xhr{},
-  workers scripts are fetched without sending sending
-  user-credentials.  This ensures that fetching the script effectively
-  only constitutes a write: reading the source will not leak any
-  user-sensitive from the provided URL.
-}
+request to \js|url| to fetch the source code.
+%% \footnote{
+%%   Since we allow LWorkers to execute inline scripts (via
+%%   data-URLs~\tocite{data-url}) that can be fetched with \xhr{},
+%%   workers scripts are fetched without sending sending
+%%   user-credentials.  This ensures that fetching the script effectively
+%%   only constitutes a write: reading the source will not leak any
+%%   user-sensitive from the provided URL.
+%% }
 %
 Since the context label corresponds to the public label, performing
 the request will not leak any data and thus \sys{} fetches the script
@@ -229,7 +346,7 @@ completely safe operation!
 To check the strength of the password, the page sends the LWorker the
 password with \js|postMessage|, and registers a message handler to
 receive the strength score:
-\begin{lstlisting}
+\begin{jscode}
 var password = 
  document.getElementById("password").value;
 // 3. Send checker password 
@@ -239,7 +356,7 @@ checker.onmessage = function(event) {
   var score = event.data; 
   // ...
 }
-\end{lstlisting}
+\end{jscode}
 Here, the \js|postMessage| takes a second argument: the label of the
 message \js|l|.
 %
@@ -271,7 +388,7 @@ otherwise data from the worker (which is at least as sensitive as
 To retrieve the password, the password-strength checker in the LWorker
 registers a message handler, which is invoked when the parent
 sends it a message (step 3 above):
-\begin{lstlisting}
+\begin{jscode}
 // checker.js ...
 function checkPassword(pass) { /* ... */ }
 
@@ -285,7 +402,7 @@ onmessage = function(event) {
   // 4. Check score & send it to parent:
   postMessage(checkPassword(password));
 };
-\end{lstlisting}
+\end{jscode}
 %
 Here, the LWorker first raises the context label to the clearance by
 setting \js|Nappy.label|.
@@ -337,7 +454,7 @@ Hence, to fully confine the password-strength checker we modify the
 corresponding label when creating the LWorker.
 %
 Th modified code is shown below.
-\begin{lstlisting}
+\begin{jscode}
 // Create fresh unique privilege
 var p = new FreshPrivilege();
 // Take ownership of this privilege
@@ -346,7 +463,7 @@ Nappy.own(p);
 var checker = new LWorker(url, p.asLabel);
 checker.postMessage(password, p.asLabel);
 // ...
-\end{lstlisting}
+\end{jscode}
 %
 
 %
