@@ -94,6 +94,7 @@ Label {
   Label and(String or Label)
   Label or(String or Label)
   bool subsumes(Label)
+  bool subsumes(Privilege, Label)
 }
 \end{webidl}
 &
@@ -126,8 +127,22 @@ the context label---when wishing to read more sensitive data, the
 context label can be raised (set) to the more restricting label,
 clearance permitting (see below).
 %
+This comparison between labels is the single restriction mechanism; we
+show its use in controlling cross-frame communication and content
+loading.
+
+Communication between different browsing contexts is dictated by the
+context label.
+%
+A \js|postMessage| from browsing context \js|A| will be
+sent to browsing context \js|B| if
+\js|B.privacyLabel.subsumes(A.privileges, A.privacyLabel)|,
+i.e., the label of the label on the message payload on the receiving
+end is at lest as restricting.
+
+
+
 \todo{ds}{Loading content}
-\todo{ds}{postMessage}
 \todo{ds}{XHR}
 %
 
