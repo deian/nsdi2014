@@ -83,18 +83,17 @@ security mechanisms in Table~\toref{table:components}.
 
 \begin{table*}[t]
 \centering
-\begin{tabular}{l | m{2.3in} | m{3.6in}}
+\begin{tabular}{l | m{2.35in} | m{3.5in}}
 \hline
 \textbf{Component} & \textbf{API} & \textbf{Description} 
 \\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Labels &  
 \begin{webidl}
 Label {
-  Label Label(optional String)
+  Label Label([String])
   Label and(String or Label)
   Label or(String or Label)
-  bool subsumes(Label)
-  bool subsumes(Privilege, Label)
+  bool subsumes(Label [,Privilege])
 }
 \end{webidl}
 &
@@ -127,25 +126,8 @@ the context label---when wishing to read more sensitive data, the
 context label can be raised (set) to the more restricting label,
 clearance permitting (see below).
 %
-This comparison between labels is the single restriction mechanism; we
-show its use in controlling cross-frame communication and content
-loading.
-
-Communication between different browsing contexts is dictated by the
-context label.
-%
-A \js|postMessage| from browsing context \js|A| will be
-sent to browsing context \js|B| if
-\js|B.privacyLabel.subsumes(A.privileges, A.privacyLabel)|,
-i.e., the label of the label on the message payload on the receiving
-end is at lest as restricting.
-
-
-
-\todo{ds}{Loading content}
-\todo{ds}{XHR}
-%
-
+This comparison between labels (using the current context's
+privileges) is the single mechanism used to restrict reads and writes.
 \\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Context clearance  &  
 \begin{webidl}
@@ -183,7 +165,7 @@ Labeled Workers  &
 LWorker {
   LWorker LWorker(String, Label)
   LWorker SOLWorker(String, Label)
-  postMessage(Object)
+  postMessage(Object [,Label])
   prop EventHandler onmessage
   void grant(Privilege)
 }
@@ -332,19 +314,30 @@ approach and sets the current label to the public label.
  
 Subsequently, we ensure that the current page is allowed to make a
 request to \js|url| to fetch the source code.
-%% \footnote{
-%%   Since we allow LWorkers to execute inline scripts (via
-%%   data-URLs~\tocite{data-url}) that can be fetched with \xhr{},
-%%   workers scripts are fetched without sending sending
-%%   user-credentials.  This ensures that fetching the script effectively
-%%   only constitutes a write: reading the source will not leak any
-%%   user-sensitive from the provided URL.
-%% }
 %
-Since the context label corresponds to the public label, performing
-the request will not leak any data and thus \sys{} fetches the script
-and executes it in the new browsing context, as shown in
-Figure~\toref{fig:strength-1}.
+As with loading content, writing to storage (including cookies), or
+performing explicit network requests with \xhr{}, \sys{} asserts that,
+given the current context privileges, the label of the
+resource---which, as in other end-point cases, is implicitly
+\js|Label(|\emph{resource origin}\js|)|---subsumes the context label.
+%
+In this case, \js|Label("https://checker.ru")| subsumes the public
+context label, hence performing the request will not leak any data and
+thus \sys{} fetches the script.
+
+Before executing executes the fetched script in a new browsing
+context, as shown in Figure~\toref{fig:strength-1}, \sys{} ensure that
+the label of the worker is at least as restricting as the current
+label.
+%
+Just as the context label protects all data in scope, the label of a
+worker protects the data within the worker, including messages sent to
+it. 
+%
+Hence, our check ensures that the page cannot ``declassify'' data by
+laundering it through a worker whose label is less sensitive than the
+context label.
+
 
 The LWorker starts executing the checker code with an initial label
 equal to that of the parent (in this case, the public label
@@ -758,3 +751,29 @@ according to 1) SOP: the worker can inspect responses from the origin
 of the document containing the LWorker, and 2) CORS: the worker can
 inspect a response from any origin if flexible CORS headers accompany
 the response.
+
+\Red{Put somewhere:
+
+Communication between different browsing contexts is dictated by the
+context label.
+%
+A \js|postMessage| from browsing context \js|A| will be
+sent to browsing context \js|B| if
+\js|B.privacyLabel.subsumes(A.privacyLabel, A.privileges)|,
+i.e., the label of the label on the message payload on the receiving
+end is at lest as restricting.
+%
+\Red{Our labeled \js|postMessage| API is given below.}
+
+Similarly, loading content, writing to local storage (including
+cookies), and performing explicit HTTP requests with \xhr{} requires
+that the current label be at most as restricting as the label of the
+resource.
+The implicit label of such entities corresponds to the origin named in
+the resource URL. For example, when loading a script (with the
+\js|<script>| tag) from \https{jquery.com} the label of the resource
+is implicitly \js|Label("https://jquery.com")|.
+
+%
+
+}
