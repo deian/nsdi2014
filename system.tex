@@ -322,19 +322,16 @@ resource---which, as in other end-point cases, is implicitly
 \js|Label(|\emph{resource origin}\js|)|---subsumes the context label.
 %
 In this case, \js|Label("https://checker.ru")| subsumes the public
-context label, hence performing the request will not leak any data and
-thus \sys{} fetches the script.
+context label, hence \sys{} fetches the script.
 
-Before executing executes the fetched script in a new browsing
-context, as shown in Figure~\toref{fig:strength-1}, \sys{} ensure that
-the label of the worker is at least as restricting as the current
-label.
+Before executing the fetched script in a new browsing context, as
+shown in Figure~\toref{fig:strength-1}, \sys{} ensures that the label
+of the worker is at least as restricting as the current label.
 %
 Just as the context label protects all data in scope, the label of a
-worker protects the data within the worker, including messages sent to
-it. 
+worker protects the data within the worker.
 %
-Hence, our check ensures that the page cannot ``declassify'' data by
+This check ensures that the page cannot ``declassify'' data by
 laundering it through a worker whose label is less sensitive than the
 context label.
 
