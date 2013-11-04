@@ -37,23 +37,19 @@
   commentstyle=\color{purple}\ttfamily,
   stringstyle=\color{red}\ttfamily,
   morestring=[b]',
-  morestring=[b]"
+  morestring=[b]",
+  backgroundcolor=\color{lightgray},
+  extendedchars=true,
+  basicstyle=\ttfamily\small,
+  showstringspaces=false,
+  showspaces=false,
+  tabsize=2,
+  breaklines=true,
+  showtabs=false,
 }
 
 
-\lstnewenvironment{jscode}
-    { \lstset{
-         language=JavaScript,
-         backgroundcolor=\color{lightgray},
-         extendedchars=true,
-         basicstyle=\ttfamily\small,
-         showstringspaces=false,
-         showspaces=false,
-         tabsize=2,
-         breaklines=true,
-         showtabs=false,
-      }
-    }{}
+\lstnewenvironment{jscode} { \lstset{ language=JavaScript, } }{}
 
 \lstnewenvironment{webidl}
     {\lstset{
@@ -68,7 +64,7 @@
     {}
 
 
-\newcommand{\js}{\lstinline[backgroundcolor=\color{white},breakatwhitespace=true,breaklines=true,basicstyle=\small\ttfamily]}
+\newcommand{\js}{\lstinline[language=JavaScript,backgroundcolor=\color{white},breakatwhitespace=true,breaklines=true,basicstyle=\small\ttfamily]}
 
 %%
 \begin{document}

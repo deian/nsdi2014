@@ -365,86 +365,67 @@ checker.onmessage = function(event) {
   // ...
 }
 \end{jscode}
-Here, the \js|postMessage| takes a second argument: the label of the
-message \js|l|.\footnote{
-  If an explicit label is not supplied to \js|postMessage|, \sys{}
-  uses the context label of the sender as the message label.
-}
+Here, \js|postMessage| additionally takes the label of the message
+\js|l|, which must be at most as restricive as the worker label.
 %
-This ensures that the message is dispatched to the checker only if its
-context label is at least as sensitive as \js|l|---thereby preserving
-the privacy of the \https{instagra.me} password.
+(If an explicit label is not supplied to \js|postMessage|, \sys{}
+uses the context label of the sender as the message label.)
+%
+We use this label to ensure that the message is dispatched to the
+checker only if its context label is at least as sensitive as
+\js|l|---thereby preserving the privacy of the password (which is
+protected by \js|l == Label("https://instagra.me")|.
 
-Dually, \sys{} ensures that the privacy of data sent by an
-LWorker (via \js|postMessage|) is preserved by its parent.
-%
-Hence, when registering an \js|onmessage| handler on an LWorker,
-\sys{} ensures that the context label is at least as restricting as
-the worker label.
-%
-To this end, the context label is ``raised'' to the least restricting
-label that allows information to flow from the worker, taking
-privileges and clearance into consideration.
-%
-In the case above, the context label remains unchanged when
-registering the handler since the parent has the privilege
-corresponding to the page origin used to label the worker.
-%
-If the page did not own the \https{instagra.me} privilege, the context
-label would be raised to the label of the worker \js|l|;
-%
-otherwise data from the worker (which is at least as sensitive as
-\js|l|) would be leaked into the less-sensitive context.
-
-To retrieve the password, the password-strength checker in the LWorker
-registers a message handler, which is invoked when the parent
-sends it a message (step 3 above):
+To retrieve the password, the password-strength checker registers a
+message-event handler, which is invoked when the parent sends it a
+message (step 3 above):
 \begin{jscode}
 // checker.js ...
-function checkPassword(pass) { /* ... */ }
-
 // Nappy.label == Label()
+function computeStrength(pass) { /* ... */ }
 
 // 2. Raise context label & register handler
-Nappy.label = Brobound.clearance;
-// ...label == Label("https://instagra.me")
+Nappy.label = Nappy.clearance;
+// Nappy.label == Label("https://instagra.me")
 onmessage = function(event) {
   var password = event.data;
   // 4. Check score & send it to parent:
-  postMessage(checkPassword(password));
+  postMessage(computeStrength(password));
 };
 \end{jscode}
 %
-Here, the LWorker first raises the context label to the clearance by
-setting \js|Nappy.label|.
+Importantly, the worker first raises the context label to the
+clearance, which is the worker label, by setting \js|Nappy.label|.
 %
 In doing so, the code is effectively stating that it is ready to
 receive data at sensitivity level \https{instagra.me}, at the cost of
-giving up arbitrary network communication privileges.
+giving up arbitrary communication privileges.
 %
-As shown in Figure~\toref{fig:strength-3}, it can now receive the
-sensitive password, but it can only use \xhr{} to communicate with
-\https{instagra.me};
+As shown in Figure~\toref{fig:strength-3}, the checker can now receive
+the sensitive password, but, for example, can only use \xhr{} to
+communicate with \https{instagra.me};
 %
-performing arbitrary network requests is no longer permitted.
+performing arbitrary network requests or creating arbitrarily labeled
+workers is no longer permitted.
 
+Finally, the event handler, which is supplied with the parent-supplied
+password, invokes the underlying password-strength checking function
+\js|computeStrength|.
 %
-The event handler, which takes the parent-supplied password, invokes
-the underlying password-strength checking function \js|checkPassword|.
-%
-The result of this function is then returned to the parent with
+The result of this function is returned to the page via
 \js|postMessage|.
 %
-Here, we do not supply \js|postMessage| with a label: the context
-label is implicitly used as the label on this message.
-%
+Since the page registered an event handler (step 5), as shown in
+Figure~\toref{fig:system:strength-4}, \sys{} ensures that the label of
+the parent context is at least as restrcting as the message label
+(which is the worker context label) and then dispatches the handler.
+ 
 The full life-cycle of this application is shown in
 Figure~\toref{fig:system:strength}.
-
 %
 In this example we relied on the page having ownership of the
-privilege corresponding to \https{instagra.me} to avoid tainting the
-context when reading the score from the checker, labeled with this
+\https{instagra.me} privilege as to avoid tainting the context when
+reading the score from the checker worker, which was labeld with this
 principal.
 %
 Unfortunately, this also means that our confinement of the checker is
@@ -458,7 +439,7 @@ This is precisely the role of fresh privileges.
 %
 A fresh privilege corresponds to a unique principal/origin whose
 scheme is prefixed by \texttt{x-}; this ensures that the \xhr{}
-constructor cannot be used to make requests to a corresponding host.
+constructor cannot be used to make requests to a real host.
 %
 Hence, to fully confine the password-strength checker we modify the
 \https{instagra.me} page to first create a fresh privilege and use the
@@ -472,14 +453,14 @@ var p = new FreshPrivilege();
 Nappy.own(p);
 // Use it to confine the worker completely:
 var checker = new LWorker(url, p.asLabel);
+// As before ..
+var password = 
+ document.getElementById("password").value;
+// 3. Send checker password 
 checker.postMessage(password, p.asLabel);
 // ...
 \end{jscode}
-%
-\todo{ds}{note that in this case you can only fetch dictionary from
-CORS-allowed pages}
 
-%
 \paragraph{Discussion}
 Different from current approaches, our system provides a client-side
 approach for flexibly and fully confining untrusted code:
@@ -493,8 +474,8 @@ access or none at all.
 %
 Moreover, our first-class workers and privileges makes security a
 first class citizen: not only can the page consider the checker
-untrusted, but if the checker could itself create fresh privileges and
-an LWorker in which it can execute code it itself does not consider
+untrusted, but the checker can itself create fresh privileges and a
+LWorkers in which it can execute code it itself does not consider
 trustworthy!
 
 \subsection{Cross-iframes confinement}
