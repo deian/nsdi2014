@@ -1,8 +1,8 @@
 \section{The \sys{} confinement system}
 \label{sec:system}
 
-In \sys, every browsing context has an associated security \emph{label},
-\emph{privilege}, and \emph{clearance}.
+In \sys, every browsing context has an associated security
+\emph{label}, \emph{privilege}, and \emph{clearance}.
 %
 The label of the browsing context serves as a ``taint,'' indicating
 the sensitivity of data the code executing within the context has
@@ -290,9 +290,9 @@ Different from the \js|Worker| constructor, the \js|LWorker|
 constructor takes an additional argument: a label that specifies the
 clearance on the code running in the worker browsing context.
 
-An LWorker is created using the \js|LWorker| constructor,
-which takes two arguments: the source of the code to execute in the
-worker, and the worker label.
+An LWorker is created using the \js|LWorker| constructor, which takes
+two arguments: the URL of the code to execute in the worker, and the
+worker label.
 %
 For example, we create a new LWorker that executes the
 password-strength checker code as follows:
@@ -307,49 +307,52 @@ Assuming the browsing context (main page) creating the worker has not
 enabled \emph{confinement-mode}, \sys{} first enables confinement-mode
 and sets the page label to the public label \js|Label()|.
 %
-A context can explicitly enable confinement-mode and set the context
-label to a label more restricting than the current label; when
-enabling confinement-mode implicitly, \sys{} takes a permissive
+In general, a context can explicitly enable confinement-mode and set
+the context label to a label more restricting than the current label;
+when enabling confinement-mode implicitly, \sys{} takes a permissive
 approach and sets the current label to the public label.
  
 Subsequently, we ensure that the current page is allowed to make a
 request to \js|url| to fetch the source code.
 %
-As with loading content, writing to storage (including cookies), or
-performing explicit network requests with \xhr{}, \sys{} asserts that,
-given the current context privileges, the label of the
-resource---which, as in other end-point cases, is implicitly
-\js|Label(|\emph{resource origin}\js|)|---subsumes the context label.
+As with loading content (e.g., images, styles and scripts), writing to
+storage (e.g., cookies), or performing explicit network requests with
+\xhr{}, \sys{} asserts that, given the current context privileges, the
+label of the resource---which is implicitly \js|Label(|\emph{resource
+origin}\js|)|---subsumes the context label.
 %
-In this case, \js|Label("https://checker.ru")| subsumes the public
-context label, hence \sys{} fetches the script.
+In this case, \js|Label("https://checker.ru")| subsumes the context
+label \js|Label()| and thus fetching the script is permitted.
 
-Before executing the fetched script in a new browsing context, as
-shown in Figure~\toref{fig:strength-1}, \sys{} ensures that the label
-of the worker is at least as restricting as the current label.
+Before executing the fetched script in a new browsing context, \sys{}
+ensures that the label of the worker is at least as restricting as the
+current label.
 %
-Just as the context label protects all data in scope, the label of a
-worker protects the data within the worker.
+Just as the context label protects all data in the context, the label
+of a worker protects the data within the worker (as observed by
+reading from the worker).
 %
 This check ensures that the page cannot ``declassify'' data by
 laundering it through a worker whose label is less sensitive than the
 context label.
 
-
-The LWorker starts executing the checker code with an initial label
-equal to that of the parent (in this case, the public label
-\js|Label()|).
+As shown in Figure~\toref{fig:strength-1}, \sys{} starts executing the
+checker code in the LWorker; the initial, worker context label is set
+to that of the parent (in this case, the public label \js|Label()|).
 %
-As shown in Figure~\toref{fig:strength-2}, at this point, the strength
-checker may fetch data, such as a list of weak passwords, from the
-same origin as the page, or any origins, CORS-permitting.
+At this point, the code can fetch data, such as a list of weak
+passwords, from the same origin as the page, or any origins,
+CORS-permitting.
 %
-It is important to note that since the checker has not yet read any
-sensitive data, as reflected by the context label, this is a
-completely safe operation!
+It is important to note that since the password-strength checker has
+not yet read any sensitive data, which is reflected in the context
+label, this is a completely safe operation.
+%
+Only once the code has decided to inspect the password should it not
+be able to perform such arbitrary network requests.
 
 To check the strength of the password, the page sends the LWorker the
-password with \js|postMessage|, and registers a message handler to
+password via \js|postMessage|, and registers a message handler to
 receive the strength score:
 \begin{jscode}
 var password = 
@@ -363,14 +366,17 @@ checker.onmessage = function(event) {
 }
 \end{jscode}
 Here, the \js|postMessage| takes a second argument: the label of the
-message \js|l|.
+message \js|l|.\footnote{
+  If an explicit label is not supplied to \js|postMessage|, \sys{}
+  uses the context label of the sender as the message label.
+}
 %
 This ensures that the message is dispatched to the checker only if its
-context label is at least as sensitive as \js|l|---thus ensuring
-that the privacy of \https{instagra.me} is preserved by the checker.
+context label is at least as sensitive as \js|l|---thereby preserving
+the privacy of the \https{instagra.me} password.
 
-Similarly, \sys{} must ensure that the privacy of data sent by an
-LWorker (with \js|postMessage|) is preserved by its parent.
+Dually, \sys{} ensures that the privacy of data sent by an
+LWorker (via \js|postMessage|) is preserved by its parent.
 %
 Hence, when registering an \js|onmessage| handler on an LWorker,
 \sys{} ensures that the context label is at least as restricting as
@@ -379,13 +385,13 @@ the worker label.
 To this end, the context label is ``raised'' to the least restricting
 label that allows information to flow from the worker, taking
 privileges and clearance into consideration.
-
-In the \https{instagra.me} code above, the context label remains
-unchanged when registering the handler since the code ``owns'' the
-principal corresponding to the page origin used to label the worker.
 %
-If the page did not own the \https{instagra.me} privilege it would
-have to raise the context label to the label of the worker \js|l|;
+In the case above, the context label remains unchanged when
+registering the handler since the parent has the privilege
+corresponding to the page origin used to label the worker.
+%
+If the page did not own the \https{instagra.me} privilege, the context
+label would be raised to the label of the worker \js|l|;
 %
 otherwise data from the worker (which is at least as sensitive as
 \js|l|) would be leaked into the less-sensitive context.
@@ -470,6 +476,8 @@ checker.postMessage(password, p.asLabel);
 // ...
 \end{jscode}
 %
+\todo{ds}{note that in this case you can only fetch dictionary from
+CORS-allowed pages}
 
 %
 \paragraph{Discussion}
