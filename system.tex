@@ -484,15 +484,16 @@ trustworthy!
 
 In the previous section, the \https{instagra.me} page imposed the
 requirement that the password-strength checker, executing in an
-LWorker, have a sufficiently high context label (such that it cannot
-exfiltrate the password) before receiving the password.
+LWorker, have a sufficiently high context label such that it cannot
+exfiltrate the password; otherwise \sys{} would not dispatch the
+password message.
 %
-More generally, our confinement mechanism allows developers to control
-where their data flows, even once said data is made available to an
-untrusted browsing context.
+In general, our confinement mechanism allows developers to control
+where their data can flow, even after said data is made available to
+an untrusted browsing context.
 %
-Below, we illustrate the notion of first-class confinement used
-in building a mostly untrusted password manager.
+Below, we extend our notion of first-class confinement to iframes by
+describing the design of a mostly untrusted password manager.
 
 \subsubsection{Current approach}
 %
@@ -503,40 +504,37 @@ Using existing mechanisms users are forced to either trust a password
 manager website with their website-specific (e.g., \https{fb.com})
 credentials or trust arbitrary websites (e.g., \https{fb.com}) with a
 master password they use to protect other site-specific
-credentials.\footnote{
-  Without loss of generality, we assume client-side encryption where
-  the credentials are decrypted by either the password manager or
-  \https{fb.com}.
-}
+credentials.
 %
 This issue of handling sensitive data is grave; insomuch, that all
 major browsers ship with build-in password managers.
 %
 A built-in password manager simply requires the user to place more
-trust on the browser, which they already trust to handle sensitive
-data.
+trust on the already-trusted browser.
 %
 Unfortunately, such built-in apps also increases the TCB of the
 browser.
 %
-Moreover, the approach does not scale; do we keep integrating apps
-into the browser TCB simply because there exists no mechanism that
-allows developers to express security policy on code that handles
-sensitive data?
+Moreover, this approach does not scale: are we to integrate apps into
+the browser TCB simply because there exists no mechanism that allows
+developers to express security policy on code that handles sensitive
+data?
 
 \subsubsection{\sys{} approach}
 %
 With \sys{}, we can leverage confinement to build a password manager
 as a website.
 %
-Our password manager is
-divided into two mutually distrusting components: a
-management layer (provided by e.g., \https{pwd.eff.org}) and a storage
-layer (provided by e.g., \https{dropcu.be}).
+Our password manager is divided into two mutually distrusting
+components: a management layer (provided by e.g., \https{pwd.eff.org})
+that interacts with the user to store and fetch credentials, and a
+storage layer (provided by e.g., \https{dropcu.be}) that provides a
+simple (effectively labeled) server-side storage API for the
+management layer.
 %
-This mutual distrust is instrumental to ensuring that neither party
-can individually compromise the user's privacy (and thus be wholly
-trusted).
+The mutual distrust between the layers is instrumental to ensuring
+that neither party can individually compromise the user's privacy (and
+would thus have to be wholly trusted).
 %
 
 %
@@ -544,15 +542,24 @@ Though a user can use such a password manager to store and fetch
 secrets directly, for simplicity, we assume that a website (e.g.,
 \https{fb.com}) integrates with the manager to save and load login
 credentials,\footnote{
-  \Red{TODO: mention the extension stuff}
+  In Section~\ref{sec:system:extension} we describe an untrusted
+  extenion system that can be used to inject the password-manager
+  specific code into the integrator page.
 } as shown in Figure~\toref{fig:manager-s-1}.
 %
-In this scenario, the security guarantees and trust concerns are as follows.
+Without loss of generality we also assume that encryption and
+decryption is carried out on the client-side by the management layer.
+%
+The security guarantees and trust concerns of this app are as follows:
 \begin{enumerate}
 \item The management layer never learns the site-specific
   (\https{fb.com}) credentials. The user need only trust this
-  component with their master password (which without the collusion
-  of the storage layer is not useful).
+  component with their master password (which without the collusion of
+  the storage layer is not useful); to remove this trust, users can
+  inspect the label of a browsing context using standard developer
+  tools or by right-clicking on the page (a functionality implemented
+  by the \sys{} supporting extension, describe in
+  Section~\toref{XXX}).
 \item The storage layer never learns the site-specific credentials
   or master password. The user need only trust the management layer to
   not collude with this layer.
