@@ -1,2 +1,37 @@
 \section{Background}
 \label{sec:background}
+
+
+
+\subsection {Same origin policy}
+
+The same origin policy is an important security concept for a number of
+browser-side programming languages~\cite{TODO}. This policy aims to maintain a strict
+separation between content provided by unrelated sites. It allows scripts
+running on pages originating from the same web site\footnote{An origin is
+  defined as a combination of scheme, hostname, and port number} to obtain data
+by \js|XMLHttpRequests|. Additionally, scripts from the same origin are allowed to
+access each other's DOM with no specific restrictions, but it prevents access to
+DOM on scripts from different sites. 
+
+Despite SOP, scripts can still achieved cross-origin communication in several
+manners. Modern browsers impose no restrictions on how URLs are used. Scripts
+are thus allowed to embedded images, scripts, styles and frames from arbitrary
+domains, where the URLs used for that purpose encode information from the
+current web page. Moreover, the SOP does not forbid performing cross-origin
+requests (only to observation of the responses): thus, it is trivial to write
+data to a third-party website. Finally, in the browser, cross-origin windows and
+frames can freely communicate bi-directionally by the use of fragment-id \cite{TODO}
+messaging as well as the \js|postMessage| API \cite{TODO}.
+
+
+
+\subsection {Cross-origin resource sharing} 
+
+
+
+% Local Variables:
+% TeX-master: "main.ltx"
+% TeX-command-default: "Make"
+% End:
+
