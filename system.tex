@@ -527,13 +527,14 @@ data?
 \subsubsection{\sys{} approach}
 %
 With \sys{}, we can leverage confinement to build a password manager
-as a website.
+as a website that does not force the user to place complete trust on
+any of the participating parties.
 %
 Our password manager is divided into two mutually distrusting
 components: a management layer (provided by e.g., \https{pwd.eff.org})
 that interacts with the user to store and fetch credentials, and a
 storage layer (provided by e.g., \https{dropcu.be}) that provides a
-simple (effectively labeled) server-side storage API for the
+simple---in effect, labeled---server-side storage API for the
 management layer.
 %
 The mutual distrust between the layers is instrumental to ensuring
@@ -544,7 +545,7 @@ would thus have to be wholly trusted).
 %
 Though a user can use such a password manager to store and fetch
 secrets directly, for simplicity, we assume that a website (e.g.,
-\https{fb.com}) integrates with the manager to save and load login
+\https{fb.com}) integrates with the manager to save and retrieve login
 credentials,\footnote{
   In Section~\ref{sec:system:extension} we describe an untrusted
   extenion system that can be used to inject the password-manager
@@ -554,19 +555,21 @@ credentials,\footnote{
 Without loss of generality we also assume that encryption and
 decryption is carried out on the client-side by the management layer.
 %
-The security guarantees and trust concerns of this app are as follows:
+Given this architecture, the security guarantees and trust concerns
+are as follows:
 \begin{enumerate}
 \item The management layer never learns the site-specific
   (\https{fb.com}) credentials. The user need only trust this
-  component with their master password (which without the collusion of
-  the storage layer is not useful); to remove this trust, users can
-  inspect the label of a browsing context using standard developer
-  tools or by right-clicking on the page (a functionality implemented
-  by the \sys{} supporting extension, describe in
-  Section~\toref{XXX}).
-\item The storage layer never learns the site-specific credentials
-  or master password. The user need only trust the management layer to
-  not collude with this layer.
+  component with their master password, which without the collusion of
+  the storage layer is not useful.
+  %
+  To eliminate this trust, users can inspect the label of a browsing
+  context using standard developer tools or by right-clicking on the
+  page (a functionality implemented by our supporting extension,
+  describe in Section~\toref{XXX}).
+\item The storage layer never learns the site-specific credentials or
+  master password. The user need only trust this layer to not collude
+  with the management layer.
 \item Finally, the integrator never learns the master password or
   credentials private to other websites (e.g., \https{goo.gl}).
 \end{enumerate}
