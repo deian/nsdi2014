@@ -111,7 +111,7 @@ Privilege {
 \\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Context label &  
 \begin{webidl}
-Nappy {
+Browbound {
   prop Label privacyLabel
 }
 \end{webidl}
@@ -131,7 +131,7 @@ privileges) is the single mechanism used to restrict reads and writes.
 \\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Context clearance  &  
 \begin{webidl}
-Nappy {
+Browbound {
   prop Label privacyClearance
 }
 \end{webidl}
@@ -150,7 +150,7 @@ restricting than the current clearance.
 \\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Context privileges  &  
 \begin{webidl}
-Nappy {
+Browbound {
   prop Privilege privileges
 }
 \end{webidl}
@@ -381,12 +381,12 @@ message-event handler, which is invoked when the parent sends it a
 message (step 3 above):
 \begin{jscode}
 // checker.js ...
-// Nappy.label == Label()
+// Browbound.label == Label()
 function computeStrength(pass) { /* ... */ }
 
 // 2. Raise context label & register handler
-Nappy.label = Nappy.clearance;
-// Nappy.label == Label("https://instagra.me")
+Browbound.label = Browbound.clearance;
+// Browbound.label == Label("https://instagra.me")
 onmessage = function(event) {
   var password = event.data;
   // 4. Check score & send it to parent:
@@ -395,7 +395,7 @@ onmessage = function(event) {
 \end{jscode}
 %
 Importantly, the worker first raises the context label to the
-clearance, which is the worker label, by setting \js|Nappy.label|.
+clearance, which is the worker label, by setting \js|Browbound.label|.
 %
 In doing so, the code is effectively stating that it is ready to
 receive data at sensitivity level \https{instagra.me}, at the cost of
@@ -450,7 +450,7 @@ Th modified code is shown below.
 // Create fresh unique privilege
 var p = new FreshPrivilege();
 // Take ownership of this privilege
-Nappy.own(p);
+Browbound.own(p);
 // Use it to confine the worker completely:
 var checker = new LWorker(url, p.asLabel);
 // As before ..
