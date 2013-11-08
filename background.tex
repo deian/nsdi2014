@@ -8,8 +8,8 @@
 The same origin policy is an important security concept for a number of
 browser-side programming languages~\cite{TODO}. This policy aims to maintain a strict
 separation between content provided by unrelated sites. It allows scripts
-running on pages originating from the same web site\footnote{An origin is
-  defined as a combination of scheme, hostname, and port number} to obtain data
+running on pages originating from the same web site\footnote{An origin is 
+defined as a combination of scheme, hostname, and port number} to obtain data
 by \js|XMLHttpRequests|. Additionally, scripts from the same origin are allowed to
 access each other's DOM with no specific restrictions, but it prevents access to
 DOM on scripts from different sites. 
@@ -24,10 +24,37 @@ data to a third-party website. Finally, in the browser, cross-origin windows and
 frames can freely communicate bi-directionally by the use of fragment-id \cite{TODO}
 messaging as well as the \js|postMessage| API \cite{TODO}.
 
+The SOP is sometimes too liberal and to conservative some other times. In this
+light, browsers adopt different mechanisms to either restricted or relaxed it.
+We briefly describe them below. 
+
+\subsection {Content security policy} 
+
+Content security policy  (CSP) \cite{TODO} helps to significantly reduce
+the risk (neglected by SOP) of freely handling URLs. CSP essentially describes
+a, on a page-by-page basis, which the origins from where different resources
+(scripts, images, etc.) may be safely loaded, i.e., it works as a simple
+white-list policy.  Web pages rely on server-support to insert CSP headers in
+\js|XMLHttpRequest|s responses. For instance, a page hosted in \js|a.com| 
+which supplies the CSP header with the directives 
+%
+\js|default-src: ’self’; img-src: b.com| 
+%
+restricts the page to load images from \js|a.com| and \js|b.com|.
 
 
-\subsection {Cross-origin resource sharing} 
 
+\subsection{Cross-origin resource sharing } 
+
+
+There are situations where it is desirable from scripts at different domains to
+communicate. With this in mind, cross-origin resource sharing (CORS) relaxes SOP
+by implementing a new browser-server protocol through HTTP headers.  Such
+headers specify from which domains scripts are allowed to fetch data 
+using \js|XMLHttpRequest|s. Moreover, in the browser, scripts loaded from
+those cross-origins have unrestricted access to each other's DOM
+trees. Unfortunately, any technique to subvert SOP works equally well with CORS 
+(e.g. fragmented-id, postMessages, etc.).
 
 
 % Local Variables:
