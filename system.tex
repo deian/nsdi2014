@@ -493,18 +493,20 @@ where their data can flow, even after said data is made available to
 an untrusted browsing context.
 %
 Below, we extend our notion of first-class confinement to iframes by
-describing the design of a mostly untrusted password manager.
+describing the design of a mostly untrusted password manager--- an
+application that allows users to use a single master password to
+manage multiple site-specific passwords.
 
 \subsubsection{Current approach}
 %
-Today's browser security mechanisms are not amendable for building a
+Today's browser security mechanisms are not useful when building a
 password manager as a website.
 %
-Using existing mechanisms users are forced to either trust a password
-manager website with their website-specific (e.g., \https{fb.com})
-credentials or trust arbitrary websites (e.g., \https{fb.com}) with a
-master password they use to protect other site-specific
-credentials.
+Specifically, the lack of confinement forces users to either trust the
+password manager website with their website-specific (e.g.,
+\https{fb.com}) credentials or trust arbitrary websites (e.g.,
+\https{fb.com}) with the master password that is used to to protect
+other credentials.
 %
 This issue of handling sensitive data is grave; insomuch, that all
 major browsers ship with build-in password managers.
@@ -512,10 +514,12 @@ major browsers ship with build-in password managers.
 A built-in password manager simply requires the user to place more
 trust on the already-trusted browser.
 %
-Unfortunately, such built-in apps also increases the TCB of the
-browser.
+Unfortunately, such built-in apps increase the TCB of the browser and
+don't always behave as desired (e.g., some password managers fill in
+forms with credentials before the form is submitted---making the
+password available to potentially untrustworthy JavaScript code).
 %
-Moreover, this approach does not scale: are we to integrate apps into
+Moreover, the approach does not scale: are we to integrate apps into
 the browser TCB simply because there exists no mechanism that allows
 developers to express security policy on code that handles sensitive
 data?
