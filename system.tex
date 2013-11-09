@@ -163,7 +163,7 @@ Code running in the context can get and set the current privileges.
 Labeled Workers  &  
 \begin{webidl}
 LWorker {
-  LWorker LWorker(String, Label)
+  LWorker LWorker(String, Label[, Privilege])
   LWorker SOLWorker(String, Label)
   postMessage(Object [,Label])
   prop EventHandler onmessage
@@ -341,12 +341,12 @@ checker code in the LWorker; the initial, worker context label is set
 to that of the parent (in this case, the public label \js|Label()|).
 %
 At this point, the code can fetch data, such as a list of weak
-passwords, from the same origin as the page, or any origins,
-CORS-permitting.
+passwords, from any origin, CORS-permitting.
 %
 It is important to note that since the password-strength checker has
 not yet read any sensitive data, which is reflected in the context
-label, this is a completely safe operation.
+label, this is a safe operation: making the request does not leak any
+information.
 %
 Only once the code has decided to inspect the password should it not
 be able to perform such arbitrary network requests.
@@ -652,10 +652,10 @@ leak it on retrieval.
 As in the case of saving credentials the integrator, \https{fb.com},
 creates two frames containing the management and storage layers.
 %
-In this case, the storage layer retrieves the encrypted credentials
-\js|E|$_k$\js|(credentials)|, \js|salt| and ownership meta-data (in
-this case \https{fb.com}) and register an \js|onmessage| event
-handler:
+In this scenario, the storage layer retrieves the encrypted credentials
+\js|E|$_k$\js|(credentials)|, salt and ownership meta-data (in this
+case, \https{fb.com}) and register an \js|onmessage| event handler, 
+similar to the one showed below.
 \begin{jscode}
 function handler(event) {
   // ... check origin ...
@@ -669,24 +669,26 @@ window.addEventListener("message", handler);
 This handler simply replies via \js|postMessage| with the credentials.
 %
 Importantly, however, the message is labeled with the origin meta-data
-stored on the server-side, 
+retrieved from the server.
 %
 This ensures that the frame requesting the credentials---the
-management layer, in this case---must have a context label that is at
-least as restricting.
+management layer---must have a context label that is at least as
+restricting.
 %
 This guarantees that even if the management layer did not encrypt the
-credentials during the storage procedure, it cannot learn and
-ex filtrate the credentials through the retrieval process---it can
-only disseminate the credentials to the corresponding owner.
+credentials during the save procedure, it cannot learn and
+exfiltrate the credentials through the retrieval process; the context
+label ensures that it can only disseminate the credentials to the
+corresponding owner.
 %
 
-Like the storage layer, the management layer first registers a message
-handler to receive the encrypted credentials.
+Like the storage layer, in this scenario, the management layer first
+registers a message handler to receive the encrypted credentials.
 %
-Via \js|window.parent.frames| it retrieves a pointer to the storage
-layer to which it sends a message requesting the encrypted credentials
-after raising its context label to \js|Label("https://fb.com")|.
+Via \js|window.parent.frames| the layer retrieves a pointer to the
+storage layer to which it sends a message requesting the encrypted
+credentials after raising its context label to
+\js|Label("https://fb.com")|.
 %
 Figure~\toref{fig:manager-r-2} illustrates this.
 %
@@ -720,58 +722,111 @@ privileges and extending LWorkers with DOM objects}
 \label{sec:system:mashup}
 %Third-party Mashup
 %
-\sys{} restricts the communication capabilities of a
-browsing context once it has read sensitive data, i.e., cross-origin
-data from another browsing context.
+\sys{} restricts the communication capabilities of a browsing context
+once it has read sensitive data, i.e., data from a browsing context
+with a more restricting label.
 %
 As envisioned in~\tocite{hotos}, by equipping the browser with such
 confinement mechanism we can safely relax the SOP.
 %
 This, in turn, allows developers to build applications that access
-cross-origin data---in a safe manner---to build applications that are
-not otherwise possible today.
+cross-origin data---in a safe manner and without server-side
+support---to build applications that are not otherwise possible today.
 %
 As an example, we consider third-party mashups.
 
-In a third-party mashup, a party, such as \https{mint.ru},
+In a third-party mashup, a party, such as \https{mint.biz},
 incorporates user-sensitive data from unaffiliated parties, such as
 \https{bank.ch} and \https{amazon.com}, to present users with new
 interfaces or functionality.
 %
-The third party, \https{mint.ru}, may wish to present the user with a
+The third party, \https{mint.biz}, may wish to present the user with a
 visualization of their spending habits, or identify fraudulent
 \https{amazon.com} purchases using their \https{bank.ch} account, etc.
 %
-Of course, SOP does not allow \https{mint.ru} to access the user's
-\https{amazon.com} and\https{bank.ch} data, e.g., using \xhr{}, unless
-the parties explicitly trust \https{mint.ru} by setting correct CORS
-headers~\tocite{CORS}.
+Currently, such applications cannot be built since the SOP prevents
+\https{mint.biz} from accessing the user's \https{amazon.com} and
+\https{bank.ch} data, e.g., using \xhr{}.\footnote{
+ We assume that neither \https{amazon.com} nor \https{bank.ch}
+ explicitly trust \https{mint.biz}; otherwise, the parties can
+ explicitly set CORS headers~\tocite{CORS} to give \https{mint.biz}
+ access to such data.
+}
+%
+However, with \sys{}, we can allow \https{mint.biz} to access such
+data, provided that once the data is inspected the code cannot perform
+arbitrary network requests (or storage writes).
+ 
+To this end, we modify the \xhr{} constructor to add an additional
+flag that indicates whether or not the object should be treated as a
+\emph{labeled XHR object}.
+%
+When set, the implicit label of the object corresponds to the origin
+to whom the request is being made (set with the \js|open| method) and
+accessing the object state, including the response, is dictated by
+confinement (not SOP).
+%
+Specifically, when accessing any of the methods or properties of
+the object, \sys{} ensures that underlying read- and write-effects do
+not violate the confinement guarantees provided by the context label.
+%
+For example, when calling the \js|send| method, which performs the
+actual network request, we check that the (implicit) label of the
+remote origin, to whom the request is being sent, subsumes the current
+context label;
+%
+this ensures that performing the request does not leak any
+information.
+%
+When accessing any of the response attributes (e.g., \js|status|,
+\js|responseText|, etc.) we ensure that the context can inspect (read)
+the state of the XHR object which may contain data from the remote
+host.
+%
+Specifically, \sys{} checks that the context label is at least as
+restricting as the label of the XHR object.
+%
+However, when reading from labeled XHR objects, \sys{} removes the
+burden of manually raising the context from the developer and flexibly
+raises the context label as necessary, clearance permitting, as
+in~\tocite{lio}.
+%
+Finally, and as in the case of dispatching \js|onmessage| handlers
+between labeled browsing contexts, when dispatching any registered XHR
+handlers (e.g., \js|onabort|, \js|onload|, etc.) we ensure that the
+context label is at least as restricting as the label of the XHR
+object.
+ 
+We note that our modified XHR object allows the response of a
+cross-origin request to be inspected, regardless of the CORS headers.
+%
+Though more flexible than the SOP, this is safe since inspecting the
+response raises the context label, and thus restricts all subsequent
+side effects.
+%
+Returning to our mashup example, once \https{mint.biz} inspects the
+response of an \https{amazon.com} request, it cannot perform requests
+to any origin other than \https{amazon.com}.
+%
+Once the code further inspects a response from \https{bank.ch}, no
+additional requests can be made: the context label must be at least as
+restricting as \js|Label("https://amazon.com").and("https://bank.ch")|
+to inspect the response and no host label subsumes such label. 
+%
+However, such data can be shared with labeled pages and workers whose
+context label ensures that the privacy of the will be preserved.
+% 
+In fact, our third-party mashup application creates two LWorkers, one
+communicating with \https{amazon.com} and another with
+\https{bank.ch}, since the application may need to, for example, fetch
+multiple statements or invoices; the parent iframe in turn simply
+reads from the two workers and combines the data into a graph that the
+user interacts with.
+%
 
-However, with \sys{} we can allow \https{mint.ru} to access such data,
-provided that future writes respect the privacy of the retrieved data.
-%
-To this end, we can allow code executing in certain labeled workers to
-inspect the response of an \xhr{} request at the cost of raising the
-context label (and thereby giving up write-privileges).
-%
-These cross-origin labeled workers (COLWorkers), are identical, in
-both their API and semantics to the LWorkers detailed in
-Section~\ref{sec:system:worker}, and only differ in two ways.
-%
-First, the privacy label supplied to the \js|COLWorker| constructor
-must correspond to a single origin (e.g.,
-\js|Label("https://bank.ch")|); conversely, the \js|LWorker|
-constructor does not impose any restrictions on the label.
-%
-Second, \xhr{} responses from this origin can be inspected by the
-COLWorker code, regardless of the page (that created the COLWorker)
-origin or explicit CORS headers set on the response.
-%
-This is different from LWorkers, who can only inspect \xhr{} responses
-according to 1) SOP: the worker can inspect responses from the origin
-of the document containing the LWorker, and 2) CORS: the worker can
-inspect a response from any origin if flexible CORS headers accompany
-the response.
+
+
+
 
 \Red{Put somewhere:
 
@@ -780,7 +835,7 @@ context label.
 %
 A \js|postMessage| from browsing context \js|A| will be
 sent to browsing context \js|B| if
-\js|B.privacyLabel.subsumes(A.privacyLabel, A.privileges)|,
+\js|B.privacyLabel.subsumes(A.privacyLabel.and(B.privacyLabel), A.privileges)|,
 i.e., the label of the label on the message payload on the receiving
 end is at lest as restricting.
 %
