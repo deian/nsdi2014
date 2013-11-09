@@ -729,41 +729,41 @@ with a more restricting label.
 As envisioned in~\tocite{hotos}, by equipping the browser with such
 confinement mechanism we can safely relax the SOP.
 %
-This, in turn, allows developers to build applications that access
-cross-origin data---in a safe manner and without server-side
-support---to build applications that are not otherwise possible today.
+This relaxation, in turn, allows developers to build applications that access
+cross-origin data---in a safe manner and without server-side support---to build
+applications that are not otherwise possible today.
 %
 As an example, we consider third-party mashups.
 
 In a third-party mashup, a party, such as \https{mint.biz},
-incorporates user-sensitive data from unaffiliated parties, such as
-\https{bank.ch} and \https{amazon.com}, to present users with new
+incorporates user-sensitive data from unaffiliated origins, such as
+\https{bank.ch} and \https{amazon.com}, in order to present users with new
 interfaces or functionality.
 %
-The third party, \https{mint.biz}, may wish to present the user with a
+For instance, the third party, \https{mint.biz}, may wish to present the user with a
 visualization of their spending habits, or identify fraudulent
 \https{amazon.com} purchases using their \https{bank.ch} account, etc.
 %
 Currently, such applications cannot be built since the SOP prevents
-\https{mint.biz} from accessing the user's \https{amazon.com} and
+\https{mint.biz} from accessing the users' \https{amazon.com} and
 \https{bank.ch} data, e.g., using \xhr{}.\footnote{
  We assume that neither \https{amazon.com} nor \https{bank.ch}
  explicitly trust \https{mint.biz}; otherwise, the parties can
- explicitly set CORS headers~\tocite{CORS} to give \https{mint.biz}
+ explicitly set CORS headers~\tocite{CORS} to provide \https{mint.biz}
  access to such data.
 }
 %
-However, with \sys{}, we can allow \https{mint.biz} to access such
-data, provided that once the data is inspected the code cannot perform
+In contrast, \sys{} is able to allow \https{mint.biz} to access such
+data, provided that once the data is inspected, scripts cannot perform
 arbitrary network requests (or storage writes).
  
 To this end, we modify the \xhr{} constructor to add an additional
-flag that indicates whether or not the object should be treated as a
-\emph{labeled XHR object}.
+flag that indicates whether the object should be treated as a
+\emph{implicitly labeled XHR object}.
 %
-When set, the implicit label of the object corresponds to the origin
-to whom the request is being made (set with the \js|open| method) and
-accessing the object state, including the response, is dictated by
+When set, the  label of the object corresponds to the origin
+to whom the request is being made (set with the \js|open| method). 
+Accessing the object state, including the response, is dictated by
 confinement (not SOP).
 %
 Specifically, when accessing any of the methods or properties of
@@ -771,7 +771,7 @@ the object, \sys{} ensures that underlying read- and write-effects do
 not violate the confinement guarantees provided by the context label.
 %
 For example, when calling the \js|send| method, which performs the
-actual network request, we check that the (implicit) label of the
+actual network request, \sys~ checks that the (implicit) label of the
 remote origin, to whom the request is being sent, subsumes the current
 context label;
 %
@@ -779,11 +779,10 @@ this ensures that performing the request does not leak any
 information.
 %
 When accessing any of the response attributes (e.g., \js|status|,
-\js|responseText|, etc.) we ensure that the context can inspect (read)
-the state of the XHR object which may contain data from the remote
-host.
+\js|responseText|, etc.), \sys~ ensures that the browsing context can inspect
+(read) the state of the XHR object which may contain data from the remote host.
 %
-Specifically, \sys{} checks that the context label is at least as
+Specifically, it checks that the context label is at least as
 restricting as the label of the XHR object.
 %
 However, when reading from labeled XHR objects, \sys{} removes the
@@ -791,37 +790,46 @@ burden of manually raising the context from the developer and flexibly
 raises the context label as necessary, clearance permitting, as
 in~\tocite{lio}.
 %
-Finally, and as in the case of dispatching \js|onmessage| handlers
-between labeled browsing contexts, when dispatching any registered XHR
-handlers (e.g., \js|onabort|, \js|onload|, etc.) we ensure that the
-context label is at least as restricting as the label of the XHR
-object.
+Finally, and as in the case of dispatching \js|onmessage| handlers,
+%between labeled browsing contexts, 
+when dispatching any registered XHR
+handlers (e.g., \js|onabort|, \js|onload|, etc.), \sys~ ensures that the
+context label subsumes the label of the XHR object, i.e., it can observe 
+the presence of the message.
  
-We note that our modified XHR object allows the response of a
+We note that our modified notion of a XHR object allows the response of a
 cross-origin request to be inspected, regardless of the CORS headers.
 %
-Though more flexible than the SOP, this is safe since inspecting the
-response raises the context label, and thus restricts all subsequent
-side effects.
+Though more flexible than the SOP, such action is still safe since inspecting
+the response raises the context label, and thus restricts all subsequent side
+effects.
 %
 Returning to our mashup example, once \https{mint.biz} inspects the
 response of an \https{amazon.com} request, it cannot perform requests
 to any origin other than \https{amazon.com}.
 %
 Once the code further inspects a response from \https{bank.ch}, no
-additional requests can be made: the context label must be at least as
-restricting as \js|Label("https://amazon.com").and("https://bank.ch")|
-to inspect the response and no host label subsumes such label. 
+additional requests can be made: the context label  
+\js|Label("https://amazon.com").and("https://bank.ch")|
+cannot be subsumed by any origin label. 
+% in order to 
+% to inspect the response.
 %
-However, such data can be shared with labeled pages and workers whose
-context label ensures that the privacy of the will be preserved.
+However, data in the browsing context can still be shared with labeled pages and
+workers which preserve its privacy.
+%whose context labels preserve the privacy described by 
+%\js|Label("https://amazon.com").and("https://bank.ch")|.
+% %ensures that the privacy of the will be preserved.
 % 
-In fact, our third-party mashup application creates two LWorkers, one
-communicating with \https{amazon.com} and another with
-\https{bank.ch}, since the application may need to, for example, fetch
-multiple statements or invoices; the parent iframe in turn simply
-reads from the two workers and combines the data into a graph that the
-user interacts with.
+Sometimes, applications need to be carefully designed to avoid loosing the
+capability of performing XHR request. In fact, our third-party mashup
+application creates two LWorkers, one communicating with \https{amazon.com} and
+another with \https{bank.ch}. After all, the mashup may need to, for example,
+fetch multiple statements or invoices due to user interaction (e.g. scrolling
+down); the parent iframe in turn simply reads from the two workers and combines
+the data in order to present it to the user.
+%into a graph that the user interacts
+%with.
 %
 
 
