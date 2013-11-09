@@ -110,9 +110,33 @@ on the hypothesis of the implication. Intuitively, label $l_2$ does not require 
 include the origins in $p$ in order to make the implication hold, i.e., 
 $l_2$ could be formed by removing some origins appearing in both $p$ and $l_1$.
  
-The API for handling labels and privileges are described in Table~\ref{systemAPI}. 
-% Then, the API API for DC labels is described in Figure \ref{}.   
-%% Explain the API
+The API for handling labels and privileges are described in
+Table~\ref{systemAPI}. Constructor \js|Label| create labels based on strings
+given as arguments. The purpose of properties \js|and| and \js|or| 
+were exemplified before in this section.  Property \js|subsumes| checks if a
+label subsumes the one given as argument. When no second argument is
+given, \js|l2.subsumes(l1)| tests if \js|l1| $\sqsubseteq$
+\js|l2|. Alternatively, privileges are taken into account and
+\js|l2.subsumes(l1,p)| tests if \js|l1| $\sqsubseteq_{\mbox{\js|p|}}$ \js|l2|.
+The API for privileges deserves further explanation.
+
+%\Red{Why both? Privilege and FreshPrivilege. Isn't privilege internal only?}
+\sys~ allows the safe creation of privileges by the constructor
+\js|FreshPrivilege|. Freshly created privileges cannot denote
+origins---otherwise, any piece of code could run on behalf of any origin.
+Nevertheless, these privileges enable web pages to organize their code using the
+\emph{least-privilege discipline}: computations may be compartmentalized into
+sub-computations, with the privileges of the computation subdivided so that each
+sub-computation runs with least privilege. Property \js|combine| creates
+potentially stronger privileges based on existing ones. The code 
+\js|p1.combine(p2)| creates a privilege denoting $\mbox{\js|p1|} \land
+\mbox{\js|p2|}$.  Dually, property \js|mint| create weaker privileges. Given a
+label \js|l|, the code \js|p.mint(l)| creates a privilege denoting \js|l| provided that
+$\mbox{\js|l|} \sqsubseteq \mbox{\js|p|}$. Minting privileges is particularly
+useful for implementing some notions of delegation~\cite{stefan:2011:dclabels}.  By convention,
+\sys~ threats \js|null| as the weakest privilege, i.e., no privileges.
+
+
 
 
 

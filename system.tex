@@ -101,9 +101,9 @@ Label {
 Privileges &  
 \begin{webidl}
 Privilege {
-  Privilege Privilege()
   Privilege FreshPrivilege()
-  Privilege and(Privilege)
+  Privilege combine(Privilege)
+  Privilege mint(Label)
   Label asLabel(Privilege)
 }
 \end{webidl}
@@ -798,3 +798,10 @@ is implicitly \js|Label("https://jquery.com")|.
 %
 
 }
+
+
+
+% Local Variables:
+% TeX-master: "main.ltx"
+% TeX-command-default: "Make"
+% End:
