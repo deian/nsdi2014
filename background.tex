@@ -134,7 +134,9 @@ potentially stronger privileges based on existing ones. The code
 label \js|l|, the code \js|p.mint(l)| creates a privilege denoting \js|l| provided that
 $\mbox{\js|l|} \sqsubseteq \mbox{\js|p|}$. Minting privileges is particularly
 useful for implementing some notions of delegation~\cite{stefan:2011:dclabels}.  By convention,
-\sys~ threats \js|null| as the weakest privilege, i.e., no privileges.
+\sys~ threats \js|null| as the weakest privilege, i.e., no privileges. Finally,
+property \js|asLabel| exposes the label that a privilege denotes. 
+
 
 
 
