@@ -57,6 +57,65 @@ trees. Unfortunately, any technique to subvert SOP works equally well with CORS
 (e.g. fragmented-id, postMessages, etc.).
 
 
+\subsection{Lattice-based security}
+
+%% The idea of principals
+\paragraph{Principals and labels}
+\sys~ specifies policies in terms of origins, i.e., principals, providing web content. \Red{check
+  with Deian, is it origin (port, scheme, etc) or just domain?} 
+These origins are identified by URL, e.g., 
+\js|http://maps.google.com:80/| denotes a well-known map provider principal. 
+
+Conceptually, \sys~ describes security policies by associating labels to every
+piece of data. Labels express restrictions on information propagation according
+to the interests of multiple web context providers. Among different
+information-flow label systems~\cite{CSF2013}, we adopt the use of disjunction
+category (DC) labels~\cite{TODO} due to its simple semantics. 
+In this setting, DC labels are conjunctive normal form of
+origins. As an example, the label
+\js|Label("https://bank.ch").and("https://amazon.com")| attached to a piece
+of data indicates that it might contain sensitive information from both origins;
+therefore it
+should not be propagated to less sensitive entities, e.g.,
+\js|Label("https://amazon.com")|---otherwise, bank data could be leaked into
+\js|amazon.com|. 
+%% Or?
+
+\Red{perhaps subsumes is better?}
+Based on logic implication, DC labels can be ordered by their degree of
+sensitivity in order to form a lattice. Considering confidentiality
+(integrity proceeds in a dual manner), $l_1$ is less or equally sensitive than
+$l_2$, written $l_1 \sqsubseteq l_2$, iff $l_2 \Rightarrow l_1$ when interpreting
+origins as boolean variables. Alternatively, we say that $l_2$ subsumes $l_1$. 
+
+\sys~ support unforgeable objects denoting origins called privileges. These
+objects are used to assert the authority of principals, i.e., whatever scripts
+running with the privilege denoting \js|https://amazon.com| is treated like
+coming from that origin even if it did not. Based on the privileges in scope,
+scripts are capable to restrictively declassify sensitive information.  As an
+example, a piece of code running with a privilege denoting
+\js|"https://amazon.com"| can relabel a piece of data with
+\js|Label("https://bank.ch").and("https://amazon.com")| to
+\js|Label("https://bank.ch")|; and thus effectively downgrading information to
+the bank. Exercising privileges is captured by a more permissive pre-order
+relationship $\sqsubseteq_p$, where $l_1 \sqsubseteq_p l_2$ provided that $l_2
+\land p \Rightarrow l_1$. Observe how the privileges are used on the hypothesis
+of the implication. Consequently, $l_2$ does not need to include the origins in
+$p$ in order to make the implication hold. If $l_2$ is formed by removing the
+origins from $p$ and appearing in $l_1$, it holds that $l_1 \sqsubseteq_p l_2$. 
+ 
+
+%% Formal definition 
+
+
+% Privileges
+% Then, the API API for DC labels is described in Figure \ref{}.   
+%% Explain the API
+
+
+
+
+
 % Local Variables:
 % TeX-master: "main.ltx"
 % TeX-command-default: "Make"
