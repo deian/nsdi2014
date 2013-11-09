@@ -805,7 +805,7 @@ the object, \sys{} ensures that underlying read- and write-effects do
 not violate the confinement guarantees provided by the context label.
 %
 For example, when calling the \js|send| method, which performs the
-actual network request, \sys~ checks that the (implicit) label of the
+actual network request, \sys{} checks that the (implicit) label of the
 remote origin, to whom the request is being sent, subsumes the current
 context label;
 %
@@ -813,7 +813,7 @@ this ensures that performing the request does not leak any
 information.
 %
 When accessing any of the response attributes (e.g., \js|status|,
-\js|responseText|, etc.), \sys~ ensures that the browsing context can inspect
+\js|responseText|, etc.), \sys{} ensures that the browsing context can inspect
 (read) the state of the XHR object which may contain data from the remote host.
 %
 Specifically, it checks that the context label is at least as
@@ -827,7 +827,7 @@ in~\tocite{lio}.
 Finally, and as in the case of dispatching \js|onmessage| handlers,
 %between labeled browsing contexts, 
 when dispatching any registered XHR
-handlers (e.g., \js|onabort|, \js|onload|, etc.), \sys~ ensures that the
+handlers (e.g., \js|onabort|, \js|onload|, etc.), \sys{} ensures that the
 context label subsumes the label of the XHR object, i.e., it can observe 
 the presence of the message.
  
@@ -849,26 +849,29 @@ cannot be subsumed by any origin label.
 % in order to 
 % to inspect the response.
 %
-However, data in the browsing context can still be shared with labeled pages and
-workers which preserve its privacy.
+However, data in the browsing context can still be shared with labeled
+pages and workers which preserve their privacy.
 %whose context labels preserve the privacy described by 
 %\js|Label("https://amazon.com").and("https://bank.ch")|.
 % %ensures that the privacy of the will be preserved.
 % 
-Sometimes, applications need to be carefully designed to avoid loosing the
-capability of performing XHR request. In fact, our third-party mashup
-application creates two LWorkers, one communicating with \https{amazon.com} and
-another with \https{bank.ch}. After all, the mashup may need to, for example,
-fetch multiple statements or invoices due to user interaction (e.g. scrolling
-down); the parent iframe in turn simply reads from the two workers and combines
-the data in order to present it to the user.
-%into a graph that the user interacts
-%with.
+
+This is important since it allows us to build applications that retain
+their ability to perform cross-origin requests accross the lifetime of
+a page.
 %
-
-
-
-
+For example, in our third-party mashup we create two labeled contexts
+that use the labeled XHR constructor according to user input, one
+communicating with \https{amazon.com} and another with
+\https{bank.ch}.
+%
+The data is is combined in a third iframe (labeled
+\js|Label("https://amazon.com").and("https://bank.ch")|, which is
+contained in a public parent page.
+%
+The latter page performs all the navigation in addition to conveying
+the user input (e.g., ``get next statement'') to the first two
+contexts.
 
 
 
