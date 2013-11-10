@@ -20,16 +20,26 @@ constructor).
 %
 Since different components may be provided by different authors, it is
 important that these complex interactions abide by a security policy.
+ 
+Policies are expressed in terms of \emph{origins}; an origin is a
+source of authority encoded by the protocol (e.g., \js|http|), domain
+name (e.g., \js|fb.com|), and port (e.g., \js|443|) of a resource
+URL.\footnote{
+  For brevity, we do not write the port of an origin, when it is the
+  default port for a particular protocol (e.g., \js|80| for \js|http|
+  and \js|443| for \js|https|).
+}
 %
-Currently, the dominant browser security policies are the
-\emph{same-origin policy (SOP)}~\tocite{}, \emph{content security
+(We sometimes use the term \emph{principal} interchangeably.)
+%
+Below we briefly review the core browser security policies, including
+the \emph{same-origin policy (SOP)}~\tocite{}, \emph{content security
 policy (CSP)}~\tocite{}, and \emph{cross-origin resource origin
 (CORS)} policy~\tocite{}.
 %
-In this section, we briefly review these policies.
 %
 We note that our review is not exhaustive (e.g., we not discuss the
-use of \js|X-Frame-Options| in preventing the loading of a page as a
+the \js|X-Frame-Options| header, which prevents loading a page in a
 nested browsing context, etc.);  the interested reader is referred
 to~\tocite{} for a more complete discussion on web security.
 
@@ -38,10 +48,7 @@ to~\tocite{} for a more complete discussion on web security.
 \subsection{Same origin policy}
 \label{sec:background:sop}
 
-The same-origin policy (SOP) is the primary security ``policy'' on the
-web.
-%
-The policy specifies that resources (e.g., images, scripts, documents,
+The SOP specifies that resources (e.g., images, scripts, documents,
 etc.) of an origin\footnote{
 An origin is 
 defined as a tuple consisting of a resource URL's scheme (e.g.,
