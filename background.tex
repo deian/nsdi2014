@@ -1,9 +1,67 @@
 \section{Background}
 \label{sec:background}
 
+%% In this section, we briefly review the browser architecture and
+%% security model.
+%
+As shown in Figure~\toref{fig:browser-arch}, a web page is composed of
+content and JavaScript code.
+%
+The browser provides an environment, called the \emph{browsing
+context}, within which the page's content is presented to the user and
+made accessible to JavaScript through the \emph{Document Object Model
+(DOM)}~\tocite{html5}.
+%
+Within this context, the content/code may create and interact with
+nested browsing contexts (e.g., iframes), use persistent storage
+(e.g., cookies) or perform network requests (either implicitly through
+content loading or explicitly, in JavaScript, using the \xhr{}
+constructor).
+%
+Since different components may be provided by different authors, it is
+important that these complex interactions abide by a security policy.
+%
+Currently, the dominant browser security policies are the
+\emph{same-origin policy (SOP)}~\tocite{}, \emph{content security
+policy (CSP)}~\tocite{}, and \emph{cross-origin resource origin
+(CORS)} policy~\tocite{}.
+%
+In this section, we briefly review these policies.
+%
+We note that our review is not exhaustive (e.g., we not discuss the
+use of \js|X-Frame-Options| in preventing the loading of a page as a
+nested browsing context, etc.);  the interested reader is referred
+to~\tocite{} for a more complete discussion on web security.
 
 
-\subsection {Same origin policy}
+
+\subsection{Same origin policy}
+\label{sec:background:sop}
+
+The same-origin policy (SOP) is the primary security ``policy'' on the
+web.
+%
+The policy specifies that resources (e.g., images, scripts, documents,
+etc.) of an origin\footnote{
+An origin is 
+defined as a tuple consisting of a resource URL's scheme (e.g.,
+\js|http|), hostname (e.g., \js|fb.com|, and port number (e.g.,
+\js|80|). In most cases we treat an origin as a string (e.g.,
+\https{fb.com}) in which we omit the port, if it is standard, i.e., 80
+or 443.
+} should only be readable by content from the same
+origin~\cite{rfc6454, VanKesteren2012, googlehandbook}.
+%
+However, the separation of origins is not strict.
+%
+For example, the SOP does not restrict the embedding of images,
+scripts, styles and frames from arbitrary domains. 
+%
+Moreover, content from different origins can communicate
+bidirectionally by setting a common \js{document.domain}, modifying
+the \js{window.name} property, using fragment-id
+messaging~\cite{fragmentmessaging}, or using the \js{postMessage}
+API~\cite{webmessaging}.
 
 The same origin policy is an important security concept for a number of
 browser-side programming languages~\tocite{}. This policy aims to maintain a strict
