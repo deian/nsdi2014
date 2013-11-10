@@ -483,21 +483,28 @@ trustworthy!
 %Password manager 
 
 In the previous section, the \https{instagra.me} page imposed the
-requirement that the password-strength checker, executing in an
-LWorker, have a sufficiently high context label such that it cannot
-exfiltrate the password; otherwise \sys{} would not dispatch the
-password message.
+requirement that the password-strength checker
+cannot exfiltrate the password by assuring a sufficiently high context label.  
+%, executing in an
+%LWorker, have a sufficiently high context label such that it 
+%% To far from previous section, I believe the idea is clear.
+%otherwise \sys{} would not dispatch the
+%password message.
 %
 More generally, by associating a label with every browsing context
 (including pages/iframes) and restricting external side-effects
-according to it, our confinement mechanism can give developers a means
+according to it, \sys{}'s confinement mechanism can give developers means
 for controlling where user data can flow, even after the data is made
-available to an untrusted browsing context.
+available to untrusted browsing contexts.
 %
-Below, we highlight the shortcomings of existing mechanisms and need
-for confinement by considering the implementation of a password
-manager---an application that allows users to use a single master
-password to manage multiple site-specific passwords---as a website.
+Below, we highlight the shortcomings of existing security mechanisms applied to 
+confinement 
+%for confinement 
+%and need
+%for confinement 
+by considering the implementation of a password manager website---a web service
+that allows users to utilize a single master password to manage multiple
+site-specific passwords.%---as a website.
 
 \subsubsection{Current approach}
 %
@@ -505,85 +512,96 @@ Today's browser security mechanisms are not useful when building a
 password manager as a website.
 %
 Specifically, the lack of confinement forces users to either trust the
-password manager website with their website-specific (e.g.,
-\https{fb.com}) credentials or trust arbitrary websites (e.g.,
-\https{fb.com}) with the master password that is used to to protect
-other credentials.
+password manager website with their website-specific  credentials 
+(e.g., from 
+\https{fb.com}) or trust arbitrary websites (e.g.,
+\https{fb.com}) with the master password.
+% used to protect
+% other credentials.
 %
 This issue of handling sensitive data is grave; insomuch, that all
-major browsers ship with build-in password managers.
+major browsers are shipped with built-in password managers.
 %
 A built-in password manager simply requires the user to place more
 trust on the already-trusted browser.
 %
-Unfortunately, such built-in apps increase the TCB of the browser and
-don't always behave as desired (e.g., some password managers fill in
-forms with credentials before the form is submitted---making the
+Unfortunately, such built-in apps increase the TCB of the browser and, even
+worse, they do not always behave as desired (e.g., some password managers fill in
+forms with credentials before submitting it---making the
 password available to potentially untrustworthy JavaScript code).
 %
-Moreover, the approach does not scale: are we to integrate apps into
-the browser TCB simply because there exists no mechanism that allows
-developers to express security policy on code that handles sensitive
-data?
+Moreover, building-in more and more functionality into the browser does not
+scale up: are we going to integrate apps into the browser TCB simply because
+there are no mechanisms 
+%allowing developers 
+to express security policies on code which handles sensitive data?
 
 \subsubsection{\sys{} approach}
 %
 With \sys{}, we can leverage confinement to build a password manager
-as a website that does not force the user to place complete trust on
+website where the user is not forced to place complete trust on 
 any of the participating parties.
 %
 Our password manager is divided into two mutually distrusting
 components: a management layer (provided by e.g., \https{pwd.eff.org})
-that interacts with the user to store and fetch credentials, and a
-storage layer (provided by e.g., \https{dropcu.be}) that provides a
-simple---in effect, labeled---server-side storage API for the
+that interacts with the user, 
+%to store and fetch credentials, 
+and a storage layer (provided by e.g., \https{dropcu.be}) that provides a
+simple
+%---in effect, labeled---
+%A bit confusing describing it at this point
+server-side storage API for the
 management layer.
 %
-The mutual distrust between the layers is instrumental to ensuring
+The mutual distrust between the layers is instrumental to ensure
 that neither party can individually compromise the user's privacy (and
 would thus have to be wholly trusted).
 %
 
 %
-Though a user can use such a password manager to store and fetch
-secrets directly, for simplicity, we assume that a website (e.g.,
-\https{fb.com}) integrates with the manager to save and retrieve login
-credentials,\footnote{
-  In Section~\ref{sec:system:extension} we describe an untrusted
-  extenion system that can be used to inject the password-manager
-  specific code into the integrator page.
-} as shown in Figure~\toref{fig:manager-s-1}.
+Though a user can use such a password manager to store and fetch secrets
+directly, for simplicity, we assume that a website (e.g., \https{fb.com})
+integrates with the manager in order to save and retrieve login
+credentials,\footnote{ In Section~\ref{sec:system:extension} we describe an
+  untrusted extenion system that can be used to inject the password-manager
+  specific code into the integrator page.  } as shown in
+Figure~\toref{fig:manager-s-1}.
 %
-Without loss of generality we also assume that encryption and
+Without loss of generality, we assume that encryption and
 decryption is carried out on the client-side by the management layer.
 %
 Given this architecture, the security guarantees and trust concerns
 are as follows:
-\begin{enumerate}
-\item The management layer never learns the site-specific
-  (\https{fb.com}) credentials. The user need only trust this
-  component with their master password, which without the collusion of
-  the storage layer is not useful.
+\begin{enumerate}[i)]
+\item The management layer never learns the site-specific (\https{fb.com})
+  credentials. The user only need to trust this component with their master
+  password. We note that, without the collusion of the storage layer, the
+  management layer cannot exploit the master password in order to reveal
+  credentials.
+
   %
-  To eliminate this trust, users can inspect the label of a browsing
-  context using standard developer tools or by right-clicking on the
-  page (a functionality implemented by our supporting extension,
-  describe in Section~\toref{XXX}).
-\item The storage layer never learns the site-specific credentials or
-  master password. The user need only trust this layer to not collude
-  with the management layer.
+  To eliminate the given trust, users can provide the master password given 
+  that the label of a browsing context is ``high enough'' to confine it. 
+  Browsing context labels can be inspected either by standard developer tools or
+  by right-clicking on the page (a functionality implemented by our supporting
+  extension, describe in Section~\toref{XXX}).
+
+\item The storage layer never learns the site-specific credentials or master
+  password. The user only need to trust this layer to not collude with the
+  management layer. \Red{A realistic assumption is decentralized environment
+    like the web.}
 \item Finally, the integrator never learns the master password or
   credentials private to other websites (e.g., \https{goo.gl}).
 \end{enumerate}
 %
-Importantly, the guarantees must be preserved when both, the
+Importantly, the described guarantees must be preserved when both, the
 password manager is used to save and retrieve the credentials.
 
 
 Communication between different browsing contexts is dictated by the
 context and message labels.
 %
-Below we respectively describe the interaction of all the components
+Below, we respectively describe the interaction of all the components
 in saving and retrieving credentials.
 
 \paragraph{Saving credentials}
@@ -595,31 +613,30 @@ another containing the \https{dropcu.be} storage layer.
 As part the initialization process, the management layer saves a
 pointer to the storage layer (via \js|window.parent.frames|), both
 layers register \js|onmessage| event handlers, and the expected
-sensitivity of data, i.e., labels, to be shared is exchanged.
+sensitivity of data, i.e., labels, to be exchanged.
 %
 Subsequently, the integrator sends the credentials to the management
 layer via \js|postMessage|.
 %
 The label of the message is set to
-\js|Label("https://fb.com").or("https://dropcu.be")|; this ensures
-that the management layer can only receive the message if it has
-raised its context label to a label that is at least as
-restricting---thereby loosing ability to communicate outside the
-\https{fb.com} and \https{dropcu.be} layers.\footnote{
-  To confine the management layer more strictly, the message can be
-  labeled with a label corresponding to a fresh principal generated by
-  \https{fb.com}. Importantly, the privilege must be granted to the
-  storage layer.
-}
+\js|Label("https://fb.com").or("https://dropcu.be")|; this label ensures that
+the management layer can only receive the message if it has raised its context
+label so that it subsumes the label of the message---thereby loosing the ability to
+communicate outside the \https{fb.com} and \https{dropcu.be} layers.\footnote{
+  To confine the management layer more strictly, the message can be labeled with
+  a label corresponding to a fresh principal generated by
+  \https{fb.com}. Importantly, the privilege must be granted to the storage
+  layer.  }
+\Red{Ale: can it be learned by the storage layer?}
 
 In general, and as in the LWorker case, the browsing context's
 \js|onmessage| handler is only dispatched in the context label
 subsumes the message label.
 %
-This ensures that the context's label is sufficiently strict to
+This restriction ensures that the context's label is sufficiently strict to
 protect the privacy of the message.
 %
-For iframes, this does not solely amount to restricting the ussage of
+For iframes, the restriction does not solely amount to limiting the usage of
 \js|postMessage| and the \xhr{} constructor.
 %
 Rather, \sys{} restricts all network, storage and
@@ -630,7 +647,7 @@ label be subsumed by the message label, when loading content (e.g.,
 with \js|<img>|, \js|<script>|, etc.), writing to local storage
 (e.g., cookies), performing explicit HTTP requests with \xhr{}, or
 navigating the window, we require that the context label be subsumed
-by the (implicit) label of the resource.
+by the (implicit) label of the utilized resource.
 %
 This ensures that the action (which is effectively a write) does not
 leak any information from the context to a less-sensitive entity.
@@ -641,8 +658,8 @@ into consideration.)
  
 Returning to our password manager, upon receiving the credentials
 (\js|credentials|) via the \js|onmessage| handler, the management
-layer requests the master password (\js|mpass|) from the user, and
-generates a salt (\js|salt|) and encryption key $k =
+layer requests the master password (\js|mpass|) from the user, 
+generates a salt (\js|salt|), and encryption key $k =
 H(\texttt{mpass}\|\texttt{"}\https{fb.com}\texttt{"}\|\texttt{salt})$,
 as shown in Figure~\toref{fig:manager-s-2}.
 %
@@ -658,17 +675,19 @@ layer will not be able to confuse it, during the retrieval process,
 into decrypting \https{fb.com}'s credentials when invoked by a
 different site, e.g., \https{goo.gl}.
 
-After, the management layer sends \js|E|$_k$\js|(credentials)| and the
-\js|salt| via \js|postMessage| to the storage layer (the pointer to
-which was saved during initialization).
+After the key generation, the management layer sends
+\js|E|$_k$\js|(credentials)| and the \js|salt| via \js|postMessage| to the
+storage layer (for that, it uses the pointer saved during initialization).
 %
+\Red{don't get it, the manager has label fb or dropcu.be so we can just send a 
+message with exactly the label dropcu.be}
 Assuming that the label of the message is at most as restricting as
 \js|Label("https://dropcu.be")|, the storage layer's \js|onmessage|
 handler will be dispatched. 
 %
-Since the frame has the \https{dropcu.be} privilege, it need not raise
-its context label; this allows the storage layer to use \xhr{} to send
-the data to the server. 
+Since the storage layer frame has the \https{dropcu.be} privilege, it does not
+require to raise its context label; this fact allows the storage layer to use
+\xhr{} to send the data to the server in the \js|dropcu.be| domain.
  
 We note that, in addition to the credentials and salt, the storage
 layer also stores the origin of the parent, i.e., \https{fb.com}, as
@@ -679,7 +698,7 @@ storage layer alongside the credentials, by requiring \https{fb.com}
 to create the frame, we ensure that a malicious management layer
 cannot confuse the storage layer into associating \https{fb.com}'s
 encrypted data with a different origin, e.g., \https{goo.gl}, and thus
-leak it on retrieval.
+leaking it on retrieval.
 
 \paragraph{Retrieving credentials}
 %
@@ -689,7 +708,8 @@ creates two frames containing the management and storage layers.
 In this scenario, the storage layer retrieves the encrypted credentials
 \js|E|$_k$\js|(credentials)|, salt and ownership meta-data (in this
 case, \https{fb.com}) and register an \js|onmessage| event handler, 
-similar to the one showed below.
+similar to the one showed below. \Red{for what? to react when getting the 
+response from the server?}
 \begin{jscode}
 function handler(event) {
   // ... check origin ...
@@ -705,11 +725,10 @@ This handler simply replies via \js|postMessage| with the credentials.
 Importantly, however, the message is labeled with the origin meta-data
 retrieved from the server.
 %
-This ensures that the frame requesting the credentials---the
-management layer---must have a context label that is at least as
-restricting.
+This ensures that the context label of the frame requesting the
+credentials---the management layer---must subsume the label of the message. 
 %
-This guarantees that even if the management layer did not encrypt the
+This restriction guarantees that, even if the management layer did not encrypt the
 credentials during the save procedure, it cannot learn and
 exfiltrate the credentials through the retrieval process; the context
 label ensures that it can only disseminate the credentials to the
@@ -719,7 +738,7 @@ corresponding owner.
 Like the storage layer, in this scenario, the management layer first
 registers a message handler to receive the encrypted credentials.
 %
-Via \js|window.parent.frames| the layer retrieves a pointer to the
+Via \js|window.parent.frames|, it retrieves a pointer to the
 storage layer to which it sends a message requesting the encrypted
 credentials after raising its context label to
 \js|Label("https://fb.com")|.
@@ -731,7 +750,7 @@ credentials and salt is dispatched and the
 master password (\js|mpass|) is retrieved from the user. 
 %
 Using the master password and salt, the management layer reconstructs
-key $k$, which used to decrypt the encrypted credentials.
+the key $k$, which used to decrypt the encrypted credentials.
 %
 Finally, the decrypted credentials are sent (via \js|postMessage|) to
 the \https{fb.com} browsing context.
