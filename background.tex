@@ -107,11 +107,12 @@ Unfortunately, once the sender sends the foreign-origin a message, it
 has no control over what the origin can do with the data.
 %
 Hence, sending sensitive data using \js|postMessage| should only be
-done if the foreign-origin is trusted.
+done if the foreign-origin is trusted;
 %
-As described in Section~\ref{sec:system}, \sys{} allows code to
-control what the foreign-origin can do with their data, and thus
-removes this need for complete trust.
+in Section~\ref{sec:system:iframe}, we describe how \sys{} precisely
+allows code to impose restrictions on where the foreign-origin can
+disseminate data received via \js|postMessage|, removing this need for
+complete trust.
 
 \subsection{Content Security Policy} 
 \label{sec:background:csp}
