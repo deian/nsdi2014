@@ -15,7 +15,7 @@ made accessible to JavaScript through the \emph{Document Object Model
 Within this context, the content/code may create and interact with
 nested browsing contexts (e.g., iframes), use persistent storage
 (e.g., cookies) or perform network requests (either implicitly through
-content loading or explicitly, in JavaScript, using the \xhr{}
+content loading or explicitly, in JavaScript, using the \xhr{} (XHR)
 constructor).
 %
 Since different components may be provided by different authors, it is
@@ -45,55 +45,76 @@ to~\tocite{} for a more complete discussion on web security.
 
 
 
-\subsection{Same origin policy}
+\subsection{Same-origin Policy}
 \label{sec:background:sop}
 
-The SOP specifies that resources (e.g., images, scripts, documents,
-etc.) of an origin\footnote{
-An origin is 
-defined as a tuple consisting of a resource URL's scheme (e.g.,
-\js|http|), hostname (e.g., \js|fb.com|, and port number (e.g.,
-\js|80|). In most cases we treat an origin as a string (e.g.,
-\https{fb.com}) in which we omit the port, if it is standard, i.e., 80
-or 443.
-} should only be readable by content from the same
-origin~\cite{rfc6454, VanKesteren2012, googlehandbook}.
+The SOP specifies that resources of an origin should only be readable
+by content from the same origin~\tocite{rfc6454, VanKesteren2012,
+googlehandbook}.
 %
-However, the separation of origins is not strict.
+Hence, browsers ensure that code executing in a \https{a.com} context
+can only inspect the DOM and cookies of another context if they share
+the same origin.
 %
-For example, the SOP does not restrict the embedding of images,
-scripts, styles and frames from arbitrary domains. 
+Similarly, the code can only inspect the response of a network
+request---performed with XHR---if the remote host's origin is
+\https{a.com}.
 %
-Moreover, content from different origins can communicate
-bidirectionally by setting a common \js{document.domain}, modifying
-the \js{window.name} property, using fragment-id
-messaging~\cite{fragmentmessaging}, or using the \js{postMessage}
-API~\cite{webmessaging}.
+In general, the SOP isolates code in one page from accessing client-
+and server-side data associated with another origin.
+ 
+The SOP does, not however, prevent code from disclosing data to other
+origins.
+%
+For example, code executing in an \https{a.com} context can trivially
+disclose data to \https{b.com} by using XHR to perform a network
+request to \https{b.com}; the SOP only prevents the code from
+inspecting the response of such XHR requests, it does not impose any
+sending the request.
+%
+Similarly, code can exfiltrate data by encoding it in the path of a
+URL, whose origin is \https{b.com}, and setting the \js|src| property
+of (among other) an \js|img| element to this URL.
 
-The same origin policy is an important security concept for a number of
-browser-side programming languages~\tocite{}. This policy aims to maintain a strict
-separation between content provided by unrelated sites. It allows scripts
-running on pages originating from the same web site\footnote{An origin is 
-defined as a combination of scheme, hostname, and port number} to obtain data
-by \js|XMLHttpRequests|. Additionally, scripts from the same origin are allowed to
-access each other's DOM with no specific restrictions, but it prevents access to
-DOM on scripts from different sites. 
+This ability to embed content from an arbitrary origin can also be
+used to communicate data back into the page and ``bypass'' SOP's goal
+of disallowing cross-origin reads.
+%
+This is possible because most content is not completely opaque. 
+%
+For example, images can encode data in properties such as width and
+height (which are always readable), scripts can encode data in their
+execution path (e.g., as done by JSON-P~\tocite{jsonp}), etc.
+%
 
-Despite SOP, scripts can still achieved cross-origin communication in several
-manners. Modern browsers impose no restrictions on how URLs are used. Scripts
-are thus allowed to embedded images, scripts, styles and frames from arbitrary
-domains, where the URLs used for that purpose encode information from the
-current web page. Moreover, the SOP does not forbid performing cross-origin
-requests (only to observation of the responses): thus, it is trivial to write
-data to a third-party website. Finally, in the browser, cross-origin windows and
-frames can freely communicate bi-directionally by the use of fragment-id \tocite{}
-messaging as well as the \js|postMessage| API \tocite{}.
+The popularization of such ad-hoc cross-origin communication methods,
+(notably, those relying on \js|window.name| and
+\js|window.location|~\tocite{thidpartyjs}), has lead to the
+introduction of the HTML5 \js|postMessage| API~\tocite{webmessaging}.
+%
+This API allows code from different browsing contexts to exchange
+messages, as shown in Figure~\toref{fig:browser-arch}.
+%
+Given a DOM window object \js|obj| with a foreign-origin, the
+\js|postMessage| method can be invoked on it to send the
+foreign-origin a message: \js|obj.postMessage(message, destOrigin)|.
+%
+Since pages can navigate, a second argument \js|destOrigin| is used to
+specify the intended origin of the message as to prevent
+man-in-the-middle attacks attacks~\tocite{barthspaper}.
+%
+Unfortunately, once the sender sends the foreign-origin a message, it
+has no control over what the origin can do with the data.
+%
+Hence, sending sensitive data using \js|postMessage| should only be
+done if the foreign-origin is trusted.
+%
+As described in Section~\ref{sec:system}, \sys{} allows code to
+control what the foreign-origin can do with their data, and thus
+removes this need for complete trust.
 
-The SOP is sometimes too liberal and to conservative some other times. In this
-light, browsers adopt different mechanisms to either restricted or relaxed it.
-We briefly describe them below. 
-
-\subsection {Content security policy} 
+\subsection{Content Security Policy} 
+\label{sec:background:csp}
 
 Content security policy  (CSP) \tocite{} helps to significantly reduce
 the risk (neglected by SOP) of freely handling URLs. CSP essentially describes
@@ -110,6 +131,7 @@ restricts the page to load images from \js|a.com| and \js|b.com|.
 
 
 \subsection{Cross-origin resource sharing } 
+\label{sec:background:cors}
 
 
 There are situations where it is desirable from scripts at different domains to
