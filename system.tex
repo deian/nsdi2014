@@ -114,42 +114,43 @@ Similarly, performing network requests and accessing persistent
 storage is dictated by the relationship of the context label and
 implicit labels of these end-points.
 
-\sys{} makes SOP's notion of authority of code over page content
+\sys{} makes SOP's notion of the authority of code over page content
 explicit using \emph{privileges}.
 %
 Privileges are unforgeable objects with which code can
 assert the authority of their corresponding origins to declassify
 that origin's data.
 %
-In \sys, scripts are granted the privilege corresponding to the
-page origin.
+In \sys, the code in a browsing context is given the privilege
+corresponding to the page origin.
 %
-In turn, the privilege can are used when performing the \js|subsumes|
-label check to bypass restrictions imposed by any component subsumed
-by the privilege.
+In turn, the privilege is used when performing any \js|subsumes|
+label checks.
 %
 For example, a script running in an \https{amazon.com} page has the
-privilege corresponding to the \https{amazon.com} origin,
-which can be used, for example, to downgrade label
-\js|Label("https://bank.ch").and("https://amazon.com")| to
-\js|Label("https://bank.ch")|.
+privilege corresponding to the \https{amazon.com} origin.
 %
-In doing so, it is removing the restriction of imposed by
-\https{amazon.com} in the label and declassifying data labeled as
-such.
+Without this privilege the script cannot perform any XHR requests
+if the context label is
+\js|Label("https://bank.ch").and("https://amazon.com")|;
+the label of an end-point cannot subsume such a conjunctive policy.
 %
-This, in turn, allows \https{bank.ch} to further declassify the data
-(to the public label \js|Label()|) and disseminate it as necessary.
+However, with the  \https{amazon.com} privilege, the code can perform
+XHR requests to \https{bank.com};
+%
+in doing so, the code is effectively declassifying any
+\https{amazon.com}-sensitive data used in the request.
  
 Importantly, code cannot synthesize arbitrary privileges.
 %
 For example a script executing in a \https{amazon.com} browsing
-context cannot create a privilege for \https{bank.ch}---this would
-trivially violate any confinement guarantees.
+context cannot create a privilege for \https{bank.ch} and declassify
+arbitrary bank data---this would trivially violate any confinement
+guarantees.
 %
 In our system, code can only create the empty privilege (which is
-simply the JavaScript \js|null|) and privileges corresponding to
-fresh, unique origins (create with \js|new FreshPrivilege()|).
+simply the JavaScript \js|null| object) and privileges corresponding
+to fresh, unique origins (create with \js|new FreshPrivilege()|).
 %
 As in HiStar~\tocite{histar}, the ability to generate fresh
 privileges, in addition to having the ability to grant them, ensures
@@ -164,10 +165,13 @@ may be exploited to leak sensitive data.
 %
 Hence, as in HiStar~\tocite{histar}, Hails~\tocite{hails}, and
 Breeze~\tocite{breeze} we associate a \emph{clearance}---which is
-simply a label---with every compartment, imposing a limit on the kind
-of data a compartment can have, and thus a piece of code can access.
+simply a label---with every compartment.
+%
+Clearance imposes a limit on the kind of data a compartment can have,
+i.e., it is an upper-bound on compartment label, and thus the kind of
+data a piece of code can access.
 
-In the rest of this section, we describe the \sys{} design through
+In the rest of this section, we expand on the \sys{} design through
 three concrete examples: 
 a password-strength checker (Section~\ref{sec:system:worker}),
 a password manager (Section~\ref{sec:system:iframe}), 
