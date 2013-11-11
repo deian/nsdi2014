@@ -151,8 +151,8 @@ browsers do not actually perform requests in such cases.
 %
 Hence, in addition to addressing XSS attacks, in practice, CSP can
 be used to restrict the origins to whom data can be exfiltrated by
-code executing in the browsing context---a drastic improvement over
-the SOP!
+malicious code executing in the browsing context---recall that all code
+within a page has the same authority, regardless of the source origin.
 %
 Unfortunately, this only gives developers the choices of trusting code
 with communicating with an origin in full or not at all;
@@ -194,93 +194,6 @@ entity) in many cases this is overly restricting;
 in Section~\ref{sec:system:mashup} we show how \sys{} overcomes this
 shortcoming by allowing code to read arbitrary cross-origin
 data in a safe and controlled manner.
-
-
-\subsection{Lattice-based security}
-
-%% The idea of principals
-\paragraph{Principals and labels}
-
-\sys~ consider principals as the origins\footnote{consisting of triples of the
-  form \js|{protocol, host, port}|} responsible for providing web
-content. Principals are usually identified by URLs, e.g., 
-\js|http://maps.google.com:80/| denotes a well-known map provider.
-Conceptually, \sys~ describes security policies by associating labels to every
-piece of data. Labels express restrictions on information propagation according
-to the interests of multiple principals (i.e. origins). Among different
-information-flow label systems~\cite{GenLabels}, we adopt the use of disjunction
-category (DC) labels~\cite{stefan:2011:dclabels} due to its simple and clear
-semantics.
-
-For a web scenario setting, we conceive DC labels as the conjunctive normal form
-of origins. Logical conjunction expresses concomitant of concerns. For instance,
-data labeled as \js|Label("https://bank.ch").and("https://amazon.com")|
-indicates that it might contain sensitive information from both origins;
-therefore it should not be propagated to less sensitive entities, e.g.,
-\js|Label("https://amazon.com")|---otherwise, some bank data could be leaked
-into \js|amazon.com|. Additionally, DC labels support egalitarian access to data
-through disjunctions, e.g., data labeled as 
-\js|Label("https://amazon.com").or("https://bank.ch")| can be
-observed by any of the mentioned origins. 
-
-More formally, and based on logic implication, DC labels can be ordered by their
-degree of sensitivity in order to form a lattice. Considering confidentiality
-(integrity proceeds in a dual manner), $l_1$ is less or equally sensitive than
-$l_2$, written $l_1 \sqsubseteq l_2$, iff $l_2 \Rightarrow l_1$ when
-interpreting origins as boolean variables. To support a notion of 
-declassification, DC labels relax the order relationship $\sqsubseteq$ based
-on code's privileges.  
-
-
-\sys~ support privileges in the form of unforgeable objects denoting
-origins. These objects are used to assert the authority of principals.  Any
-script running with a privilege denoting, for instance, \js|https://amazon.com|
-is treated like coming from that origin even if it did not.  Conceptually
-speaking, privileges have the same shape as labels, i.e., conjunctive normal
-form of origins.  Based on the privileges in scope, scripts are capable to
-restrictively declassify sensitive information.  As an example, a piece of code
-running with a privilege denoting \js|"https://amazon.com"| can relabel a piece
-of data with \js|Label("https://bank.ch").and("https://amazon.com")| to
-\js|Label("https://bank.ch")|; and thus effectively downgrading information to
-the bank. Formally, exercising privileges is captured by a more permissive
-pre-order relationship $\sqsubseteq_p$, where $l_1 \sqsubseteq_p l_2$ holds
-provided that $l_2 \land p \Rightarrow l_1$. Observe how the privileges are used
-on the hypothesis of the implication. Intuitively, label $l_2$ does not require to
-include the origins in $p$ in order to make the implication hold, i.e., 
-$l_2$ could be formed by removing some origins appearing in both $p$ and $l_1$.
- 
-The API for handling labels and privileges are described in
-Table~\ref{systemAPI}. Constructor \js|Label| create labels based on strings
-given as arguments. The purpose of properties \js|and| and \js|or| 
-were exemplified before in this section.  Property \js|subsumes| checks if a
-label subsumes the one given as argument. When no second argument is
-given, \js|l2.subsumes(l1)| tests if \js|l1| $\sqsubseteq$
-\js|l2|. Alternatively, privileges are taken into account and
-\js|l2.subsumes(l1,p)| tests if \js|l1| $\sqsubseteq_{\mbox{\js|p|}}$ \js|l2|.
-The API for privileges deserves further explanation.
-
-%\Red{Why both? Privilege and FreshPrivilege. Isn't privilege internal only?}
-\sys~ allows the safe creation of privileges by the constructor
-\js|FreshPrivilege|. Freshly created privileges cannot denote
-origins---otherwise, any piece of code could run on behalf of any origin.
-Nevertheless, these privileges enable web pages to organize their code using the
-\emph{least-privilege discipline}: computations may be compartmentalized into
-sub-computations, with the privileges of the computation subdivided so that each
-sub-computation runs with least privilege. Property \js|combine| creates
-potentially stronger privileges based on existing ones. The code 
-\js|p1.combine(p2)| creates a privilege denoting $\mbox{\js|p1|} \land
-\mbox{\js|p2|}$.  Dually, property \js|mint| create weaker privileges. Given a
-label \js|l|, the code \js|p.mint(l)| creates a privilege denoting \js|l| provided that
-$\mbox{\js|l|} \sqsubseteq \mbox{\js|p|}$. Minting privileges is particularly
-useful for implementing some notions of delegation~\cite{stefan:2011:dclabels}.  By convention,
-\sys~ threats \js|null| as the weakest privilege, i.e., no privileges. Finally,
-property \js|asLabel| exposes the label that a privilege denotes. 
-
-
-
-
-
-
 
 
 % Local Variables:

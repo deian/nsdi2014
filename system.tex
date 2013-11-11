@@ -1,15 +1,40 @@
 \section{The \sys{} confinement system}
 \label{sec:system}
 
-In \sys, every browsing context has an associated security
-\emph{label}, \emph{privilege}, and \emph{clearance}.
+In this section we describe the \sys{} system.
 %
-The label of the browsing context serves as a ``taint,'' indicating
-the sensitivity of data the code executing within the context has
-read.
+\sys{} differs from existing browser security mechanism in providing
+\emph{confinement}, i.e., ability to give code access to sensitive
+data while ensuring that it cannot release it
+arbitrarily~\tocite{saltzer}.
 %
-Labels are specified in terms of \emph{principals}, which
-correspond to origins, whose privacy is at stake.\footnote{
+The confinement mechanism allows developers to enforce both, policies
+that are stricter than the SOP and policies that are more flexible
+than the SOP (yet still safe), without imposing the limitations of CSP
+and CORS.
+%
+In this section, we first describe how policies are encoded in \sys{}
+followed by the system design itself.
+
+\subsection{Policies and confinement in \sys{}}
+\label{sec:system:policy}
+
+Conceptually, \sys{} associates a security policy with every piece of
+data in the system, specifying which origins can read and write the
+data.
+%
+Such policies are known as \emph{labels}.
+%
+The particular labels used by \sys{} are the \emph{DC
+labels} presented in~\cite{stefan:2011:dclabels}.
+%
+We chose DC labels, much like Hails~\tocite{hails} and
+Breeze~\tocite{breeze}, because they are as expressive as labels used
+by other practical confinement systems~\cite{GenLabels}, but have a
+simple and clear semantics.
+
+A privacy label (henceforth just label) is a boolean formula over
+origins, specifying who can read the data.\footnote{
   We note that our system also handles integrity, or trust, which
   serves as the dual of privacy.
   %
@@ -18,43 +43,105 @@ correspond to origins, whose privacy is at stake.\footnote{
 %
 For example, the label
 \js|Label("https://bank.ch").and("https://amazon.com")| specifies that
-the context potentially contains data sensitive to \https{bank.ch}
-\emph{and} \https{amazon.com}.
+the data may contain sensitive information from both origins.
 %
-In turn, \sys{} uses the context label to confine code by restricting
-writes---code in the context is restricted to communicating with other
-browsing contexts (e.g., using \js|postMessage|) if their labels are at
-least as restricting; without privileges, network communication and
-local storage is not allowed since the effective labels of these
-end-points are less restricting (end-point labels protect the privacy
-of a single origin).
+Such a label may be used by an application that compares bank
+statements with purchases.
+%
+Importantly, the label specifies that the data should not be
+propagated to a less sensitive entity, e.g., an \https{amazon.com}
+server, which---like all end-points---is implicitly labeled using its
+origins (in this case, \js|Label("https://amazon.com")|); \sys{}
+prevents such dissemination of data since bank data may otherwise be
+leaked.
+%
+Of course, if the bank wishes to share data with \https{amazon.com} it
+can label it \js|Label("https://bank.ch").or("https://amazon.com")|;
+this allows both parties to read and disseminate the data.
 
-Privileges are objects with which code can assert the authority of
-principals. 
+When exchanging information, the actual check performed by \sys{} is
+logical implication, as implemented by the \js|Label| method
+\js|subsumes| shown in Table~\toref{table:components}.
+%
+Specifically, data labeled \js|ldata| can be sent to an entity labeled
+\js|lentity| only if \js|lentity.subsumes(ldata)|.
+%
+Intuitively this states that an entity is allowed to receive
+data that is at most as sensitive, i.e., the entity label
+\js|subsumes| the label of the data;
+%
+we refer the interested reader to~\cite{stefan:2011:dclabels} for more
+details.
+
+In \sys, we associate a label with every
+\emph{compartment}~\tocite{franz}, rather than heterogeneously with
+every object.
+%
+A compartment corresponds to the global object of a web page, iframe,
+Worker~\tocite{}, etc.
+%
+We loosely use the term \emph{browsing context} to mean the
+compartment (environment) and (content or JavaScript) code executing
+within the compartment.
+%
+The label of the compartment serves as a ``taint,'' indicating the
+sensitivity of data contained within the compartment, i.e., the
+sensitivity of the data the code executing within the browsing context
+has read.
+%
+For example, the compartment label
+\js|Label("https://bank.ch").and("https://amazon.com")| specifies that
+the compartment may contain data sensitive to \https{bank.ch} and
+\https{amazon.com}.
+%
+In turn, \sys{} uses this label to confine code by restricting writes
+from the browsing context.
+%
+Specifically, code is restricted to
+communicating with other browsing contexts (e.g., using
+\js|postMessage|) whose labels subsume the current label.
+%
+Similarly, performing network requests and accessing persistent
+storage is dictated according to the context label and implicit labels
+of these end-points.
+
+\sys{} makes SOP's notion of authority of page content explicit, using
+\emph{privileges}.
+%
+Specifically, privileges are unforgeable objects with which code can
+assert the authority of their corresponding origins to declassify
+that origin's data.
 %
 In \sys, scripts are granted the privilege corresponding to the
 page origin.
 %
+In turn, the privilege can be used when performing the \js|subsumes|
+label check to bypass restrictions imposed by any component subsumed
+by the privilege.
+%
 For example, a script running in an \https{amazon.com} page has the
-privilege of the origin, allowing it to declassify data sensitive to
-\https{amazon.com}.
-%
-Specifically if the context label is
-\js|Label("https://bank.ch").and("https://amazon.com")|, this privilege
-can be used to downgrade the label to \js|Label("https://bank.ch")|
-and, as a result, allow code to communicate with additional browsing
-contexts and even perform network requests (to \https{bank.ch}).
-%
+privilege corresponding to the \https{amazon.com} origin,
+which can be used to downgrade the label
+from \js|Label("https://bank.ch").and("https://amazon.com")| to
+\js|Label("https://bank.ch")|; by changing the label of a browsing
+context as such, we allow code to 
+communicate with additional browsing contexts and event send XHR
+requests to \https{bank.ch}.
+ 
 Importantly, code cannot synthesize arbitrary privileges.
 %
-For example a  script from \https{amazon.com} cannot create a
-privilege for \https{bank.ch}---this would trivially violate any
-confinement guarantees;
+For example a script executing in a \https{amazon.com} browsing
+context cannot create a privilege for \https{bank.ch}---this would
+trivially violate any confinement guarantees.
 %
-in our system, code can only create the empty privilege
-(\js|new Privilege()|) 
-and privileges corresponding to fresh, unique principals/origins
-(\js|new FreshPrivilege()|).
+In our system, code can only create the empty privilege (which is
+simply the JavaScript \js|null|) and privileges corresponding to
+fresh, unique origins (create with \js|new FreshPrivilege()|).
+%
+As in HiStar~\tocite{histar}, the ability to generate fresh
+privileges, in addition to having the ability to grant them, ensures
+that all browsing contexts are egalitarian, i.e., a child iframe is no
+less trustworthy than its containing parent.
 
 In ideal confinement systems, code can read arbitrary data at the cost
 of raising the context label and thus giving up write privileges.
@@ -62,13 +149,10 @@ of raising the context label and thus giving up write privileges.
 Unfortunately, practical systems typically have covert channels which
 may be exploited to leak sensitive data.
 %
-Hence, as in HiStar~\tocite{histar} and Hails~\tocite{hails}, we use
-clearance to impose a limit on the kind of data a piece of code can
-access.
-%
-In \sys, clearance is a label that is used to restrit code from
-reading and writing to entities labeled ``above'' this label, i.e.,
-more sensitive entities.
+Hence, as in HiStar~\tocite{histar}, Hails~\tocite{hails}, and
+Breeze~\tocite{breeze} we associate a \emph{clearance}---which is
+simply a label---with every compartment, imposing a limit on the kind
+of data a compartment can have, and thus a piece of code can access.
 
 In the rest of this section, we describe the \sys{} design through
 three concrete examples: 
@@ -103,7 +187,6 @@ Privileges &
 Privilege {
   Privilege FreshPrivilege()
   Privilege combine(Privilege)
-  Privilege mint(Label)
   Label asLabel(Privilege)
 }
 \end{webidl}
