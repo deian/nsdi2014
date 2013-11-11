@@ -117,18 +117,48 @@ complete trust.
 \subsection{Content Security Policy} 
 \label{sec:background:csp}
 
-Content security policy  (CSP) \tocite{} helps to significantly reduce
-the risk (neglected by SOP) of freely handling URLs. CSP essentially describes
-a, on a page-by-page basis, which the origins from where different resources
-(scripts, images, etc.) may be safely loaded, i.e., it works as a simple
-white-list policy.  Web pages rely on server-support to insert CSP headers in
-\js|XMLHttpRequest|s responses. For instance, a page hosted in \js|a.com| 
-which supplies the CSP header with the directives 
+Addressing cross-site scripting (XSS) attacks~\tocite{xss},
+CSP~\tocite{Sterne2012} provides developers with a means for
+white-listing the origins from which their application is allowed to
+load resources.
 %
-\js|default-src: ’self’; img-src: b.com| 
+Specifically, when first loading a page the
+\js|Content-Security-Policy| header is inspected for directives that
+instructs the browser to restrict the browsing context from loading
+specific resources according to the provided white-list.
 %
-restricts the page to load images from \js|a.com| and \js|b.com|.
+For instance, if the CSP header of a page from \https{a.com} contains
+the following three directives:
+%
+\texttt{default-src: 'self'; img-src: 'none'; connect-src:
+https://b.com},
+%
+the page content and code is restricted as follows.
+%
+First, loading resources---for which a more specific directive is not
+provided (e.g., scripts, stylesheets, etc.)---is limited to the same
+origin.
+%
+Second, the context is prohibited from loading any images.
+%
+And, third, JavaScript code is restricted to making XHR requests to
+\https{b.com}.
 
+Although the CSP specification simply states that attempts to load
+resources from origins outside the white-list should behave as if the
+remote server responded with a failure (HTTP 400) response, most
+browsers do not actually perform requests in such cases.
+%
+Hence, in addition to addressing XSS attacks, in practice, CSP can
+be used to restrict the origins to whom data can be exfiltrated by
+code executing in the browsing context.
+%
+Unfortunately, this only gives developers the choices of trusting code
+with communicating with an origin in full or not at all;
+%
+in Section~\ref{sec:system:worker} we show how \sys{} overcomes this
+shortcoming of CSP to allow code to communicate with an origin until
+it has read sensitive data (and thus no longer trusted).
 
 
 \subsection{Cross-origin resource sharing } 
