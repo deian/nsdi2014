@@ -151,7 +151,8 @@ browsers do not actually perform requests in such cases.
 %
 Hence, in addition to addressing XSS attacks, in practice, CSP can
 be used to restrict the origins to whom data can be exfiltrated by
-code executing in the browsing context.
+code executing in the browsing context---a drastic improvement over
+the SOP!
 %
 Unfortunately, this only gives developers the choices of trusting code
 with communicating with an origin in full or not at all;
@@ -161,18 +162,38 @@ shortcoming of CSP to allow code to communicate with an origin until
 it has read sensitive data (and thus no longer trusted).
 
 
-\subsection{Cross-origin resource sharing } 
+\subsection{Cross-origin Resource Sharing} 
 \label{sec:background:cors}
 
+While CSP tightens down the SOP by restricting reads and writes, CORS
+loosens the restrictions imposed by SOP~\cite{VanKesteren2012}.
+%
+Specifically, CORS allows web servers to specify, using a header that
+white-lists origins, which browsing contexts are allowed to inspect
+the content of a resource.
+%
+Suppose, for instance, that code executing in an \https{a.com} browsing
+context makes an XHR request to \https{b.com}.
+%
+If the response contains the CORS header
+\texttt{Access-Control-Allow-Origin: https://a.com}, the browser will
+not restrict the JavaScript code from reading the actual response
+content.
 
-There are situations where it is desirable from scripts at different domains to
-communicate. With this in mind, cross-origin resource sharing (CORS) relaxes SOP
-by implementing a new browser-server protocol through HTTP headers.  Such
-headers specify from which domains scripts are allowed to fetch data 
-using \js|XMLHttpRequest|s. Moreover, in the browser, scripts loaded from
-those cross-origins have unrestricted access to each other's DOM
-trees. Unfortunately, any technique to subvert SOP works equally well with CORS 
-(e.g. fragmented-id, postMessages, etc.).
+CORS addresses the limitations of SOP in allowing cross-origin
+sharing, and overcomes the need for ad-hoc sharing methods such as
+JSON-P.
+%
+However, CORS, like CSP, requires resource providers to a-prior
+declare an all-or-nothing trust relationship.
+%
+Though this is sufficient for certain scenarios (e.g., making a
+resource public, or sharing content between origins owned by a single
+entity) in many cases this is overly restricting;
+%
+in Section~\ref{sec:system:mashup} we show how \sys{} overcomes this
+shortcoming by allowing code to read arbitrary cross-origin
+data in a safe and controlled manner.
 
 
 \subsection{Lattice-based security}
