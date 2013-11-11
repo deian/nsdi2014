@@ -8,8 +8,39 @@ relaxing the SOP is very dangerous. So, COLWorkers could really be
 limited to extensions/pages that explicitly request this feature.}
 
 \subsection{DC labels}
+
+The implementation of \sys{} is tighten to DC labels. This design decision has
+several consequences. Firstly, users familiar with other labeling systems
+(e.g. DLM) might need to perform some encoding in order to use
+them~\cite{GenLabels}.  Secondly, and more importantly, \sys{} only enforces
+latticed-based policies, i.e., labels dictate where information can be
+disseminated.  While useful for our purposes, such policies might not capture
+all the desire ones for confinement. For instance, it is known that
+lattice-based policies are not suitable for scenarios with circular flows of
+information~\cite{Badger:1995}. Moreover, DCS~\cite{Akhawe2013} enforces any
+confinement policy which can be written as a program. While DCS support more
+powerful policies than \sys{}, writing policies as programs might be error
+prone. Instead, we design \sys{} to enforce weaker, although useful,
+confinement policies based on the specification of data labels. 
+
+
+
+
+
+
+%% DCS writing a policy as a program. 
+%% Circular policies. 
+%% 
+
 Can only express latticed-based policies. Can't express all kinds of
 policies. But we speculate that this is good enough; i.e., dclabels
 are a good match for the web scenario where we already express
 policies in terms of origins.
+
+
+
+% Local Variables:
+% TeX-master: "main.ltx"
+% TeX-command-default: "Make"
+% End:
 
