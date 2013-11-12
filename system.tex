@@ -298,8 +298,7 @@ password.
 %
 Using existing mechanisms, a page hosted, for instance, on
 \https{instagra.me}, can incorporate and partially ``confine'' a
-simple third-party strength checker (e.g.,
-\https{checker.ru/checker.js}).
+simple third-party strength checker, \https{checker.ru/checker.js}.
 %
 For simplicity we consider a password strength checker that does not
 require access to the DOM.
@@ -307,9 +306,9 @@ require access to the DOM.
 As such, to ``confine'' the strength checker, \https{instagra.me}
 can execute the code in a Worker~\tocite{worker};
 %
-since every worker has a separate, fresh browsing context with no
+since every worker has a separate, fresh compartment with no
 access to the page DOM, this ensures that the password cannot be
-leaked by inserting images, loading scripts, etc.
+leaked by embedding images, loading scripts, etc.
 %
 However, workers do have access to the \xhr{} constructor, and, thus,
 \https{instagra.me} must additionally host the checker source and set
@@ -334,9 +333,7 @@ form of a HTTP  header, can be used to restrict the checker's
 communication capabilities. 
 %
 This need for server-side support is problematic for developers that
-do not have server-side access to set such headers.
-\todo{dherman}{you had a much better argument for why client-side-only
-a la developers is so important.}
+do not have server-side access beyond content hosting.
 %
 Moreover, the need for server-side support also means that the
 password-strength checker cannot incorporate code it itself does not
@@ -350,21 +347,21 @@ leak the password to a public page on \https{instagra.me}.
 %
 Finally, this approach cannot be used to confine a password
 strength-checker that, for example, fetches a list of commonly used
-passwords before checking the strength of the password---a completely
-safe operation.
+passwords, or regular-expressions, before checking the strength of the
+password---a completely safe and useful operation.
 %
 
 \subsubsection{New approach}
 %
 In part, the above limitations arise because existing browser
 techniques do not allow developers to express confinement, even for
-code that does not require DOM access.
+code that does not require the DOM.
 %
 (Rather today's mechanisms give developers a limited form of access
 control.)
 %
-Addressing these limitations, \sys{} allows developers to treat a
-piece of code as untrusted and confine it in turn.
+Addressing this limitation, \sys{} allows developers to treat a piece
+of code as untrusted and confine it in turn.
 %
 Below we consider the confinement of ``DOM-less'' code; in
 Sections~\ref{sec:system:iframe} and \ref{sec:system:extension} we
@@ -378,28 +375,25 @@ Hence, we extend the Worker DOM API~\tocite{workers} with a
 Labeled-Worker (LWorker).
 %
 Like a standard worker, an LWorker executes a piece of code in a fresh
-browsing context that exposes a limited set of objects and properties.
+compartment that exposes a limited set of objects and properties.
 %
 Specifically, we expose the \sys{} API (including the \js|LWorker|
 constructor used to construct additional labeled Workers), the \xhr{}
 constructor used to perform network requests, and
-\js|onmessage|/\js|postMessage| used for communicating with the
+\js|onmessage|/\js|postMessage|used for communicating with the
 parent.
 %
 Different from the \js|Worker| constructor, the \js|LWorker|
-constructor takes an additional argument: a label that specifies the
-clearance on the code running in the worker browsing context.
+constructor takes two additional arguments: a label that specifies the
+clearance on the code running in the worker, and an optional privilege
+to grant the worker.
 
-An LWorker is created using the \js|LWorker| constructor, which takes
-two arguments: the URL of the code to execute in the worker, and the
-worker label.
-%
 For example, we create a new LWorker that executes the
 password-strength checker code as follows:
 \begin{jscode}
 var url = "https://checker.ru/checker.js";
 var label = new Label(window.location.origin);
-// 1. Execute checker in new context
+// 1. Execute checker in new worker
 var checker = new LWorker(url, label);
 \end{jscode}
 %
@@ -407,13 +401,13 @@ Assuming the browsing context (main page) creating the worker has not
 enabled \emph{confinement-mode}, \sys{} first enables confinement-mode
 and sets the page label to the public label \js|Label()|.
 %
-In general, a context can explicitly enable confinement-mode and set
-the context label to a label more restricting than the current label;
-when enabling confinement-mode implicitly, \sys{} takes a permissive
-approach and sets the current label to the public label.
+In general, a script can explicitly enable confinement-mode and set
+the compartment label to a label more restricting than the current
+label; when enabling confinement-mode implicitly, \sys{} takes a
+permissive approach and sets the current label to the public label.
  
-Subsequently, we ensure that the current page is allowed to make a
-request to \js|url| to fetch the source code.
+Subsequently, \sys{} ensures that the current page is allowed to make
+a request to \js|url| to fetch the source code.
 %
 As with loading content (e.g., images, styles and scripts), writing to
 storage (e.g., cookies), or performing explicit network requests with
@@ -421,35 +415,34 @@ storage (e.g., cookies), or performing explicit network requests with
 label of the resource---which is implicitly \js|Label(|\emph{resource
 origin}\js|)|---subsumes the context label.
 %
-In this case, \js|Label("https://checker.ru")| subsumes the context
-label \js|Label()| and thus fetching the script is permitted.
+In this case, the resource label \js|Label("https://checker.ru")|
+subsumes the context label \js|Label()| and thus fetching the script
+is permitted.
 
-Before executing the fetched script in a new browsing context, \sys{}
+Before executing the fetched script in the worker compartment, \sys{}
 ensures that the label of the worker is at least as restricting as the
 current label.
 %
-Just as the context label protects all data in the context, the label
-of a worker protects the data within the worker (as observed by
-reading from the worker).
+This check ensures that the page cannot declassify data by laundering
+it through a worker whose label is less sensitive than the context
+label.
 %
-This check ensures that the page cannot ``declassify'' data by
-laundering it through a worker whose label is less sensitive than the
-context label.
-
-As shown in Figure~\toref{fig:strength-1}, \sys{} starts executing the
-checker code in the LWorker; the initial, worker context label is set
-to that of the parent (in this case, the public label \js|Label()|).
-%
-At this point, the code can fetch data, such as a list of weak
-passwords, from any origin, CORS-permitting.
+Then, as shown in Figure~\toref{fig:strength-1}, \sys{} starts
+executing the checker code in the LWorker; the initial label of the
+worker compartment is set to that of the parent (in this case, the
+public label \js|Label()|).
+ 
+At this point, the code executing in the labeled worker can fetch
+data, such as a list of weak passwords, from any origin,
+CORS-permitting.
 %
 It is important to note that since the password-strength checker has
-not yet read any sensitive data, which is reflected in the context
+not yet read any sensitive data, which is reflected in the compartment
 label, this is a safe operation: making the request does not leak any
 information.
 %
-Only once the code has decided to inspect the password should it not
-be able to perform such arbitrary network requests.
+Only once the code has decided to inspect the password should it no
+longer be able to perform such arbitrary network requests.
 
 To check the strength of the password, the page sends the LWorker the
 password via \js|postMessage|, and registers a message handler to
@@ -468,11 +461,11 @@ checker.onmessage = function(event) {
 Here, \js|postMessage| additionally takes the label of the message
 \js|l|, which must be at most as restricive as the worker label.
 %
-(If an explicit label is not supplied to \js|postMessage|, \sys{}
-uses the context label of the sender as the message label.)
+(If an explicit label is not supplied, \sys{} uses the compartment
+label of the sender as the message label.)
 %
 We use this label to ensure that the message is dispatched to the
-checker only if its context label is at least as sensitive as
+checker only if its compartment label is at least as sensitive as
 \js|l|---thereby preserving the privacy of the password (which is
 protected by \js|l == Label("https://instagra.me")|.
 
