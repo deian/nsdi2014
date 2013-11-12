@@ -1,2 +1,41 @@
 \section{Evaluation}
 \label{sec:eval}
+
+\begin{table}
+\centering
+\begin{tabular}{l |c|c|c|c }
+\toprule
+                   & \multicolumn{2}{c}{\textbf{Firefox}}
+                   & \multicolumn{2}{c}{\textbf{Chrome}} \\
+                   & vanilla & labeled  & vanilla & labeled
+\\\midrule%-------------------------------------------------
+% cost of labeled postMessage
+Iframe ping-pong   &         &          &         &
+\\\hline%---------------------------------------------------
+% cost of creating an iframe
+New iframe         &         &          &         &
+\\\hline%---------------------------------------------------
+% cost of loading an image
+Image load         &         &          &         &
+\\\hline%---------------------------------------------------
+% cost of performing XHR
+XHR ping-pong      &         &          &         &
+\\\hline%---------------------------------------------------
+% cost of creating a worker
+New worker         &         &          &         &
+\\\hline%---------------------------------------------------
+% cost of worker ping-pong
+Worker ping-pong   &         &          &         &
+\\\hline%---------------------------------------------------
+% cost of enabling confinement-mode
+Enable             &  --     &          &         &
+\\\hline%---------------------------------------------------
+% cost of setting current label
+Set label          &  --     &          &   --    &
+\\\hline%---------------------------------------------------
+% cost of setting current label
+Get label          &  --     &          &   --    &
+\\\bottomrule
+\end{tabular}
+\caption{\label{microbench} Micro-benchmarks}
+\end{table}
