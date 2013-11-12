@@ -77,6 +77,12 @@ restrictive than \sys. DCS disallows dynamic code evaluation inside sandboxes
 and presents a not egalitarian design, i.e., a sandbox (\js|iframe|) cannot host
 another sandbox. Clearly, the DCS client-side TCB is smaller than ours.
 
+% ConDOM 
+Using WebKit, ConDOM~\cite{ConDOM} implements fine-grain label tracking at the
+JavaScript engine and DOM elements. To handle implicit flows, authors use a
+control flow stack (neglecting exceptions), and inject labels at the HTML parser
+for dynamically generated code. Instead, \sys{} allows to handle any type of
+branches or dynamic code by just using browsing contexts.
 
 % Local Variables:
 % TeX-master: "main.ltx"
