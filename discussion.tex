@@ -53,21 +53,46 @@ termination channel exploitable only by brute-force attacks.
 % relaxing the SOP is very dangerous. So, COLWorkers could really be
 % limited to extensions/pages that explicitly request this feature.}
 
-\subsection{DC labels}
+\subsection{DC Labels and Lattice-based Policies}
 
-The implementation of \sys{} is tighten to DC labels. This design decision has
-several consequences. Firstly, users familiar with other labeling systems
-(e.g. DLM) might need to perform some encoding in order to use
-them~\cite{GenLabels}.  Secondly, and more importantly, \sys{} only enforces
-latticed-based policies, i.e., labels dictate where information can be
-disseminated.  While useful for our purposes, such policies might not capture
-all the desire ones for confinement. For instance, it is known that
-lattice-based policies are not suitable for scenarios with circular flows of
-information~\cite{Badger:1995}. Moreover, DCS~\cite{Akhawe2013} enforces any
-confinement policy which can be written as a program. While DCS support more
-powerful policies than \sys{}, writing policies as programs might be error
-prone. Instead, we design \sys{} to enforce weaker, although useful,
-confinement policies based on the specification of data labels. 
+The implementation of \sys{} is tied to DC labels.
+%
+This design decision has several consequences.
+%
+First, developers must familiarize themselves with labels to express
+security policies on their data.
+%
+However, we believe that the encoding of web policies maps naturally
+to DC labels and though simple, the evaluation in
+Hails~\tocite{hails}, and our ability to implement diverse
+applications with \sys{} supports this conjecture.
+%
+We further remark that \sys{} conceptually provides developers with
+the ability to dynamically set CSP directives, and only share data
+with browsing contexts if their directives impose a more strict
+policy; with the increase usage of CSP, this minimizes the additional
+knowledge developers need to pick up to set correct policies.
+%
+Nevertheless, we leave a more extensive analysis of policy
+specification to future work.
+ 
+Second, and more importantly, \sys{} only enforces latticed-based
+policies, i.e., DC labels dictate where information can be
+disseminated.
+%
+Although this captures a wide-set of policies, it does not capture all
+possible confinement policies.
+%
+For instance, lattice-based policies are not suitable for scenarios in
+which a circular flows of information is permitted~\cite{Badger:1995}.
+%
+Though we could have taken an approach, as in DCS~\cite{Akhawe2013},
+to allow policies to be in the form of developer-provided code, we
+believe that the trade-off for DC labels' simplicity---that of simply
+specifying which origins are allowed to read a piece of
+data---outweighs the ability to specify arbitrarily policies and the
+accompanying complexities.
+
 
 \subsection{Granularity of enforcement } 
 
