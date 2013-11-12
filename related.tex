@@ -1,68 +1,98 @@
 \section{Related Work}
 \label{sec:related}
 
+% Javascript Sandboxing: JSand and TreeHouse
+Although less related, language-based approaches for sandboxing 
+JavaScript code have been a topic of recent research interest
+(e.g. Caja~\cite{GoogleCaja}, BrowserShield~\cite{Reis:2007}, WebJail~\cite{VanAcker:2011}, 
+TreeHouse~\cite{Ingram:2012}, JSand~\cite{Agten:2012:JCC}, SafeScript~\cite{SafeScript}, etc.).
+%Focusing on different security policies, several language-based approaches has
+%been divised to sandbox Javascript.  
+These proposals usually work in a similar manner: they mediate security critical
+operations as well as some of the browser's API (e.g. the DOM). We note that
+sandboxing policies are naturally different from confinement. \sys{}'s notion of
+cleareance, however, provides a limited notion of sandboxing, i.e., browsing
+contexts about a given clearance cannot be accessed.
+
+ 
+% % JSand
+% JSand~\cite{Agten:2012:JCC} wraps setters (\js|set|) and getters (\js|get|) of Javascript
+% objects. Additionally, it propagates policies to newly created objects via a
+% membrane pattern~\cite{RobustComposition}. Application-specific DOM-nodes are freely accessed
+% withtin the sandbox. For global properties (e.g. \js|window.document|), JSand
+% simply wraps the \js|window| object in order to enforce a given policy.
+% % TreeHouse
+% Similar to our work, TreeHouse~\cite{Ingram:2012} uses workers to provide a
+% fresh and isolated execution context for Javascript code. Workers communicate by
+% \js|postMessage|, which guarantees that no references to outside objects can be
+% passed into the sandbox. TreeHouse provides virtualized DOM-nodes with the
+% restriction that workers cannot share them.
+% % Limitations
+% Aiming to target legacy code, JSand and TreeHouse present some limitations
+% related to performance and completeness.
+% % Performance
+% While exposing significant performance degradation in micro benchmarking (in
+% some cases more than 400\%!), authors claim that the impact on the user
+% experience is acceptable.
+% % Completeness
+% On the completeness side, JSand parses dynamically loaded scripts either
+% asynchronously, potentially changing the semantics of the application, or
+% through a library, which might interpret them differently from the
+% browser. Similarly, TreeHouse changes a synchronous call semantics to the DOM
+% API by an asynchronous one.
+
 
 % JSFlow 
-Tracking IFC at the granularity level of JavaScript instructions is indeed
-challenging. The main reason for that being the need for tracking hysterical
-amounts of side-effects, e.g., implicit coercions, live collections updates, and
-others. Hedin and Sabelfeld~\cite{Hedin:2012} formally describe a sound IFC for
-a subset of JavaScript and their ideas are being currently applied to
-JSFlow~\Red{think how to cite this since it is unpublished}, a IFC-aware
-JavaScript interpreter.  JSFlow is designed to apply IFC in legacy code, and
-because of that, it does an impressive effort to obtain fine-grain IFC. This is
-achieved at the price of proposing detailed models for capturing big parts of
-the browser semantics (e.g. interaction with the DOM). We provide a more
-coarse-grain approach: \emph{we do not care for most of the JavaScript and DOM
-  API internals}. Instead, \sys~ uses IFC-aware compartments (LWorkers and
-iframes) and simply mediates among them to preserve security. With our approach,
-webpage developers can obtain fine-grain IFC by restructuring their code
-for security reasons.
+%Tracking IFC at the granularity level of JavaScript instructions is indeed
+%challenging. The main reason for that being the ramification of side-effects
+%triggered when evaluation scripts (e.g., implicit coercions, live collections
+%updates, and others). 
+Hedin and Sabelfeld~\cite{Hedin:2012} formally describe a sound language-based
+confinement mechanisms for a subset of JavaScript and their ideas are being
+currently applied to JSFlow~\cite{JSFlow}, a IFC-aware JavaScript interpreter.
+JSFlow is designed to confine legacy code, and because of that, it does an
+impressive effort to obtain fine-grain labeling of data. This is achieved at the
+price of proposing detailed models for capturing big parts of the browser
+semantics (e.g. interaction with the DOM), which drastically impact on
+performance (sometimes more than 100\%!).  We provide a more coarse-grain
+approach: \emph{\sys{} does not care for most of the JavaScript and DOM API
+  internals}. Instead, \sys~ uses IFC-aware browsing contexts and simply
+mediates among them to preserve security.
+% With our
+% approach, webpage developers can obtain fine-grain IFC by restructuring their
+% code for security reasons.
+
+% ConDOM 
+Using WebKit, ConDOM~\cite{ConDOM} implements fine-grain label tracking at the
+JavaScript engine and DOM elements. To handle implicit flows, authors use a
+control flow stack (neglecting exceptions), and inject labels at the HTML parser
+for dynamically generated code. Instead, \sys{} allows to handle any type of
+branches or dynamic code by just using browsing contexts.
 
 % BFlow
-BFlow~\cite{Yip:2009:PBS} is a IFC system for web browsers. It tracks flows of
-information at the granularity of \emph{secure zones}, i.e., compartments
-composed of one or several iframes.  {\sys} does not require such abstraction,
-it relies on the compartment notions already provided by browsers, i.e., iframes
-and workers. Similar to our approach, BFlow uses \js|postMessage| for
-communication across secure zones. BFlow does not allow JavaScript code in
+BFlow~\cite{Yip:2009:PBS} is a confinement system for web browsers. It tracks
+flows of information at the granularity of \emph{secure zones}, i.e.,
+compartments composed of one or several iframes.  {\sys} does not require such
+abstraction, it relies on the compartment notions already provided by browsers,
+i.e., iframes and workers. Similar to our approach, BFlow uses \js|postMessage|
+for communication across secure zones. BFlow does not allow JavaScript code in
 different secure zones to write to shared DOM variables and cookies regardless
 their security labels.  While \sys~ supports more expressive labels, potentially
 including different domains, BFlow can propagates labeled data to the server
 side. It is stated as future work to achieve a similar feature.
 
+% Secure multi-execution in the browser? 
+FlowFox~\cite{DeGroef:2012} adapts secure-multi execution~\cite{Devriese:2010}
+(SME) for the web scenario. Authors show how FlowFox can enforce
+non-interference like policies for popular web cites. While \sys{} does not
+target legacy code, it can enforce a wider-range of policies
+(e.g. declassification). Different from \sys{}, FlowFox requires a total
+ordering of the security lattice, an uncommon assumption in an scenario with
+mutual distrust (as the web). While recent results show how to lift this
+requirement in reactive systems (as the browser)~\cite{ZanariniJR13}, FlowFox
+has not yet incorporate them into its design.
 
 
-% Javascript Sandboxing: JSand and TreeHouse
-Focusing on different security policies, several language-based approaches has
-been divised to sandbox Javascript.  These approaches usually work in a similar
-manner: they mediate security critical operations and some of the browser API
-(e.g. the DOM).
-% JSand
-JSand~\cite{Agten:2012:JCC} wraps setters (\js|set|) and getters (\js|get|) of Javascript
-objects. Additionally, it propagates policies to newly created objects via a
-membrane pattern~\cite{RobustComposition}. Application-specific DOM-nodes are freely accessed
-withtin the sandbox. For global properties (e.g. \js|window.document|), JSand
-simply wraps the \js|window| object in order to enforce a given policy.
-% TreeHouse
-Similar to our work, TreeHouse~\cite{Ingram:2012} uses workers to provide a
-fresh and isolated execution context for Javascript code. Workers communicate by
-\js|postMessage|, which guarantees that no references to outside objects can be
-passed into the sandbox. TreeHouse provides virtualized DOM-nodes with the
-restriction that workers cannot share them.
-% Limitations
-Aiming to target legacy code, JSand and TreeHouse present some limitations
-related to performance and completeness.
-% Performance
-While exposing significant performance degradation in micro benchmarking (in
-some cases more than 400\%!), authors claim that the impact on the user
-experience is acceptable.
-% Completeness
-On the completeness side, JSand parses dynamically loaded scripts either
-asynchronously, potentially changing the semantics of the application, or
-through a library, which might interpret them differently from the
-browser. Similarly, TreeHouse changes a synchronous call semantics to the DOM
-API by an asynchronous one.
 
 
 % DCS 
@@ -77,36 +107,20 @@ restrictive than \sys. DCS disallows dynamic code evaluation inside sandboxes
 and presents a not egalitarian design, i.e., a sandbox (\js|iframe|) cannot host
 another sandbox. Clearly, the DCS client-side TCB is smaller than ours.
 
-% ConDOM 
-Using WebKit, ConDOM~\cite{ConDOM} implements fine-grain label tracking at the
-JavaScript engine and DOM elements. To handle implicit flows, authors use a
-control flow stack (neglecting exceptions), and inject labels at the HTML parser
-for dynamically generated code. Instead, \sys{} allows to handle any type of
-branches or dynamic code by just using browsing contexts.
 
 % Google extensions security analysis 
 Carlini et al.~\cite{Carlini:2012} evaluate the security of the Google Chrome
-extension platform. The authors describe several extensions' vulnerabilities, among them,
+extension platform. The authors found several vulnerabilities in extensions, among them,
 how content scripts can inject arbitrary code (in a form of strings) into the
 page DOM. Extensions can then run within the page context in order
 to exfiltrate data. \sys{} is capable to securely mimicking content scripts, but
-with weaker isolation guarantees.  Specifically, content scripts operate on a
+with  weaker isolation guarantees.  Specifically, content scripts operate on a
 copy of DOM wrapper objects, which makes changes not visible for the
 page. Instead, \sys{} versions of content scripts work directly on the page DOM.
 It is stated as future work to evaluate how to express other 
-security mechanisms from the extension platform into \sys{}. 
+security mechanisms from the Google Chrome extension platform into \sys{}. 
 
 
-% Secure multi-execution in the browser? 
-FlowFox~\cite{DeGroef:2012} adapts secure-multi execution~\cite{Devriese:2010}
-(SME) for the web scenario. Authors show how FlowFox can enforce
-non-interference like policies for popular web cites. While \sys{} does not
-target legacy code, it can enforce a wider-range of policies
-(e.g. declassification). Different from \sys{}, FlowFox requires a total
-ordering of the security lattice, an uncommon assumption in an scenario with
-mutual distrust as the web. While recent results show how to lift this
-requirement for reactive systems (as the browser)~\cite{ZanariniJR13}, FlowFox
-has not yet incorporate them into its design.
  
  
 
