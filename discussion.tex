@@ -3,6 +3,37 @@
 
 
 \subsection{Covert channels}
+\label{sec:discussion:covert}
+
+Part of future work entails the development of a W3C specification.
+%
+Hence, we must consider the effects of covert channels.
+%
+To this end, we divide our system into two designs:
+%
+we refer to the system as described in
+Section~\ref{sec:system} as the \emph{full design};
+and, the subset without the labeled XHR object of
+Section~\ref{sec:system:mashup} is referred to as the
+\emph{conservative design}.
+
+Though it enables new kinds of applications by eliminating full trust
+in any single individual component, the conservative design of \sys{}
+strictly imposes more restrictions than the SOP.
+%
+Consequently, attackers that leverage covert channels, which are
+introduced by races to shared resources, such as caches, schedulers,
+etc. to leak information in a browser with \sys{} will leak at most as
+much information as a version of the browser without confinement.
+%
+Though, outside of introducing the notion of clearance we do not
+address covert channels in this work, our conservative design enforces
+policies stricter than the SOP which we believe will make it more
+difficult (if only to reduce the number of exfiltration channels) for
+an attacker.
+
+
+In other words, any covert channels present in the current Web
 
 %% Intro covert channel
 As many confinement systems, \sys{} is not flawless. The existence of covert
@@ -54,6 +85,7 @@ termination channel exploitable only by brute-force attacks.
 % limited to extensions/pages that explicitly request this feature.}
 
 \subsection{DC Labels and Lattice-based Policies}
+\label{sec:discussion:lattice}
 
 The implementation of \sys{} is tied to DC labels.
 %
@@ -95,6 +127,7 @@ accompanying complexities.
 
 
 \subsection{Policy-granularity}
+\label{sec:discussion:granularity}
 
 \sys{} associates a label with a compartment, or (informally) browsing
 context.
@@ -162,6 +195,12 @@ fine-grained systems is comparable, the need for separate compartments
 to hold differently-labeled data does affect
 semantics~\cite{Ingram:2012}---specifically, it requires code interact
 with the data asynchronously.
+
+\subsection{Extension-API coverage}
+\label{sec:discussion:extension}
+
+\Red{We do not wrap the trusted extension API with labels. We can
+do this, but haven't...}
 
 
 % Local Variables:
