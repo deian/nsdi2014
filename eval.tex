@@ -1,40 +1,47 @@
 \section{Evaluation}
 \label{sec:eval}
 
+\newcommand*\rot{\rotatebox{90}}
+
 \begin{table}
 \centering
-\begin{tabular}{l |c|c|c|c }
+\begin{tabular}{l |c|c|c||c|c|c }
 \toprule
-                   & \multicolumn{2}{c}{\textbf{Firefox}}
-                   & \multicolumn{2}{c}{\textbf{Chrome}} \\
-                   & vanilla & labeled  & vanilla & labeled
-\\\midrule%-------------------------------------------------
-% cost of labeled postMessage
-Iframe ping-pong   &         &          &         &
-\\\hline%---------------------------------------------------
-% cost of creating an iframe
-New iframe         &         &          &         &
-\\\hline%---------------------------------------------------
-% cost of loading an image
-Image load         &         &          &         &
-\\\hline%---------------------------------------------------
-% cost of performing XHR
-XHR ping-pong      &         &          &         &
-\\\hline%---------------------------------------------------
-% cost of creating a worker
-New worker         &         &          &         &
-\\\hline%---------------------------------------------------
-% cost of worker ping-pong
-Worker ping-pong   &         &          &         &
-\\\hline%---------------------------------------------------
-% cost of enabling confinement-mode
-Enable             &  --     &          &         &
-\\\hline%---------------------------------------------------
-% cost of setting current label
-Set label          &  --     &          &   --    &
-\\\hline%---------------------------------------------------
-% cost of setting current label
-Get label          &  --     &          &   --    &
+                   & \multicolumn{3}{c}{\textbf{Firefox}}
+                   & \multicolumn{3}{c}{\textbf{Chrome}} \\
+                   & \rot{vanilla}   &
+                     \rot{unlabeled} &
+                     \rot{labeled}   &
+                     \rot{vanilla}   &
+                     \rot{unlabeled} &
+                     \rot{labeled}   
+\\\midrule%--------------------------------------------------------------------
+% cost of labeled postMessage                                        
+Iframe ping-pong   &         &         &         &         &         &
+\\\hline%----------------------------------------------------------------------
+% cost of creating an iframe                                         
+New iframe         &         &         &         &         &         &
+\\\hline%----------------------------------------------------------------------
+% cost of loading an image                                           
+Image load         &         &         &         &         &         &
+\\\hline%----------------------------------------------------------------------
+% cost of performing XHR                                             
+XHR ping-pong      &         &         &         &         &         &
+\\\hline%----------------------------------------------------------------------
+% cost of creating a worker                                          
+New worker         &         &         &         &         &         &
+\\\hline%----------------------------------------------------------------------
+% cost of worker ping-pong                                           
+Worker ping-pong   &         &         &         &         &         &
+\\\hline%----------------------------------------------------------------------
+% cost of enabling confinement-mode                                  
+Enable             &  --     &  --     &         &  --     &   --    &
+\\\hline%----------------------------------------------------------------------
+% cost of setting current label                                      
+Set label          &  --     &  --     &         &   --    &   --    &
+\\\hline%----------------------------------------------------------------------
+% cost of setting current label                                      
+Get label          &  --     &  --     &         &   --    &   --    &
 \\\bottomrule
 \end{tabular}
 \caption{\label{microbench} Micro-benchmarks}
