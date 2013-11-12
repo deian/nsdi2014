@@ -94,7 +94,43 @@ data---outweighs the ability to specify arbitrarily policies and the
 accompanying complexities.
 
 
-\subsection{Granularity} 
+\subsection{Coarse-grained labeling}
+
+\sys{} associates a label with a compartment, or (informally) browsing
+context.
+%
+This is in contrast to systems such as JSFlow~\cite{Hedin:2012} and
+FlowFox~\cite{DeGroef:2012}, which, rely on fine-grained labeling.
+%
+Inspired by the HiStar~\tocite{histar} and
+LIO~\tocite{lio} confinement systems, we took a coarse-grained
+approach because of several reasons.
+%
+First, policies on the web are specified in terms of origins which
+interact at the granularity of browsing contexts in the browser.
+%
+Hence, developers already compartmentalize applications at this
+granularity---\sys{} simply provides developers with the stronger
+guarantee of confinement.
+%
+Second, modifying the JavaScript engine (as in~\tocite{}), providing
+an alternative interpreted engine (as in~\cite{Hedin:2012}), or executing
+content per security label (as in~\tocite{DeGroef:2012}) is not
+practical, in the general case;
+patches that have intrusive browser changes, especially to the
+JavaScript engine\footnote{
+  Personal communication with SpiderMonkey and V8 developers.
+}, or introduce
+drastic performance degradations are typically rejected by popular
+browsers such as Firefox and Chromium.
+%
+This has influenced our approach to build a confinement system in the
+layout engine, without modifying the JavaScript engine, 
+
+
+
+As detailed in Section~\ref{sec:related}, several confinement systems
+for the browser have already been proposed.
 
 Several approaches for confinement label data at a fine-grain level. For
 instance, JSFlow~\cite{Hedin:2012}\tocite{} assign (and tracks) labels to
