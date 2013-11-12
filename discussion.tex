@@ -3,9 +3,55 @@
 
 
 \subsection{Covert channels}
-\Red{Make sure to note that in the presence of covert channels
-relaxing the SOP is very dangerous. So, COLWorkers could really be
-limited to extensions/pages that explicitly request this feature.}
+
+%% Intro covert channel
+As many confinement systems, \sys{} is not flawless. The existence of covert
+channels allows malicious scripts to reveal sensitive
+information~\cite{lampson:confinement}.  Such channels often arise when
+programming language features are misused to leak information; The tolerance to
+their presence is usually determined by their bandwidth and how easy is to
+exploit them.
+
+%% Browbound suffer from the termination channel
+\sys{} suffers from the termination covert channel. Scripts are then capable to
+reveal information by diverging based on confidential values. The reason for
+that relies in the implementation of labeled workers: \emph{they all run in the
+  same thread}. If a labeled worker diverges, then the corresponding browser tab
+hangs. The best strategy for malicious scripts is then to perform a brute-force
+attack every time that a page is loaded, e.g., a worker hangs when guessing the
+exact value of the secret~\cite{askarov:termination-insensitive}. In our
+setting, the termination channel has a capacity where the time needed to reliably
+leak the secret is exponential in the number of secret bits.
+
+%% Solution: labeled workers as real workers (threads)
+
+%% a) Labeled workers as workers
+%% b) We have a limited of 5 
+%% c) Useless, since we do not have restriction how to create threads
+%% d) Having them in a different threads will require for us to instrument some 
+%%    synchronizaiton to accesing the DOM
+
+At first glance, labeled workers could be run on separate threads, which indeed
+removes the termination channel~\cite{stefan:addressing-covert}.  Unfortunately,
+this idea might not be feasible to implement in modern web browsers. Firefox and
+Chrome bound the number of workers (running on separate threads) to five. The
+reason for that being two fold; first, the creation of threads is heavy-weight,
+and second, workers are not intended  to be used in large numbers
+by web pages. 
+%\sys{} could remove the termination channel at the price of
+%allowing a maximum of five labeled workers which are guarantee to terminate.  
+Observe that the termination channel could still be exploited.  It would be
+enough for a script to exhaust the number of allowed labeled workers (five) in
+order to make a program crash.
+%\sys{} could remove the termination channel at the price of
+%allowing a maximum of five labeled workers. 
+Alternatively, and as it is now, \sys{}
+permits to freely create any number of labeled workers, while leaving the
+termination channel exploitable only by brute-force attacks.
+
+% \Red{Make sure to note that in the presence of covert channels
+% relaxing the SOP is very dangerous. So, COLWorkers could really be
+% limited to extensions/pages that explicitly request this feature.}
 
 \subsection{DC labels}
 
@@ -23,19 +69,16 @@ powerful policies than \sys{}, writing policies as programs might be error
 prone. Instead, we design \sys{} to enforce weaker, although useful,
 confinement policies based on the specification of data labels. 
 
-
-
-
-
+\subsection{Granularity of enforcement } 
 
 %% DCS writing a policy as a program. 
 %% Circular policies. 
 %% 
 
-Can only express latticed-based policies. Can't express all kinds of
-policies. But we speculate that this is good enough; i.e., dclabels
-are a good match for the web scenario where we already express
-policies in terms of origins.
+% Can only express latticed-based policies. Can't express all kinds of
+% policies. But we speculate that this is good enough; i.e., dclabels
+% are a good match for the web scenario where we already express
+% policies in terms of origins.
 
 
 
