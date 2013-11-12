@@ -96,6 +96,18 @@ page. Instead, \sys{} versions of content scripts work directly on the page DOM.
 It is stated as future work to evaluate how to express other 
 security mechanisms from the extension platform into \sys{}. 
 
+
+% Secure multi-execution in the browser? 
+FlowFox~\cite{DeGroef:2012} adapts secure-multi execution~\cite{Devriese:2010}
+(SME) for the web scenario. Authors show how FlowFox can enforce
+non-interference like policies for popular web cites. While \sys{} does not
+target legacy code, it can enforce a wider-range of policies
+(e.g. declassification). Different from \sys{}, FlowFox requires a total
+ordering of the security lattice, an uncommon assumption in an scenario with
+mutual distrust as the web. While recent results show how to lift this
+requirement for reactive systems (as the browser)~\cite{ZanariniJR13}, FlowFox
+has not yet incorporate them into its design.
+ 
  
 
 % Local Variables:
