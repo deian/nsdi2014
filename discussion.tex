@@ -5,7 +5,8 @@
 \subsection{Covert channels}
 \label{sec:discussion:covert}
 
-Part of future work entails the development of a W3C specification.
+Part of our future work entails the development of a W3C
+specification detailing the \sys{} system.
 %
 Hence, we must consider the effects of covert channels.
 %
@@ -17,72 +18,82 @@ and, the subset without the labeled XHR object of
 Section~\ref{sec:system:mashup} is referred to as the
 \emph{conservative design}.
 
-Though it enables new kinds of applications by eliminating full trust
-in any single individual component, the conservative design of \sys{}
-strictly imposes more restrictions than the SOP.
+Though the conservative \sys{} enables new kinds of applications by
+eliminating full trust in any single individual component, \sys{}
+strictly imposes more restrictions on code than the SOP.
 %
 Consequently, attackers that leverage covert channels, which are
 introduced by races to shared resources, such as caches, schedulers,
 etc. to leak information in a browser with \sys{} will leak at most as
 much information as a version of the browser without confinement.
 %
-Though, outside of introducing the notion of clearance we do not
-address covert channels in this work, our conservative design enforces
-policies stricter than the SOP which we believe will make it more
-difficult (if only to reduce the number of exfiltration channels) for
-an attacker.
+Nevertheless, we note that outside of introducing the notion of
+clearance, which restricts the kinds of data a piece of code can
+access and thus leak, we do not address covert channels in this work. 
+
+%
+\todo{}{it's important for us to note that we do not address covert
+channels even for conservative-design, since developers may have the
+impression that they're getting bullet-proof security when sending a
+password to another frame, when in actuality it can be leaked (though
+at a low bit rate)}
 
 
-In other words, any covert channels present in the current Web
+The labeled XHR object allows arbitrary code to read cross-origin
+data, at the cost of giving up arbitrary communication capabilities
+when inspecting the response.
+%
+Unfortunately, this allows code to leak a bit by not terminating.
+%
+For example, to leak one bit of \https{bank.ch} data, \https{evil.com}
+solely needs to create a labeled iframe within which the labeled XHR
+is used to read bank data.
+%
+In the parent, code periodically sends a request to \https{evil.com},
+while in the labeled iframe (which is no longer allowed to communicate
+arbitrarily) the code loops forever if bit is 1.
+%
+This, unfortunately, blocks the event loop and prevents further
+request to \https{evil.com}, thereby leaking the bit.
 
-%% Intro covert channel
-As many confinement systems, \sys{} is not flawless. The existence of covert
-channels allows malicious scripts to reveal sensitive
-information~\cite{lampson:confinement}.  Such channels often arise when
-programming language features are misused to leak information; The tolerance to
-their presence is usually determined by their bandwidth and how easy is to
-exploit them.
 
-%% Browbound suffer from the termination channel
-\sys{} suffers from the termination covert channel. Scripts are then capable to
-reveal information by diverging based on confidential values. The reason for
-that relies in the implementation of labeled workers: \emph{they all run in the
-  same thread}. If a labeled worker diverges, then the corresponding browser tab
-hangs. The best strategy for malicious scripts is then to perform a brute-force
-attack every time that a page is loaded, e.g., a worker hangs when guessing the
-exact value of the secret~\cite{askarov:termination-insensitive}. In our
-setting, the termination channel has a capacity where the time needed to reliably
-leak the secret is exponential in the number of secret bits.
 
-%% Solution: labeled workers as real workers (threads)
+At first glance, it may appear that executing labeled workers and
+iframes in separate threads would remove this termination covert
+channel, as previously observed in~\cite{stefan:addressing-covert}. 
+%
+Unfortunately, this approach is not be feasible in current web browser
+implementations; both Firefox and Chrome bound the number of worker
+threads to five, as to avoid attacks that create a large number of
+threads.
+%
+And, imposing such a limit on the number of threads does trivially
+reintroduces the attack.
+%
+While using light-weight threads as used
+in~\cite{stefan:addressing-covert}, hierarchical- and
+instruction-based schedulers~\tocite{cream}, and predicative
+mitigation techniques~\cite{askarov:termination-insensitive} is
+promising, we do not expect browsers to be amendable to such
+heavy-weight techniques.
+%
+Instead, simple heuristics may be more practical since the browser,
+in the case of Firefox, and tab, in Chrome's case, hang when an
+attacker exploits the termination covert channel.
 
-%% a) Labeled workers as workers
-%% b) We have a limited of 5 
-%% c) Useless, since we do not have restriction how to create threads
-%% d) Having them in a different threads will require for us to instrument some 
-%%    synchronizaiton to accesing the DOM
-
-At first glance, labeled workers could be run on separate threads, which indeed
-removes the termination channel~\cite{stefan:addressing-covert}.  Unfortunately,
-this idea might not be feasible to implement in modern web browsers. Firefox and
-Chrome bound the number of workers (running on separate threads) to five. The
-reason for that being two fold; first, the creation of threads is heavy-weight,
-and second, workers are not intended  to be used in large numbers
-by web pages. 
-%\sys{} could remove the termination channel at the price of
-%allowing a maximum of five labeled workers which are guarantee to terminate.  
-Observe that the termination channel could still be exploited.  It would be
-enough for a script to exhaust the number of allowed labeled workers (five) in
-order to make a program crash.
-%\sys{} could remove the termination channel at the price of
-%allowing a maximum of five labeled workers. 
-Alternatively, and as it is now, \sys{}
-permits to freely create any number of labeled workers, while leaving the
-termination channel exploitable only by brute-force attacks.
-
-% \Red{Make sure to note that in the presence of covert channels
-% relaxing the SOP is very dangerous. So, COLWorkers could really be
-% limited to extensions/pages that explicitly request this feature.}
+Nevertheless, since the labeled XHR constructor allows code to access
+data not otherwise permitted by the SOP, we recognize that exposing
+the labeled XHR to arbitrary code is dangerous.
+%
+However, the conservative \sys{} already improves the state of the art
+in web security, and we thus leave the investigation of covert channel
+bandwidths and practicality in exploiting this construct as future
+work.
+%
+In the interim, this construct is useful when considering extensions,
+which currently access cross-origin data without any restrictions or
+confinement---our constructor can be used to impose some restrictions
+on what extensions can do once they read cross-origin data.
 
 \subsection{DC Labels and Lattice-based Policies}
 \label{sec:discussion:lattice}
