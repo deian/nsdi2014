@@ -84,6 +84,20 @@ control flow stack (neglecting exceptions), and inject labels at the HTML parser
 for dynamically generated code. Instead, \sys{} allows to handle any type of
 branches or dynamic code by just using browsing contexts.
 
+% Google extensions security analysis 
+Carlini et al.~\cite{Carlini:2012} evaluate the security of the Google Chrome
+extension platform. The authors describe several extensions' vulnerabilities, among them,
+how content scripts can inject arbitrary code (in a form of strings) into the
+page DOM. Extensions can then run within the page context in order
+to exfiltrate data. \sys{} is capable to securely mimicking content scripts, but
+with weaker isolation guarantees.  Specifically, content scripts operate on a
+copy of DOM wrapper objects, which makes changes not visible for the
+page. Instead, \sys{} versions of content scripts work directly on the page DOM.
+It is stated as future work to evaluate how to express other 
+security mechanisms from the extension platform into \sys{}. 
+
+ 
+
 % Local Variables:
 % TeX-master: "main.ltx"
 % TeX-command-master: "make"
