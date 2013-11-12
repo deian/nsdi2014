@@ -8,12 +8,12 @@ In this section we describe the \sys{} system.
 data while ensuring that it cannot release it
 arbitrarily~\tocite{saltzer}.
 %
-The confinement mechanism allows developers to enforce both, policies
+Our confinement mechanism allows developers to enforce both, policies
 that are stricter than the SOP and policies that are more flexible
 than the SOP (yet still safe), without imposing the limitations of CSP
 and CORS.
 %
-In this section, we first describe how policies are encoded in \sys{}
+Below, we first describe how policies are encoded in \sys{}
 followed by the system design itself.
 
 \subsection{Policies and confinement in \sys{}}
@@ -29,16 +29,18 @@ The particular labels used by \sys{} are the \emph{DC
 labels} presented in~\cite{stefan:2011:dclabels}.
 %
 We chose DC labels, much like Hails~\tocite{hails} and
-Breeze~\tocite{breeze}, because they are as expressive as labels used
-by other practical confinement systems~\cite{GenLabels}, but have a
-simple and clear semantics.
+Breeze~\tocite{breeze}, because they have a simple and clear
+semantics, yet are as expressive as the labels used by other practical
+confinement systems~\cite{GenLabels}.
 
 A privacy label (henceforth just label) is a boolean formula over
 origins, specifying who can read the data.\footnote{
   We note that our system also handles integrity, or trust, which
   serves as the dual of privacy.
   %
-  For simplicity of exposition we omit integrity from our discussion.
+  For simplicity of exposition we omit integrity from our discussion
+  and simply note that it serves as the dual of secrecy.
+
 }
 %
 For example, the label
@@ -46,24 +48,22 @@ For example, the label
 the data may contain sensitive information from both origins.
 %
 Such a label may be used by an application that compares bank
-statements with purchases.
+statements with Amazon purchases.
 %
 Importantly, the label specifies that the data should not be
-propagated to a less sensitive entity, e.g., an \https{amazon.com}
-server, which---like all end-points---is implicitly labeled with it
-origins (in this case, \js|Label("https://amazon.com")|); \sys{}
-prevents the dissemination of such data to \https{amazon.com} (either,
-in-browser or with XHR), since it may leak bank information.
+propagated to a less sensitive entity, e.g., an \https{amazon.com};
+\sys{} prevents the dissemination of such data to \https{amazon.com}
+(either, in-browser or with XHR), since it may leak bank information.
 %
 Of course, if the bank wishes to share and allow \https{amazon.com} to
 disseminate certain information, it can label it
 \js|Label("https://bank.ch").or("https://amazon.com")|;
-such disjunctive label states that either origin may disseminate the
+this disjunctive label states that either origin may disseminate the
 data.
 
 When exchanging information, the actual check performed by \sys{} is
 logical implication, as implemented by the \js|Label| method
-\js|subsumes|, shown in Table~\toref{table:components}.
+\js|subsumes|.
 %
 Specifically, \sys{} ensures that data labeled \js|ldata| can be only sent
 to an entity labeled \js|lentity| if
@@ -71,9 +71,10 @@ to an entity labeled \js|lentity| if
 %
 Intuitively this states that an entity is allowed to receive data that
 is at most as sensitive as its label, i.e., the entity label
-always \js|subsumes| the label of the data it can receive;
+always \js|subsumes| the label of the data it can receive,
+preserving the latter's privacy.
 %
-we refer the interested reader to~\cite{stefan:2011:dclabels} for more
+We refer the interested reader to~\cite{stefan:2011:dclabels} for more
 details.
 
 Rather than explicitly labeling every object (a trade-off discussed in
@@ -83,7 +84,7 @@ every \emph{compartment}~\tocite{franz}.
 A compartment roughly corresponds to the JavaScript heap (for
 simplicity, global object) of a web page, iframe, Worker~\tocite{},
 etc.; this allows us to reason about JavaScript security semantics at
-a coarse-grain level---we need only impose security checks for
+a coarse-grained level: we need only impose security checks for
 cross-compartment references, references to objects within the same
 compartment require no security checks since they share the same
 label.
@@ -91,7 +92,8 @@ label.
 We sometimes abuse terminology and use the phrase  ``label of a
 browsing context'' to mean the label on the compartment that contains
 the browsing context's document, even though, for example, Worker
-compartments do not have a browsing context~\tocite{workers}.
+compartments do not have a document or browsing
+context~\tocite{workers}.
  
 The label of the compartment serves as a ``taint,'' indicating the
 sensitivity of data contained within the compartment, i.e., the
@@ -103,26 +105,26 @@ For example, the compartment label
 the compartment may contain data sensitive to \https{bank.ch} and
 \https{amazon.com}.
 %
-In turn, \sys{} uses this label to confine code by restricting writes
-from the browsing context.
+To preserve the privacy of this data, \sys{}, in turn, uses the
+compartment label to confine code by restricting where it can write.
 %
-Specifically, code is restricted to
-communicating with other browsing contexts (e.g., using
-\js|postMessage|) whose labels subsume the current label.
+Specifically, code is restricted to communicating with browsing
+contexts (e.g., via \js|postMessage|) whose labels subsume the current
+label of the browsing context.
 %
 Similarly, performing network requests and accessing persistent
 storage is dictated by the relationship of the context label and
 implicit labels of these end-points.
 
-\sys{} makes SOP's notion of the authority of code over page content
-explicit using \emph{privileges}.
+\sys{} introduces \emph{privileges} to make the SOP notion of
+authority (of code) over page content explicit.
 %
-Privileges are unforgeable objects with which code can
-assert the authority of their corresponding origins to declassify
-that origin's data.
+A privilege is an unforgeable object with which code can assert the
+authority of the corresponding origin (e.g., to declassify that
+origin's data).
 %
-In \sys, the code in a browsing context is given the privilege
-corresponding to the page origin.
+In \sys, a browsing context is given the privilege corresponding to
+the page origin.
 %
 In turn, the privilege is used when performing any \js|subsumes|
 label checks.
@@ -132,14 +134,13 @@ privilege corresponding to the \https{amazon.com} origin.
 %
 Without this privilege the script cannot perform any XHR requests
 if the context label is
-\js|Label("https://bank.ch").and("https://amazon.com")|;
+\js|Label("https://bank.ch").and("https://amazon.com")|:
 the label of an end-point cannot subsume such a conjunctive policy.
 %
 However, with the  \https{amazon.com} privilege, the code can perform
-XHR requests to \https{bank.com};
-%
-in doing so, the code is effectively declassifying any
-\https{amazon.com}-sensitive data used in the request.
+XHR requests to \https{bank.com}, and in doing so, it is effectively
+declassifying any \https{amazon.com}-sensitive data used in the
+request.
  
 Importantly, code cannot synthesize arbitrary privileges.
 %
@@ -152,13 +153,12 @@ In our system, code can only create the empty privilege (which is
 simply the JavaScript \js|null| object) and privileges corresponding
 to fresh, unique origins (create with \js|new FreshPrivilege()|).
 %
-As in HiStar~\tocite{histar}, the ability to generate fresh
-privileges, in addition to having the ability to grant them, ensures
-that all browsing contexts are egalitarian, i.e., a child iframe is no
-less trustworthy than its containing parent.
+As in HiStar~\tocite{histar}, the ability to generate fresh privileges
+ensures that all browsing contexts are egalitarian, i.e., a child
+iframe is no less trustworthy than its containing parent.
 
-In ideal confinement systems, code can read arbitrary data at the cost
-of raising the context label and thus giving up write privileges.
+In an ideal confinement system, code can read arbitrary data at the
+cost of raising the context label and thus giving up write privileges.
 %
 Unfortunately, practical systems typically have covert channels which
 may be exploited to leak sensitive data.
@@ -169,7 +169,7 @@ simply a label---with every compartment.
 %
 Clearance imposes a limit on the kind of data a compartment can have,
 i.e., it is an upper-bound on compartment label, and thus the kind of
-data a piece of code can access.
+data a piece of code executing in the compartment can access.
 
 In the rest of this section, we expand on the \sys{} design through
 three concrete examples: 
@@ -298,7 +298,7 @@ password.
 %
 Using existing mechanisms, a page hosted, for instance, on
 \https{instagra.me}, can incorporate and partially ``confine'' a
-simple third-party strength checker, \https{checker.ru/checker.js}.
+simple third-party strength checker, \https{checker.biz/checker.js}.
 %
 For simplicity we consider a password strength checker that does not
 require access to the DOM.
@@ -324,7 +324,7 @@ a CSP policy that restricts its network communication (e.g.,
 }
 %
 
-Though this approach (mostly) accomplishes the desired goal of
+Though this (mostly) accomplishes the desired goal of
 protecting the password, the approach is widely unsatisfactory.
 %
 First, to avoid trusting the checker's origin, the checker source code
@@ -333,32 +333,33 @@ form of a HTTP  header, can be used to restrict the checker's
 communication capabilities. 
 %
 This need for server-side support is problematic for developers that
-do not have server-side access beyond content hosting.
+do not have access to the server beyond hosting content.
 %
 Moreover, the need for server-side support also means that the
 password-strength checker cannot incorporate code it itself does not
-trust---the SOP would require \https{instagra.me} to host all the code
+trust---the SOP requires \https{instagra.me} to host all the code
 and express the security concerns of the strength checker as well.
 %
 Second, the CSP policy of the checker cannot be more restricting than
-that of the containing document---hence, the checker can potentially
-carry out a self-exfiltration attack~\tocite{self-exfiltration} and
-leak the password to a public page on \https{instagra.me}.
+that of the containing document (since it inherits the policy from
+it)---hence, the checker can potentially carry out a self-exfiltration
+attack~\tocite{self-exfiltration} and leak the password to a public
+page on \https{instagra.me}.
 %
 Finally, this approach cannot be used to confine a password
 strength-checker that, for example, fetches a list of commonly used
-passwords, or regular-expressions, before checking the strength of the
+passwords or regular-expressions before checking the strength of the
 password---a completely safe and useful operation.
 %
 
-\subsubsection{New approach}
+\subsubsection{\sys{} approach}
 %
 In part, the above limitations arise because existing browser
 techniques do not allow developers to express confinement, even for
 code that does not require the DOM.
 %
-(Rather today's mechanisms give developers a limited form of access
-control.)
+%% (Rather today's mechanisms give developers a limited form of access
+%% control.)
 %
 Addressing this limitation, \sys{} allows developers to treat a piece
 of code as untrusted and confine it in turn.
@@ -367,9 +368,11 @@ Below we consider the confinement of ``DOM-less'' code; in
 Sections~\ref{sec:system:iframe} and \ref{sec:system:extension} we
 address confinement of third-party code with access to the DOM.
 
-As described above, workers are a good first step towards reasoning
-about the security implications of untrusted code that does not need
-to access the DOM.
+As described above, and previously observed in~\cite{Ingram:2012}
+workers are a good first step towards reasoning about the security
+implications of untrusted code that does not need to access the DOM,
+since they provide a clean, isolated environment within which
+untrusted code can be executed.
 %
 Hence, we extend the Worker DOM API~\tocite{workers} with a
 Labeled-Worker (LWorker).
@@ -377,7 +380,7 @@ Labeled-Worker (LWorker).
 Like a standard worker, an LWorker executes a piece of code in a fresh
 compartment that exposes a limited set of objects and properties.
 %
-Specifically, we expose the \sys{} API (including the \js|LWorker|
+Concretely, we expose the \sys{} API (including the \js|LWorker|
 constructor used to construct additional labeled Workers), the \xhr{}
 constructor used to perform network requests, and
 \js|onmessage|/\js|postMessage|used for communicating with the
@@ -385,13 +388,13 @@ parent.
 %
 Different from the \js|Worker| constructor, the \js|LWorker|
 constructor takes two additional arguments: a label that specifies the
-clearance on the code running in the worker, and an optional privilege
+clearance on the code running in the worker and an optional privilege
 to grant the worker.
 
 For example, we create a new LWorker that executes the
 password-strength checker code as follows:
 \begin{jscode}
-var url = "https://checker.ru/checker.js";
+var url = "https://checker.biz/checker.js";
 var label = new Label(window.location.origin);
 // 1. Execute checker in new worker
 var checker = new LWorker(url, label);
@@ -399,27 +402,28 @@ var checker = new LWorker(url, label);
 %
 Assuming the browsing context (main page) creating the worker has not
 enabled \emph{confinement-mode}, \sys{} first enables confinement-mode
-and sets the page label to the public label \js|Label()|.
+and sets the browsing context label to the public label \js|Label()|.
 %
-In general, a script can explicitly enable confinement-mode and set
+In general, a script can explicitly enable confinement-mode or set
 the compartment label to a label more restricting than the current
-label; when enabling confinement-mode implicitly, \sys{} takes a
-permissive approach and sets the current label to the public label.
+label; when enabling confinement-mode, \sys{} takes a
+permissive approach and sets the initial browsing context label to the
+public label.
  
-Subsequently, \sys{} ensures that the current page is allowed to make
+Subsequently, \sys{} ensures that the page is allowed to make
 a request to \js|url| to fetch the source code.
 %
 As with loading content (e.g., images, styles and scripts), writing to
 storage (e.g., cookies), or performing explicit network requests with
 \xhr{}, \sys{} asserts that, given the current context privileges, the
 label of the resource---which is implicitly \js|Label(|\emph{resource
-origin}\js|)|---subsumes the context label.
+origin}\js|)|---subsumes the browsing context label.
 %
-In this case, the resource label \js|Label("https://checker.ru")|
+In this case, the resource label \js|Label("https://checker.biz")|
 subsumes the context label \js|Label()| and thus fetching the script
 is permitted.
 
-Before executing the fetched script in the worker compartment, \sys{}
+Before executing the fetched script in the new worker compartment, \sys{}
 ensures that the label of the worker is at least as restricting as the
 current label.
 %
@@ -427,10 +431,14 @@ This check ensures that the page cannot declassify data by laundering
 it through a worker whose label is less sensitive than the context
 label.
 %
-Then, as shown in Figure~\toref{fig:strength-1}, \sys{} starts
+As shown in Figure~\toref{fig:strength-1}, \sys{} then starts
 executing the checker code in the LWorker; the initial label of the
 worker compartment is set to that of the parent (in this case, the
-public label \js|Label()|).
+public label).
+%
+Our use of labeled workers in this fashion is similar to the
+executing code in LIO's \js|toLabeled| block~\tocite{lio} and
+Breeze's \js|bracket|~\tocite{breeze}.
  
 At this point, the code executing in the labeled worker can fetch
 data, such as a list of weak passwords, from any origin,
@@ -438,40 +446,15 @@ CORS-permitting.
 %
 It is important to note that since the password-strength checker has
 not yet read any sensitive data, which is reflected in the compartment
-label, this is a safe operation: making the request does not leak any
-information.
+label, this is a safe operation, i.e., making the request does not
+leak any information.
 %
-Only once the code has decided to inspect the password should it no
+Only once the code decides to inspect the password should it no
 longer be able to perform such arbitrary network requests.
-
-To check the strength of the password, the page sends the LWorker the
-password via \js|postMessage|, and registers a message handler to
-receive the strength score:
-\begin{jscode}
-var password = 
- document.getElementById("password").value;
-// 3. Send checker password 
-checker.postMessage(password, l);
-// 5. Get score
-checker.onmessage = function(event) {
-  var score = event.data; 
-  // ...
-}
-\end{jscode}
-Here, \js|postMessage| additionally takes the label of the message
-\js|l|, which must be at most as restricive as the worker label.
-%
-(If an explicit label is not supplied, \sys{} uses the compartment
-label of the sender as the message label.)
-%
-We use this label to ensure that the message is dispatched to the
-checker only if its compartment label is at least as sensitive as
-\js|l|---thereby preserving the privacy of the password (which is
-protected by \js|l == Label("https://instagra.me")|.
 
 To retrieve the password, the password-strength checker registers a
 message-event handler, which is invoked when the parent sends it a
-message (step 3 above):
+message whose label is subsumed by the checker's label (step 3 below):
 \begin{jscode}
 // checker.js ...
 // Browbound.label == Label()
@@ -495,44 +478,69 @@ receive data at sensitivity level \https{instagra.me}, at the cost of
 giving up arbitrary communication privileges.
 %
 As shown in Figure~\toref{fig:strength-3}, the checker can now receive
-the sensitive password, but, for example, can only use \xhr{} to
+sensitive data (the password), but, for example, can only use \xhr{} to
 communicate with \https{instagra.me};
 %
-performing arbitrary network requests or creating arbitrarily labeled
+performing arbitrary network requests or creating arbitrarily-labeled
 workers is no longer permitted.
 
-Finally, the event handler, which is supplied with the parent-supplied
-password, invokes the underlying password-strength checking function
-\js|computeStrength|.
+Next, the page sends the LWorker the
+password via \js|postMessage|, and registers a message handler to
+receive the strength score:
+\begin{jscode}
+var password = 
+ document.getElementById("password").value;
+// 3. Send checker password 
+checker.postMessage(password, l);
+// 5. Get score
+checker.onmessage = function(event) {
+  var score = event.data; 
+  // ...
+}
+\end{jscode}
+Here, \js|postMessage| additionally takes the label of the message
+\js|l|, which must be subsumed by both the browsing context clearance
+and worker label.
+%
+(If an explicit label is not supplied, \sys{} uses the browsing
+context label as the message label.)
+%
+We use this label to ensure that the receiver's message handler is
+dispatched only if its browsing context label is at least as sensitive
+as \js|l|---thus preserving the privacy of the password.
+
+In the final step, the event handler, which is supplied with the
+parent-supplied password, invokes the underlying password-strength
+checking function \js|computeStrength|.
 %
 The result of this function is returned to the page via
 \js|postMessage|.
 %
-Since the page registered an event handler (step 5), as shown in
-Figure~\toref{fig:system:strength-4}, \sys{} ensures that the label of
-the parent context is at least as restrcting as the message label
-(which is the worker context label) and then dispatches the handler.
+The event handler registered by the page (step 5), as shown in
+Figure~\toref{fig:system:strength-4}, is dispatched if the label of
+the page subsumes the message label (which is the worker's compartment
+label).
  
-The full life-cycle of this application is shown in
+We show the full life-cycle of this application in
 Figure~\toref{fig:system:strength}.
 %
-In this example we relied on the page having ownership of the
-\https{instagra.me} privilege as to avoid tainting the context when
-reading the score from the checker worker, which was labeld with this
-principal.
+In this example, we relied on the page having ownership of the
+\https{instagra.me} privilege as to avoid tainting the browsing
+context when reading the score from the worker.
 %
-Unfortunately, this also means that our confinement of the checker is
-limited: we cannot label the context with this label and restrict the
-code from using \xhr{} to self-exfiltrate data to \https{instagra.me}.
+Unfortunately, this also means that our confinement of the checker
+code is limited: we cannot label the worker with this label and
+restrict it from using XHR to self-exfiltrate data to
+\https{instagra.me}.
 %
-Instead, the page must label the worker with a principal that it owns
-and, moreover, does not correspond to an actual origin.
+Instead, the page must label the worker with a unique origin that does
+not correspond to an actual host, yet still has the privilege to.
 
 This is precisely the role of fresh privileges.
 %
-A fresh privilege corresponds to a unique principal/origin whose
-scheme is prefixed by \texttt{x-}; this ensures that the \xhr{}
-constructor cannot be used to make requests to a real host.
+A fresh privilege corresponds to a unique origin whose scheme is
+prefixed by \texttt{x-browbound}; the fake protocol ensures that the
+\xhr{} constructor cannot be used to make requests.
 %
 Hence, to fully confine the password-strength checker we modify the
 \https{instagra.me} page to first create a fresh privilege and use the
@@ -554,9 +562,9 @@ checker.postMessage(password, p.asLabel);
 // ...
 \end{jscode}
 
-\paragraph{Discussion}
-Different from current approaches, our system provides a client-side
-approach for flexibly and fully confining untrusted code:
+We remarks that, different from current approaches, our system
+provides a client-side approach to flexibly and fully confining
+untrusted code:
 %
 the strength checker can perform arbitrary XHR until it raises its
 label to register the \js|onmessage| handler that will inspect the
@@ -565,9 +573,9 @@ password; from this point on it can only communicate with the parent.
 This is in contrast to either giving the checker irrevocable network
 access or none at all.
 %
-Moreover, our first-class workers and privileges makes security a
+Importantly, our first-class workers and privileges makes security a
 first class citizen: not only can the page consider the checker
-untrusted, but the checker can itself create fresh privileges and a
+untrusted, but the checker can itself create fresh privileges and 
 LWorkers in which it can execute code it itself does not consider
 trustworthy!
 
@@ -575,29 +583,21 @@ trustworthy!
 \label{sec:system:iframe}
 %Password manager 
 
-In the previous section, the \https{instagra.me} page imposed the
-requirement that the password-strength checker
-cannot exfiltrate the password by assuring a sufficiently high context label.  
-%, executing in an
-%LWorker, have a sufficiently high context label such that it 
-%% To far from previous section, I believe the idea is clear.
-%otherwise \sys{} would not dispatch the
-%password message.
+In the previous section, the \https{instagra.me} page effectively
+imposed the requirement that the password-strength checker discard its
+network communication capabilities, by raising the compartment label
+sufficiently high, before reading the (labeled) password.
 %
-More generally, by associating a label with every browsing context
-(including pages/iframes) and restricting external side-effects
-according to it, \sys{}'s confinement mechanism can give developers means
-for controlling where user data can flow, even after the data is made
-available to untrusted browsing contexts.
+More generally, by associating a label with every browsing context and
+restricting read- and write-effects according to it, \sys{}'s
+confinement mechanism can give developers a means for controlling
+where user data can flow, even after the data is made available to
+untrusted browsing contexts.
 %
-Below, we highlight the shortcomings of existing security mechanisms applied to 
-confinement 
-%for confinement 
-%and need
-%for confinement 
-by considering the implementation of a password manager website---a web service
-that allows users to utilize a single master password to manage multiple
-site-specific passwords.%---as a website.
+Below, we highlight the shortcomings of existing security mechanisms,
+when applied to confinement, by considering the implementation of a
+password manager website---an application that allows users to utilize
+a single master password to manage multiple site-specific passwords.
 
 \subsubsection{Current approach}
 %
@@ -605,15 +605,15 @@ Today's browser security mechanisms are not useful when building a
 password manager as a website.
 %
 Specifically, the lack of confinement forces users to either trust the
-password manager website with their website-specific  credentials 
-(e.g., from 
-\https{fb.com}) or trust arbitrary websites (e.g.,
+password manager website with their website-specific  credentials
+(e.g., \https{fb.com}) or trust arbitrary websites (e.g.,
 \https{fb.com}) with the master password.
 % used to protect
 % other credentials.
 %
-This issue of handling sensitive data is grave; insomuch, that all
-major browsers are shipped with built-in password managers.
+The issue of handling such sensitive data in web apps is grave;
+insomuch, that all major browsers are shipped with built-in password
+managers.
 %
 A built-in password manager simply requires the user to place more
 trust on the already-trusted browser.
@@ -632,7 +632,7 @@ to express security policies on code which handles sensitive data?
 \subsubsection{\sys{} approach}
 %
 With \sys{}, we can leverage confinement to build a password manager
-website where the user is not forced to place complete trust on 
+website that does not force the user to place complete trust on 
 any of the participating parties.
 %
 Our password manager is divided into two mutually distrusting
@@ -646,53 +646,53 @@ simple
 server-side storage API for the
 management layer.
 %
-The mutual distrust between the layers is instrumental to ensure
-that neither party can individually compromise the user's privacy (and
-would thus have to be wholly trusted).
+The mutual distrust between the layers is instrumental---yet, without
+confinement not sufficient---to ensuring that neither party can
+individually compromise the user's privacy (and would thus have to be
+trusted in full).
 %
 
 %
 Though a user can use such a password manager to store and fetch secrets
 directly, for simplicity, we assume that a website (e.g., \https{fb.com})
 integrates with the manager in order to save and retrieve login
-credentials,\footnote{ In Section~\ref{sec:system:extension} we describe an
-  untrusted extenion system that can be used to inject the password-manager
+credentials,\footnote{ In Section~\ref{sec:implementation} we describe an
+  untrusted extension system that can be used to inject the password-manager
   specific code into the integrator page.  } as shown in
 Figure~\toref{fig:manager-s-1}.
 %
-Without loss of generality, we assume that encryption and
+Without loss of generality, we also assume that encryption and
 decryption is carried out on the client-side by the management layer.
 %
-Given this architecture, the security guarantees and trust concerns
+In this architecture, the security guarantees and trust concerns
 are as follows:
 \begin{enumerate}[i)]
 \item The management layer never learns the site-specific (\https{fb.com})
   credentials. The user only need to trust this component with their master
-  password. We note that, without the collusion of the storage layer, the
+  password. Importantly, without the collusion of the storage layer, the
   management layer cannot exploit the master password in order to reveal
   credentials.
 
   %
-  To eliminate the given trust, users can provide the master password given 
-  that the label of a browsing context is ``high enough'' to confine it. 
-  Browsing context labels can be inspected either by standard developer tools or
-  by right-clicking on the page (a functionality implemented by our supporting
-  extension, describe in Section~\toref{XXX}).
+  To eliminate this trust, users can inspect the management layer's
+  browsing context label, either using standard developer tools or by
+  right-clicking on the page (a functionality implemented by our
+  supporting extension, describe in Section~\ref{sec:implementation}),
+  and only supply the master password if the label ensures that the
+  page cannot disseminate the password arbitrarily.
+  %
 
-\item The storage layer never learns the site-specific credentials or master
-  password. The user only need to trust this layer to not collude with the
-  management layer. \Red{A realistic assumption is decentralized environment
-    like the web.}
+\item The storage layer never learns the site-specific credentials or
+  master password. The user only need to trust this layer to not
+  collude with the management layer (and vice-versa). This is a
+  realistic assumption given a decentralized environment like the web.
+
 \item Finally, the integrator never learns the master password or
   credentials private to other websites (e.g., \https{goo.gl}).
 \end{enumerate}
 %
-Importantly, the described guarantees must be preserved when both, the
-password manager is used to save and retrieve the credentials.
-
-
-Communication between different browsing contexts is dictated by the
-context and message labels.
+It is important that the above guarantees be preserved when the
+password manager is used to both save and retrieve credentials.
 %
 Below, we respectively describe the interaction of all the components
 in saving and retrieving credentials.
@@ -706,41 +706,43 @@ another containing the \https{dropcu.be} storage layer.
 As part the initialization process, the management layer saves a
 pointer to the storage layer (via \js|window.parent.frames|), both
 layers register \js|onmessage| event handlers, and the expected
-sensitivity of data, i.e., labels, to be exchanged.
+sensitivity of data, i.e., labels, to be exchanged is shared.
 %
-Subsequently, the integrator sends the credentials to the management
+Next, the integrator sends the credentials to the management
 layer via \js|postMessage|.
 %
-The label of the message is set to
-\js|Label("https://fb.com").or("https://dropcu.be")|; this label ensures that
-the management layer can only receive the message if it has raised its context
-label so that it subsumes the label of the message---thereby loosing the ability to
-communicate outside the \https{fb.com} and \https{dropcu.be} layers.\footnote{
-  To confine the management layer more strictly, the message can be labeled with
-  a label corresponding to a fresh principal generated by
-  \https{fb.com}. Importantly, the privilege must be granted to the storage
-  layer.  }
-\Red{Ale: can it be learned by the storage layer?}
+The label of the message is
+\js|Label("https://fb.com").or("https://dropcu.be")|; this label
+ensures that the management layer can only receive the message if it
+has raised its context label so that it subsumes the label of the
+message, which subsequently limits it to communicating with the
+\https{fb.com} and \https{dropcu.be} layers.\footnote{
+  To confine the management layer more strictly, the message can be
+  labeled with a label corresponding to a fresh origin generated by
+  \https{fb.com}, the privilege to which is granted to the storage
+  layer. 
+}
 
 In general, and as in the LWorker case, the browsing context's
-\js|onmessage| handler is only dispatched in the context label
+\js|onmessage| handler is only dispatched if the context label
 subsumes the message label.
 %
-This restriction ensures that the context's label is sufficiently strict to
-protect the privacy of the message.
+This restriction ensures that the browsing context label is
+sufficiently strict to protect the privacy of the message.
 %
-For iframes, the restriction does not solely amount to limiting the usage of
-\js|postMessage| and the \xhr{} constructor.
+For content (as opposed to workers), the restriction does not solely
+amount to limiting the usage of \js|postMessage| and the \xhr{}
+constructor.
 %
 Rather, \sys{} restricts all network, storage and
 cross-browsing-context communication.
 %
 Specifically, just as sending a \js|postMessage| requires the context
 label be subsumed by the message label, when loading content (e.g.,
-with \js|<img>|, \js|<script>|, etc.), writing to local storage
-(e.g., cookies), performing explicit HTTP requests with \xhr{}, or
-navigating the window, we require that the context label be subsumed
-by the (implicit) label of the utilized resource.
+with \js|<img>|, \js|<script>|, etc.), writing to local storage (e.g.,
+with \js|document.cookie|), performing explicit HTTP requests (with
+\xhr{}), or navigating the browsing context, we require that the
+context label be subsumed by the (implicit) label of the resource.
 %
 This ensures that the action (which is effectively a write) does not
 leak any information from the context to a less-sensitive entity.
@@ -756,53 +758,51 @@ generates a salt (\js|salt|), and encryption key $k =
 H(\texttt{mpass}\|\texttt{"}\https{fb.com}\texttt{"}\|\texttt{salt})$,
 as shown in Figure~\toref{fig:manager-s-2}.
 %
-The credentials are then encrypted using function \js|E| (e.g., AES).
-% 
 Here, $H$ is a hash function such as SHA-256.
 %
-We use the integrator origin in addition to the master
-password and salt in the key generation.
-%
-In doing so, the management layer ensures that a malicious storage
-layer will not be able to confuse it, during the retrieval process,
-into decrypting \https{fb.com}'s credentials when invoked by a
-different site, e.g., \https{goo.gl}.
+We use the integrator origin in addition to the master password and
+salt in the key generation, to ensure that a malicious storage layer
+will not be able to confuse the management layer, during the retrieval
+process, into decrypting \https{fb.com}'s credentials when invoked by
+a different integrator, e.g., \https{goo.gl}.
 
-After the key generation, the management layer sends
-\js|E|$_k$\js|(credentials)| and the \js|salt| via \js|postMessage| to the
-storage layer (for that, it uses the pointer saved during initialization).
+% 
+After the key generation, the management layer encrypts the
+credentials using function \js|E| (e.g., AES), and sends
+\js|E|$_k$\js|(credentials)| and the \js|salt| via \js|postMessage| to
+the storage layer.
 %
-\Red{don't get it, the manager has label fb or dropcu.be so we can just send a 
-message with exactly the label dropcu.be}
-Assuming that the label of the message is at most as restricting as
+Assuming that the label of the message subsumes
 \js|Label("https://dropcu.be")|, the storage layer's \js|onmessage|
 handler will be dispatched. 
 %
-Since the storage layer frame has the \https{dropcu.be} privilege, it does not
-require to raise its context label; this fact allows the storage layer to use
-\xhr{} to send the data to the server in the \js|dropcu.be| domain.
+Since the storage layer frame has the \https{dropcu.be} privilege, it
+does not need to raise its compartment label; this fact allows the
+storage layer to use XHR to send the data to the \https{dropcu.be}
+server.
  
 We note that, in addition to the credentials and salt, the storage
 layer also stores the origin of the parent, i.e., \https{fb.com}, as
 meta-data (label) identifying for whom the data is being stored.
 %
 Rather than having the management layer provide this meta-data to the
-storage layer alongside the credentials, by requiring \https{fb.com}
-to create the frame, we ensure that a malicious management layer
-cannot confuse the storage layer into associating \https{fb.com}'s
-encrypted data with a different origin, e.g., \https{goo.gl}, and thus
-leaking it on retrieval.
+storage layer alongside the encrypted credentials, by having
+\https{fb.com} create the frame in the initialization stage, we ensure
+that a malicious management layer cannot confuse the storage layer
+into associating \https{fb.com}'s encrypted data with a different
+origin, e.g., \https{goo.gl}, and thus allowing it to be leaked during
+the retrieval process.
 
 \paragraph{Retrieving credentials}
 %
-As in the case of saving credentials the integrator, \https{fb.com},
+As in the case of saving credentials, the integrator, \https{fb.com},
 creates two frames containing the management and storage layers.
 %
 In this scenario, the storage layer retrieves the encrypted credentials
 \js|E|$_k$\js|(credentials)|, salt and ownership meta-data (in this
-case, \https{fb.com}) and register an \js|onmessage| event handler, 
-similar to the one showed below. \Red{for what? to react when getting the 
-response from the server?}
+case, \https{fb.com}) and registers an \js|onmessage| event handler,
+that responds to the management layer's ``fetch'' request.
+A simplified handler is shown below.
 \begin{jscode}
 function handler(event) {
   // ... check origin ...
@@ -818,43 +818,49 @@ This handler simply replies via \js|postMessage| with the credentials.
 Importantly, however, the message is labeled with the origin meta-data
 retrieved from the server.
 %
-This ensures that the context label of the frame requesting the
-credentials---the management layer---must subsume the label of the message. 
+This ensures that the browsing context label of the frame requesting
+the credentials---the management layer---must subsume the label of the
+message. 
 %
 This restriction guarantees that, even if the management layer did not encrypt the
 credentials during the save procedure, it cannot learn and
-exfiltrate the credentials through the retrieval process; the context
+exfiltrate the credentials through the retrieval process; this
 label ensures that it can only disseminate the credentials to the
-corresponding owner.
+corresponding owner (\https{fb.com}, in this case).
 %
 
 Like the storage layer, in this scenario, the management layer first
-registers a message handler to receive the encrypted credentials.
+registers a message handler to receive the encrypted credentials, and
+via \js|window.parent.frames|, it retrieves a pointer to the storage
+layer.
 %
-Via \js|window.parent.frames|, it retrieves a pointer to the
-storage layer to which it sends a message requesting the encrypted
-credentials after raising its context label to
-\js|Label("https://fb.com")|.
+As shown in Figure~\toref{fig:manager-r-2}, after raising the
+compartment label to \js|Label("https://fb.com")|, the management
+layer sends the storage a ``fetch'' message, requesting the encrypted
+credentials.
 %
-Figure~\toref{fig:manager-r-2} illustrates this.
 %
-Subsequently, the message containing the encrypted
-credentials and salt is dispatched and the
-master password (\js|mpass|) is retrieved from the user. 
+Subsequently, the storage layer's handler, defined above, is triggered
+and the message containing the encrypted
+credentials and salt is sent to the management layer.
+%
+At this point, its message handler is dispatched (since the management
+layer's context label subsumes the label of the storage layer message)
+and the master password (\js|mpass|) is retrieved from the user. 
 %
 Using the master password and salt, the management layer reconstructs
-the key $k$, which used to decrypt the encrypted credentials.
+the key $k$, using it to decrypt the encrypted credentials.
 %
-Finally, the decrypted credentials are sent (via \js|postMessage|) to
+These decrypted credentials are then sent (via \js|postMessage|) to
 the \https{fb.com} browsing context.
 %
-Importantly, the management layers' context label,
-\js|Label("https://fb.com")|, disallows it from disseminating the data
-to any other origin.
+We note that, as imposed by the storage layer, the management layers'
+context label, \js|Label("https://fb.com")|, prevents it from
+disseminating the data to any other origin.
 %
-As shown in Figure~\toref{fig:manager-r-3}, at this point,
-\https{fb.com}, whose label remains public can carry out the login
-procedure, i.e., submit the login form.
+Finally, as shown in Figure~\toref{fig:manager-r-3}, \https{fb.com},
+whose label remains public carries out the login procedure, i.e., it
+submit the login form.
 
 
 \subsection{Privilege separation within iframes}
@@ -887,7 +893,7 @@ incorporates user-sensitive data from unaffiliated origins, such as
 interfaces or functionality.
 %
 For instance, the third party, \https{mint.biz}, may wish to present the user with a
-visualization of their spending habits, or identify fraudulent
+visualization of their spending habits, identify fraudulent
 \https{amazon.com} purchases using their \https{bank.ch} account, etc.
 %
 Currently, such applications cannot be built since the SOP prevents
@@ -895,17 +901,17 @@ Currently, such applications cannot be built since the SOP prevents
 \https{bank.ch} data, e.g., using \xhr{}.\footnote{
  We assume that neither \https{amazon.com} nor \https{bank.ch}
  explicitly trust \https{mint.biz}; otherwise, the parties can
- explicitly set CORS headers~\tocite{CORS} to provide \https{mint.biz}
+ explicitly set CORS headers~\tocite{CORS} to grant \https{mint.biz}
  access to such data.
 }
 %
 In contrast, \sys{} is able to allow \https{mint.biz} to access such
-data, provided that once the data is inspected, scripts cannot perform
-arbitrary network requests (or storage writes).
+data, provided that once the data is inspected, the page cannot
+perform arbitrary network requests (or storage writes).
  
 To this end, we modify the \xhr{} constructor to add an additional
-flag that indicates whether the object should be treated as a
-\emph{implicitly labeled XHR object}.
+flag that indicates whether the object should be treated as an
+\emph{implicitly-labeled XHR object}.
 %
 When set, the  label of the object corresponds to the origin
 to whom the request is being made (set with the \js|open| method). 
@@ -913,8 +919,9 @@ Accessing the object state, including the response, is dictated by
 confinement (not SOP).
 %
 Specifically, when accessing any of the methods or properties of
-the object, \sys{} ensures that underlying read- and write-effects do
-not violate the confinement guarantees provided by the context label.
+the object, \sys{} further ensures that underlying read- and
+write-effects do not violate the confinement guarantees provided by
+the context label.
 %
 For example, when calling the \js|send| method, which performs the
 actual network request, \sys{} checks that the (implicit) label of the
@@ -928,36 +935,40 @@ When accessing any of the response attributes (e.g., \js|status|,
 \js|responseText|, etc.), \sys{} ensures that the browsing context can inspect
 (read) the state of the XHR object which may contain data from the remote host.
 %
-Specifically, it checks that the context label is at least as
-restricting as the label of the XHR object.
+Specifically, it checks that the browsing context label subsumes the
+label of the XHR object.
 %
 Finally, and as in the case of dispatching \js|onmessage| handlers,
 %between labeled browsing contexts, 
 when dispatching any registered XHR
-handlers (e.g., \js|onabort|, \js|onload|, etc.), \sys{} ensures that the
-context label subsumes the label of the XHR object, i.e., it can observe 
-the presence of the message.
+handlers (e.g., \js|onabort|, \js|onload|, etc.), \sys{} also ensures
+that the context label subsumes the label of the XHR object, i.e., it
+can observe the presence of the message.
  
-We note that our modified notion of a XHR object allows the response of a
+We note that our modified a XHR object allows the response of a
 cross-origin request to be inspected, regardless of the CORS headers.
 %
 Though more flexible than the SOP, such action is still safe since inspecting
 the response raises the context label, and thus restricts all subsequent side
 effects.
 %
-Returning to our mashup example, once \https{mint.biz} inspects the
+(To avoid unnecessary tainting, this labeled XHR should not be used
+when a resource is expected to have a CORS header that would permit
+the read.)
+%
+In our mashup application, once \https{mint.biz} inspects the
 response of an \https{amazon.com} request, it cannot perform requests
 to any origin other than \https{amazon.com}.
 %
-Once the code further inspects a response from \https{bank.ch}, no
-additional requests can be made: the context label  
+Further inspecting a response from \https{bank.ch} leads to a scenario
+in which no additional requests can be made: the context label  
 \js|Label("https://amazon.com").and("https://bank.ch")|
 cannot be subsumed by any origin label. 
 % in order to 
 % to inspect the response.
 %
 However, data in the browsing context can still be shared with labeled
-pages and workers which preserve their privacy.
+frames and workers which preserve the privacy of the data.
 %whose context labels preserve the privacy described by 
 %\js|Label("https://amazon.com").and("https://bank.ch")|.
 % %ensures that the privacy of the will be preserved.
@@ -978,7 +989,7 @@ contained in a public parent page.
 %
 The latter page performs all the navigation in addition to conveying
 the user input (e.g., ``get next statement'') to the first two
-contexts.
+labeled contexts.
 
 
 
