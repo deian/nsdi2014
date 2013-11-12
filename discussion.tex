@@ -69,11 +69,47 @@ powerful policies than \sys{}, writing policies as programs might be error
 prone. Instead, we design \sys{} to enforce weaker, although useful,
 confinement policies based on the specification of data labels. 
 
-\subsection{Granularity of enforcement } 
+\subsection{Granularity} 
 
-%% DCS writing a policy as a program. 
-%% Circular policies. 
-%% 
+Several approaches for confinement label data at a fine-grain level. For
+instance, JSFlow~\cite{Hedin:2012}\tocite{} assign (and tracks) labels to
+JavaScript instructions and individual values. Another example,
+FlowFox~\cite{DeGroef:2012}, permits to label which fields in a given form are
+confidential. In contrast, \sys{} implicitly treats all data in a given browsing
+context as protected by the context label.  If compared with the previous
+approaches, \sys{} seems to be coarse-grain when labeling data.  It seems to
+apply a less precise enforcement, which in turn could make it a conservative
+system. However, it is possible to obtain fain-grain labeling by restructuring
+the code.
+
+The basic idea consists on changing the code so that fresh browsing contexts are
+introduced to group data with the same sensitivity level, e.g., by allocating
+different iframes.  Restructuring code due to security reasons might impact on
+the initial design of a web page. The introduction of new iframes, for instance,
+might lead to triggering post messages in order to exchange
+information. Therefore, some information exchange that could have 
+originally be conceived to be synchronous, it is now performed asynchronously due to the
+nature of post messages. 
+
+
+
+
+
+% language-based approaches~\tocite{} provide a more fine-grain labeling of
+% data. JSFlow, for example, allows to label individual variables and
+% DOM-elements; FlowFox
+
+%  , \sys{} can be considered as coarse-grain information-flow system. For
+% instance,
+
+
+
+%% JSFlow, FlowFox ... low level objects, but you need to re-estructure your
+%% program. 
+%% Implicit labeling
+%% Communication among iframes is asynchronous, and may chance the semantics. 
+
+
 
 % Can only express latticed-based policies. Can't express all kinds of
 % policies. But we speculate that this is good enough; i.e., dclabels
