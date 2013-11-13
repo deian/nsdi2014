@@ -74,12 +74,11 @@ threads.
 And, imposing such a limit on the number of threads does trivially
 reintroduces the attack.
 %
-While using light-weight threads as used
-in~\cite{stefan:addressing-covert}, hierarchical- and
-instruction-based schedulers~\tocite{cream}, and predicative
-mitigation techniques~\cite{askarov:termination-insensitive} is
-promising, we do not expect browsers to be amendable to such
-heavy-weight techniques.
+While using light-weight threads as used in~\cite{stefan:addressing-covert},
+hierarchical- and instruction-based
+schedulers~\cite{stefan:2013:eliminating,buiras2013library}, and predicative
+mitigation techniques~\cite{askarov:termination-insensitive} is promising, we do
+not expect browsers to be amendable to such heavy-weight techniques.
 %
 Instead, simple heuristics may be more practical since the browser,
 in the case of Firefox, and tab, in Chrome's case, hang when an
@@ -111,7 +110,7 @@ security policies on their data.
 %
 However, we believe that the encoding of web policies maps naturally
 to DC labels and though simple, the evaluation in
-Hails~\tocite{hails}, and our ability to implement diverse
+Hails~\cite{giffin:2012:hails}, and our ability to implement diverse
 applications with \sys{} supports this conjecture.
 %
 We further remark that \sys{} conceptually provides developers with
@@ -150,8 +149,8 @@ context.
 This is in contrast to systems such as JSFlow~\cite{Hedin:2012} and
 FlowFox~\cite{DeGroef:2012}, which, rely on fine-grained labeling.
 %
-Inspired by the HiStar~\tocite{histar} and
-LIO~\tocite{lio} confinement systems, we took a coarse-grained
+Inspired by the HiStar~\cite{Zeldovich:2006} and
+LIO~\cite{stefan:2011:flexible} confinement systems, we took a coarse-grained
 approach because of three core reasons.
 %
 Firstly, policies on the web are specified in terms of origins which

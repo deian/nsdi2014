@@ -6,7 +6,7 @@ In this section we describe the \sys{} system.
 \sys{} differs from existing browser security mechanism in providing
 \emph{confinement}, i.e., ability to give code access to sensitive
 data while ensuring that it cannot release it
-arbitrarily~\tocite{saltzer}.
+arbitrarily~\cite{SaltzerS75}.
 %
 Our confinement mechanism allows developers to enforce both, policies
 that are stricter than the SOP and policies that are more flexible
@@ -28,8 +28,8 @@ Such policies are known as \emph{labels}.
 The particular labels used by \sys{} are the \emph{DC
 labels} presented in~\cite{stefan:2011:dclabels}.
 %
-We chose DC labels, much like Hails~\tocite{hails} and
-Breeze~\tocite{breeze}, because they have a simple and clear
+We chose DC labels, much like Hails~\cite{giffin:2012:hails} and
+Breeze~\cite{Breeze13}, because they have a simple and clear
 semantics, yet are as expressive as the labels used by other practical
 confinement systems~\cite{GenLabels}.
 
@@ -82,7 +82,7 @@ Section~\ref{sec:discussion}), in \sys, we associate a label with
 every \emph{compartment}~\tocite{franz}.
 %
 A compartment roughly corresponds to the JavaScript heap (for
-simplicity, global object) of a web page, iframe, Worker~\tocite{},
+simplicity, global object) of a web page, iframe, Worker~\cite{workers},
 etc.; this allows us to reason about JavaScript security semantics at
 a coarse-grained level: we need only impose security checks for
 cross-compartment references, references to objects within the same
@@ -93,7 +93,7 @@ We sometimes abuse terminology and use the phrase  ``label of a
 browsing context'' to mean the label on the compartment that contains
 the browsing context's document, even though, for example, Worker
 compartments do not have a document or browsing
-context~\tocite{workers}.
+context~\cite{workers}.
  
 The label of the compartment serves as a ``taint,'' indicating the
 sensitivity of data contained within the compartment, i.e., the
@@ -153,7 +153,7 @@ In our system, code can only create the empty privilege (which is
 simply the JavaScript \js|null| object) and privileges corresponding
 to fresh, unique origins (create with \js|new FreshPrivilege()|).
 %
-As in HiStar~\tocite{histar}, the ability to generate fresh privileges
+As in HiStar~\cite{Zeldovich:2006}, the ability to generate fresh privileges
 ensures that all browsing contexts are egalitarian, i.e., a child
 iframe is no less trustworthy than its containing parent.
 
@@ -163,8 +163,8 @@ cost of raising the context label and thus giving up write privileges.
 Unfortunately, practical systems typically have covert channels which
 may be exploited to leak sensitive data.
 %
-Hence, as in HiStar~\tocite{histar}, Hails~\tocite{hails}, and
-Breeze~\tocite{breeze} we associate a \emph{clearance}---which is
+Hence, as in HiStar~\cite{Zeldovich:2006}, Hails~\cite{giffin:2012:hails}, and
+Breeze~\cite{Breeze13} we associate a \emph{clearance}---which is
 simply a label---with every compartment.
 %
 Clearance imposes a limit on the kind of data a compartment can have,
@@ -304,7 +304,7 @@ For simplicity we consider a password strength checker that does not
 require access to the DOM.
 %
 As such, to ``confine'' the strength checker, \https{instagra.me}
-can execute the code in a Worker~\tocite{worker};
+can execute the code in a Worker~\cite{workers};
 %
 since every worker has a separate, fresh compartment with no
 access to the page DOM, this ensures that the password cannot be
@@ -315,7 +315,7 @@ However, workers do have access to the \xhr{} constructor, and, thus,
 a CSP policy that restricts its network communication (e.g.,
 \texttt{connect-src: 'self'}).
 \footnote{
-  Workers inherit the CSP policy of the containing page~\tocite{csp},
+  Workers inherit the CSP policy of the containing page~\cite{csp},
   hence \https{instagra.me} can create the worker in a ``dummy''
   iframe which has the set policy.
   %
@@ -374,7 +374,7 @@ implications of untrusted code that does not need to access the DOM,
 since they provide a clean, isolated environment within which
 untrusted code can be executed.
 %
-Hence, we extend the Worker DOM API~\tocite{workers} with a
+Hence, we extend the Worker DOM API~\cite{workers} with a
 Labeled-Worker (LWorker).
 %
 Like a standard worker, an LWorker executes a piece of code in a fresh
@@ -436,9 +436,9 @@ executing the checker code in the LWorker; the initial label of the
 worker compartment is set to that of the parent (in this case, the
 public label).
 %
-Our use of labeled workers in this fashion is similar to the
-executing code in LIO's \js|toLabeled| block~\tocite{lio} and
-Breeze's \js|bracket|~\tocite{breeze}.
+Our use of labeled workers in this fashion is similar to the executing code in
+LIO's \js|toLabeled| block~\cite{stefan:2011:flexible} and Breeze's
+\js|bracket|~\cite{Breeze13}.
  
 At this point, the code executing in the labeled worker can fetch
 data, such as a list of weak passwords, from any origin,
@@ -878,7 +878,7 @@ privileges and extending LWorkers with DOM objects}
 once it has read sensitive data, i.e., data from a browsing context
 with a more restricting label.
 %
-As envisioned in~\tocite{hotos}, by equipping the browser with such
+As envisioned in~\cite{yang:2013:towards}, by equipping the browser with such
 confinement mechanism we can safely relax the SOP.
 %
 This relaxation, in turn, allows developers to build applications that access
@@ -901,7 +901,7 @@ Currently, such applications cannot be built since the SOP prevents
 \https{bank.ch} data, e.g., using \xhr{}.\footnote{
  We assume that neither \https{amazon.com} nor \https{bank.ch}
  explicitly trust \https{mint.biz}; otherwise, the parties can
- explicitly set CORS headers~\tocite{CORS} to grant \https{mint.biz}
+ explicitly set CORS headers~\cite{cors13} to grant \https{mint.biz}
  access to such data.
 }
 %
