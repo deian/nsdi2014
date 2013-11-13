@@ -157,3 +157,40 @@ what  makes our system different from DCS  and BFlow is that
 confinement first-class. There is no asymmetry between browsing
 contexts -- that is an iframe can impose restrictions on it's parent
 by raising it's label.
+
+---
+
+password checker:
+
+1. need to handle sensitive data, but need to request remote content,
+too. conventional DAC can't support this. MAC vs. DAC point.
+
+2. "first class": want library code to be able to treat other library
+code as untrusted; so need to be able to nest distrust. for example,
+pw checker might incorporate other untrusted libraries.
+
+3. self-exfiltration; need to set a policy that is more restricting
+than same-origin, e.g., to prevent untrusted code from communicating
+sensitive data unsafely back to the same origin.
+
+password manager:
+
+1. mutually distrusting, i.e., symmetric: child can impose policy
+on parent, not only parent impose policy on child.
+
+2. DAC vs. MAC again
+
+3rd-party mashup:
+
+same as password manager 1 and 2, and additionally:
+
+need to do things SOP forbids: namely, have one origin pull data from
+another with XHR. CORS allows this, and gives up all privacy in the
+process, while requiring explicit advance authorization of other
+origins to read. content provider doesn't know a priori which great
+apps might crop up from which origins.
+
+*** note that this means that data providers today control which
+app vendors' apps you can use! anti-competitive. or you can give
+up all privacy and give out your credentials for the data provider
+to the app author. ***
