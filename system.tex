@@ -212,7 +212,7 @@ Privilege {
 Context label &  
 \begin{webidl}
 Browbound {
-  prop Label privacyLabel
+  attribute Label privacyLabel
 }
 \end{webidl}
 &
@@ -232,7 +232,7 @@ privileges) is the single mechanism used to restrict reads and writes.
 Context clearance  &  
 \begin{webidl}
 Browbound {
-  prop Label privacyClearance
+  attribute Label privacyClearance
 }
 \end{webidl}
 &
@@ -251,7 +251,7 @@ restricting than the current clearance.
 Context privileges  &  
 \begin{webidl}
 Browbound {
-  prop Privilege privileges
+  attribute Privilege privileges
 }
 \end{webidl}
 &
@@ -266,14 +266,16 @@ LWorker {
   LWorker LWorker(String, Label[, Privilege])
   LWorker SOLWorker(String, Label)
   postMessage(Object [,Label])
-  prop EventHandler onmessage
+  attribute EventHandler onmessage
   void grant(Privilege)
 }
 \end{webidl}
 &
 \\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{tabular}
-\caption{\label{systemAPI} \sys{} design components and API}
+\caption{\label{systemAPI} \sys{} design components and
+  API\todo{ale}{make sute to say in the caption that the API is
+described in a WebIDL-like language}}
 \end{table*}
 
 
