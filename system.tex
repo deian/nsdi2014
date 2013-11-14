@@ -79,7 +79,7 @@ details.
 
 Rather than explicitly labeling every object (a trade-off discussed in
 Section~\ref{sec:discussion}), in \sys, we associate a label with
-every \emph{compartment}~\tocite{franz}.
+every \emph{compartment}~\cite{wagner2011compartmental}.
 %
 A compartment roughly corresponds to the JavaScript heap (for
 simplicity, global object) of a web page, iframe, Worker~\cite{workers},
@@ -179,8 +179,9 @@ a third-party mashup (Section~\ref{sec:system:mashup}), and
 an extension that converts phone numbers to links
 (Section~\ref{sec:system:script}).  %
 %
-For completeness, we summarize the different system components and
-security mechanisms in Table~\toref{table:components}.
+For completeness, we summarize the different system components,
+security mechanisms, and DOM API (using WebIDL-like syntax), in
+Table~\toref{table:components}.
 
 \begin{table*}[t]
 \centering
@@ -212,7 +213,7 @@ Privilege {
 Context label &  
 \begin{webidl}
 Browbound {
-  prop Label privacyLabel
+  attribute Label privacyLabel
 }
 \end{webidl}
 &
@@ -232,7 +233,7 @@ privileges) is the single mechanism used to restrict reads and writes.
 Context clearance  &  
 \begin{webidl}
 Browbound {
-  prop Label privacyClearance
+  attribute Label privacyClearance
 }
 \end{webidl}
 &
@@ -251,7 +252,7 @@ restricting than the current clearance.
 Context privileges  &  
 \begin{webidl}
 Browbound {
-  prop Privilege privileges
+  attribute Privilege privileges
 }
 \end{webidl}
 &
@@ -266,14 +267,16 @@ LWorker {
   LWorker LWorker(String, Label[, Privilege])
   LWorker SOLWorker(String, Label)
   postMessage(Object [,Label])
-  prop EventHandler onmessage
+  attribute EventHandler onmessage
   void grant(Privilege)
 }
 \end{webidl}
 &
 \\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{tabular}
-\caption{\label{systemAPI} \sys{} design components and API}
+\caption{\label{systemAPI} \sys{} design components and
+  API\todo{ale}{make sure to say in the caption that the API is
+described in a WebIDL-like language}}
 \end{table*}
 
 
