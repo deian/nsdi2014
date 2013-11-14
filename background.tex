@@ -31,7 +31,7 @@ URL.\footnote{
 }
 %
 Below we briefly review the core browser security policies, including
-the \emph{same-origin policy (SOP)}~\tocite{}, \emph{content security
+the \emph{same-origin policy (SOP)}~\cite{rfc6454}, \emph{content security
 policy (CSP)}~\cite{csp}, and \emph{cross-origin resource origin
 (CORS)} policy~\cite{cors13}.
 %
@@ -39,7 +39,7 @@ policy (CSP)}~\cite{csp}, and \emph{cross-origin resource origin
 We note that our review is not exhaustive (e.g., among other, we not
 discuss the \js|X-Frame-Options| header, which prevents loading a page
 in a nested browsing context);  the interested reader is referred
-to~\tocite{} for a more complete discussion on web security.
+to~\cite{googlehandbook} for a more complete discussion on web security.
 
 
 
@@ -47,7 +47,8 @@ to~\tocite{} for a more complete discussion on web security.
 \label{sec:background:sop}
 
 The SOP specifies that resources of an origin should only be readable
-by content from the same origin~\cite{rfc6454,googlehandbook}\tocite{VanKesteren2012}.
+by content from the same origin~\cite{rfc6454, googlehandbook,
+VanKesteren2012}.
 %
 Hence, browsers ensure that code executing in a \https{a.com} context
 can only inspect the DOM and cookies of another context if they share
@@ -86,7 +87,7 @@ execution sequence (as done by JSON-P~\cite{jsonp}), etc.
 
 The popularization of such ad-hoc cross-origin communication methods,
 (notably, those relying on \js|window.name| and
-\js|window.location|~\tocite{thidpartyjs}), has lead to the
+\js|window.location|~\cite{thidpartyjs}), has lead to the
 introduction of the HTML5 \js|postMessage| API~\cite{webmessaging}.
 %
 This API allows code from different browsing contexts to exchange
@@ -97,7 +98,7 @@ Given a foreign-origin DOM window object \js|win|, the
 foreign-origin a message: \js|win.postMessage(message, destOrigin)|.
 %
 Since browsing contexts can be navigated, to prevent man-in-the-middle
-attacks attacks~\tocite{barthspaper}, a second argument
+attacks attacks~\cite{barth2009securing}, a second argument
 \js|destOrigin| is used to specify the intended origin of the message.
 %
 Unfortunately, once message is sent to the foreign-origin browsing
@@ -115,10 +116,9 @@ complete trust.
 \subsection{Content Security Policy} 
 \label{sec:background:csp}
 
-Addressing cross-site scripting (XSS) attacks~\tocite{xss}\Red{Ale: there is not
-  an standard XSS reference}, CSP~\tocite{Sterne2012} provides developers with a
-means for white-listing the origins from which their application is allowed to
-load resources.
+Addressing cross-site scripting (XSS) attacks~\cite{kerschbaum2007simple}, CSP
+provides developers with a means for white-listing the origins from which their
+application is allowed to load resources~\cite{csp}.
 %
 Specifically, when first loading a page, the
 \js|Content-Security-Policy| header is inspected for directives that
@@ -165,7 +165,8 @@ until it reads sensitive data.
 \label{sec:background:cors}
 
 While CSP tightens down the SOP by restricting reads and writes, CORS
-loosens the restrictions imposed by the SOP~\cite{VanKesteren2012}.
+loosens the restrictions imposed by the SOP~\cite{rfc6454, VanKesteren2012,
+googlehandbook}.
 %
 Specifically, CORS allows web servers to specify, using a header that
 white-lists origins, which browsing contexts are allowed to inspect
