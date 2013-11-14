@@ -1,22 +1,40 @@
 \section{Introduction}
 \label{sec:intro}
 
-Web-based applications have proliferated and found wide use because
-their architecture makes it especially easy for developers to reuse
-components of pre-existing applications to make new ones. While code
-reuse in venerable desktop software has typically taken the form of
+Web applications have proliferated and found wide use because it is
+especially easy for developers to reuse components of existing
+applications to create new ones. While component reuse in the
+venerable desktop software model typically takes the form of
 libraries, the reusable components in web applications aren't limited
-to JavaScript library code---they further include remotely accessible
-content and services ({\em e.g.,} map data and storage).
+to just JavaScript library code---they further include
+network-accessible content and services ({\em e.g.,} map data and
+storage). The resulting model is one in which web application
+developers cobble together multiple JavaScript libraries, web-based
+content, and web-based services written and operated by various
+parties (some of which may in turn incorporate libraries, content, and
+services from still other sources) and add their own JavaScript code
+that integrates these components and builds the required
+application-specific functionality atop them. Such web applications
+are today commonly referred to as {\em mashups.} A web application's
+behavior may be enhanced and/or customized further by browser {\em
+  extensions} the user has installed into the browser, which in
+Firefox and Chrome take the form of JavaScript code written by other
+parties still. Unfortunately, some of the many contributors to the
+tangle of JavaScript comprising a web application may not have the
+user's best interest at heart. Given that today's web applications
+manipulate such sensitive data as email, bank statements, health
+records, and users' passwords, there is great potential for violations
+of users' privacy by JavaScript contributed by miscreants.
 
-
-% two goals that are in opposition: (1) flexibility to compose
-% services, content, and JavaScript code from multiple parties into
-% rich, featureful web-based applications. (2) maintaining privacy
-% in such a system, where conglomerations of code written by mutually
-% distrusting parties process users' sensitive data. Efforts to
-% advance one of these goals unfortunately can often hamper progress
-% on the other.
+Out of this state of affairs fall two goals for web
+applications. First, {\em flexibility:} developers should be able to
+flexibly compose services, content, and JavaScript code from multiple
+parties into rich, featureful web applications. And second, {\em
+  privacy:} there should be strong guarantees that a user's privacy
+cannot be violated when a web application processes her sensitive
+data. Unfortunately, in the status quo web browser security
+architecture, efforts to advance one of these goals unfortunately
+often hamper achieving the other.
 
 % include JQuery use stats: over 68% of Quantcast top 10k sites, and
 % over 52% of Quantcast top million sites. (cite
