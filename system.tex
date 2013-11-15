@@ -203,8 +203,8 @@ three concrete examples:
 a password-strength checker (Section~\ref{sec:system:worker}),
 a password manager (Section~\ref{sec:system:iframe}), 
 a third-party mashup (Section~\ref{sec:system:mashup}), and
-an extension that converts phone numbers to links
-(Section~\ref{sec:system:script}).  %
+a library that converts phone numbers to links
+(Section~\ref{sec:system:script}--Section~\ref{sec:system:extension}).
 %
 For completeness, we summarize the different system components,
 security mechanisms, and DOM API (using WebIDL-like syntax), in
@@ -220,11 +220,10 @@ Table~\toref{table:components}.
 \end{webidl}
 \begin{webidl}
 LWorker {
-  LWorker LWorker(String, Label[, Privilege])
+  LWorker LWorker(String, Label[, Privilege, Window])
   LWorker SOLWorker(String, Label)
   postMessage(Object [,Label])
   attribute EventHandler onmessage
-  void grant(Privilege)
 }
 \end{webidl}
 }
@@ -342,15 +341,17 @@ constructor used to perform network requests, and
 parent.
 %
 Different from the \js|Worker| constructor, the \js|LWorker|
-constructor takes two additional arguments: a label that specifies the
-clearance on the code running in the worker and an optional privilege
-to grant the worker.
+constructor takes three additional arguments: a label that specifies the
+clearance on the code running in the worker, an optional privilege
+to grant the worker, and an optional window object to attach to the worker.
+%
+We discuss the role of the latter two arguments in Sections~\ref{sec:system:script}--\ref{sec:system:extension}.
 
 For example, we create a new LWorker that executes the
 password-strength checker code as follows:
 \begin{jscode}
 var url = "https://checker.biz/checker.js";
-var label = new Label(window.location.origin);
+var label = new Label(location.origin);
 // 1. Execute checker in new worker
 var checker = new LWorker(url, label);
 \end{jscode}
@@ -506,7 +507,7 @@ Th modified code is shown below.
 // Create fresh unique privilege
 var p = new FreshPrivilege();
 // Take ownership of this privilege
-Browbound.own(p);
+Browbound.privileges = p.combine(Browbound.privileges);
 // Use it to confine the worker completely:
 var checker = new LWorker(url, p.asLabel);
 // As before ..
@@ -817,12 +818,54 @@ Finally, as shown in Figure~\toref{fig:manager-r-3}, \https{fb.com},
 whose label remains public carries out the login procedure, i.e., it
 submit the login form.
 
-
 \subsection{Privilege separation within iframes}
+\label{sec:system:script}
+
+The confinement system presented thus far requires developers to
+compartmentalize components/libraries of different trustworthiness into
+multiple labeled iframes/workers.
+%
+Though this is sufficient for many libraries and mashups, placing a library
+such a jQuery, which inherently traverses and modifies many parts of the DOM,
+in a separate iframe/worker is not practical: developers use jQuery as a
+JavaScript domain specific language with which they build application.
+%
+How, then, can \https{bank.ch} ensure that a library such a jQuery does not
+leak the user's bank statement?
+
+Rather than attempt to solely confine jQuery within such a page, a
+first conservative approach is to confine the whole page. 
+%
+To this end, \sys{} can be used to raise the label of the browsing
+context and drop the page privileges before importing the library:
+\begin{jscode}
+// Raise label:
+Browbound.label = new Label(location.origin);
+// Drop privileges:
+Browbound.privilege = null;
+\end{jscode}
+%
+This ensures that the page can only leak data to \https{bank.ch}.
+%
+Consequently, the jQuery library code must be also be hosted on the
+same origin.
+%
+
+To allow the page to communicate with other domains, the application
+must create a iframe, which would have the page privilege and thus be
+able to communicate arbitrarily.
+%
+In this scenario, child frame serves the role of a ``trusted''
+component (akin to OS kernels).
+%
+That is, the iframe it will carry out any request (submitted via
+\js|postMessage|) on behalf of the parent, after asserting that the
+request is safe (e.g., update local storage to reflect the last page
+view, etc.).
+
+
+\subsection{A cross-browser extension system}
 \label{sec:system:extension}
-%Phone2Links extension
-\Red{TODO: change section title; this should talk about stashing
-privileges and extending LWorkers with DOM objects}
 
 
 \subsection{Relaxing SOP for confined code}
@@ -945,6 +988,7 @@ contained in a public parent page.
 The latter page performs all the navigation in addition to conveying
 the user input (e.g., ``get next statement'') to the first two
 labeled contexts.
+
 
 
 
