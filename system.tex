@@ -285,7 +285,7 @@ leaked by embedding images, loading scripts, etc.
 However, workers do have access to the \xhr{} constructor, and, thus,
 \https{instagra.me} must additionally host the checker source and set
 a CSP policy that restricts its network communication (e.g.,
-\texttt{connect-src: 'self'}).
+\texttt{connect-src 'self'}).
 \footnote{
   Workers inherit the CSP policy of the containing page~\cite{csp},
   hence \https{instagra.me} can create the worker in a ``dummy''
