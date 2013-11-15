@@ -900,16 +900,33 @@ same origin.
 %
 
 To allow the page to communicate with other domains, the application
-must create a iframe, which would have the page privilege and thus be
+must create an iframe, which would have the bank privilege and thus be
 able to communicate arbitrarily.
 %
-In this scenario, child frame serves the role of a ``trusted''
-component (akin to OS kernels).
+The role of this child frame is to solely implement ``trusted''
+components of the application.
 %
-That is, the iframe it will carry out any request (submitted via
-\js|postMessage|) on behalf of the parent, after asserting that the
-request is safe (e.g., update local storage to reflect the last page
-view, etc.).
+Similar to a OS kernel, the iframe it carries out any requests
+(submitted via \js|postMessage|) on behalf of the caller, after
+asserting that the request is safe (e.g., updating local storage to
+reflect the last page view, etc.).
+
+Unfortunately, such structuring of an application, for any realistic
+scenario, is not trivial.
+%
+For example, to ensure that the library cannot carry out
+self-exfiltration attacks we must set the context label to the label
+of a fresh principal.
+%
+This, in turn, requires granting the privilege to the trusted
+child iframe (as to not restrict the child from performing arbitrary
+requests), and requesting it to fetch the library source code.
+%
+Without knowing a-priori the URL of the source code, the trusted
+frame, must decide whether fetching the source will leak any
+information---a complex decision we precisely wish to avoid imposing
+on developers!
+
 
 
 \subsection{A cross-browser extension system}
