@@ -80,9 +80,9 @@ still limits flexibility, though, in that it requires a server's
 operator to know {\em a priori} which mashups are hosted by which
 other origins, and worse, potentially allows a service provider to
 limit users' choice of applications that integrate content from the
-provider's site.\footnote{The user also has the further unpalatable
-  choice of providing their login credentials for the service
-  provider's site to the web application developer; a potential
+provider's site.\footnote{The user has the further unpalatable
+  choice of providing her login credentials for the service
+  provider's site to the web application---a potential
   privacy and integrity disaster for, say, one's online banking site,
   yet the precise model that services like {\tt mint.com} use for lack
   of a better alternative.} It of course also potentially sacrifices
@@ -114,20 +114,21 @@ access control (MAC) system for web browsers that delivers both
 flexibility for web application developers and robust privacy for
 users. Browbound allows untrusted JavaScript to process sensitive
 data, and confines the untrusted JavaScript in first-class, symmetric
-fashion. To illustrate the value of these properties, we present four
+fashion. To illustrate the value of these properties, we present five
 case-study applications---a password strength-checker, a password
-manager, a third-party mashup, and encrypted cloud-based editor, none
-of which can be implemented in a way that ensures privacy in today's
-web browsers. We then build them atop Browbound. Our contributions
-include:
+manager, a banking application that uses the (untrusted) jQuery
+library, a ``phone numbers-to-links'' browser extension, and a
+third-party mashup, none of which can be implemented in a way that
+ensures privacy in today's web browsers. We then build them atop
+Browbound. Our contributions include:
 
 \begin{itemize}
-\item We characterize four case-study web applications for which
+\item We characterize five case-study web applications for which
   today's browser security architecture cannot provide strong privacy.
 \item We describe the design of the Browbound label-based MAC system
-  for web browsers, which meets the requirements of the four
+  for web browsers, which meets the requirements of the five
   case-study web applications.
-\item We describe designs of the four case-study web applications atop
+\item We describe designs of the five case-study web applications atop
   Browbound.
 \item We evaluate the performance overhead of Browbound in the Firefox
   and Chromium open-source browsers, and illustrate that Browbound

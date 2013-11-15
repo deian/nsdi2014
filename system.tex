@@ -3,18 +3,18 @@
 
 In this section we describe the \sys{} system.
 %
-\sys{} differs from existing browser security mechanism in providing
-\emph{confinement}, i.e., ability to give code access to sensitive
-data while ensuring that it cannot release it
-arbitrarily~\cite{SaltzerS75}.
+Unlike existing browser security mechanisms, \sys{} provides
+\emph{confinement:} it gives code access to sensitive
+data while ensuring that the code cannot release that sensitive
+data arbitrarily~\cite{SaltzerS75}.
 %
-Our confinement mechanism allows developers to enforce both, policies
+Our confinement mechanism allows developers to enforce both policies
 that are stricter than the SOP and policies that are more flexible
 than the SOP (yet still safe), without imposing the limitations of CSP
 and CORS.
 %
-Below, we first describe how policies are encoded in \sys{}
-followed by the system design itself.
+Below, we first describe how one encodes policies in \sys{}, and then
+the system design itself.
 
 \subsection{Policies and confinement in \sys{}}
 \label{sec:system:policy}
@@ -207,13 +207,16 @@ We remark that \sys{}'s API is designed to be minimalistic, and as such, it only
 consists on the primitives shown in Figures~\ref{fig:APIspec} and
 \ref{systemAPI}.
 
-In the rest of this section, we expand on the \sys{} design through
-three concrete examples: 
-a password-strength checker (Section~\ref{sec:system:worker}),
-a password manager (Section~\ref{sec:system:iframe}), 
-a third-party mashup (Section~\ref{sec:system:mashup}), and
-a library that converts phone numbers to links
-(Section~\ref{sec:system:script}--Section~\ref{sec:system:extension}).
+In the rest of this section, we expand on the \sys{} design by
+introducing mechanisms that meet the requirements of the four
+example applications described in Section~\ref{sec:goals}.
+%% through
+%% three concrete examples: 
+%% a password-strength checker (Section~\ref{sec:system:worker}),
+%% a password manager (Section~\ref{sec:system:iframe}), 
+%% a third-party mashup (Section~\ref{sec:system:mashup}), and
+%% a library that converts phone numbers to links
+%% (Section~\ref{sec:system:script}--Section~\ref{sec:system:extension}).
 %
 %For completeness, we summarize the different system components,
 %security mechanisms, and DOM API (using WebIDL-like syntax), in
@@ -245,100 +248,26 @@ LWorker {
 
 \subsection{Confining third-party DOM-less code}
 \label{sec:system:worker}
-%Password-strength checker: 
 
-Password-strength checkers are common to many websites;
+%\para{\sys{} approach}
 %
-given a password input, a checker computes the strength of the
-password according to some metric (e.g., length, number of special
-characters, etc.).
-%
-Naturally, when using a third-party password-strength checker
-(e.g.,~\cite{checker1}) we would like to ensure that the
-code does not leak the user's password.
-%
-A malicious checker should at worst lie about the strength of a
-password.
-
-\subsubsection{Current approach}
-%
-Using existing mechanisms, a page hosted, for instance, on
-\https{instagra.me}, can incorporate and partially ``confine'' a
-simple third-party strength checker, \https{checker.biz/checker.js}.
-%
-For simplicity we consider a password strength checker that does not
-require access to the DOM.
-%
-As such, to ``confine'' the strength checker, \https{instagra.me}
-can execute the code in a Worker~\cite{workers};
-%
-since every worker has a separate, fresh compartment with no
-access to the page DOM, this ensures that the password cannot be
-leaked by embedding images, loading scripts, etc.
-%
-However, workers do have access to the \xhr{} constructor, and, thus,
-\https{instagra.me} must additionally host the checker source and set
-a CSP policy that restricts its network communication (e.g.,
-\texttt{connect-src: 'self'}).
-\footnote{
-  Workers inherit the CSP policy of the containing page~\cite{csp},
-  hence \https{instagra.me} can create the worker in a ``dummy''
-  iframe which has the set policy.
-  %
-  We assume that the messaging layers between the worker, its parent
-  iframe, and main page are straight forward to implement.
-}
-%
-
-Though this (mostly) accomplishes the desired goal of
-protecting the password, the approach is widely unsatisfactory.
-%
-First, to avoid trusting the checker's origin, the checker source code
-must be hosted by \https{instagra.me}, wherein a CSP policy, in the
-form of a HTTP  header, can be used to restrict the checker's
-communication capabilities. 
-%
-This need for server-side support is problematic for developers that
-do not have access to the server beyond hosting content.
-%
-Moreover, the need for server-side support also means that the
-password-strength checker cannot incorporate code it itself does not
-trust---the SOP requires \https{instagra.me} to host all the code
-and express the security concerns of the strength checker as well.
-%
-Second, the CSP policy of the checker cannot be more restricting than
-that of the containing document (since it inherits the policy from
-it)---hence, the checker can potentially carry out a self-exfiltration
-attack~\cite{selfex} and leak the password to a public
-page on \https{instagra.me}.
-%
-Finally, this approach cannot be used to confine a password
-strength-checker that, for example, fetches a list of commonly used
-passwords or regular-expressions before checking the strength of the
-password---a completely safe and useful operation.
-%
-
-\subsubsection{\sys{} approach}
-%
-In part, the above limitations arise because existing browser
-techniques do not allow developers to express confinement, even for
-code that does not require the DOM.
 %
 %% (Rather today's mechanisms give developers a limited form of access
 %% control.)
 %
-Addressing this limitation, \sys{} allows developers to treat a piece
-of code as untrusted and confine it in turn.
+\sys{} allows developers to treat a piece of code as untrusted and
+confine it. This functionality is instrumental in supporting the
+password-checker application, which we use as a running example.
 %
-Below we consider the confinement of ``DOM-less'' code; in
+We first consider the confinement of ``DOM-less'' code; in
 Sections~\ref{sec:system:iframe} and \ref{sec:system:extension} we
 address confinement of third-party code with access to the DOM.
 
-As described above, and previously observed in~\cite{Ingram:2012}
-workers are a good first step towards reasoning about the security
-implications of untrusted code that does not need to access the DOM,
-since they provide a clean, isolated environment within which
-untrusted code can be executed.
+As noted in Section~\ref{sec:goals}, and previously observed
+in~\cite{Ingram:2012}, workers are a good first step towards reasoning
+about the security implications of untrusted code that does not need
+to access the DOM, since they provide a clean, isolated environment
+within which untrusted code can be executed.
 %
 Hence, we extend the Worker DOM API~\cite{workers} with a
 Labeled-Worker (LWorker).
@@ -547,61 +476,29 @@ untrusted, but the checker can itself create fresh privileges and
 LWorkers in which it can execute code it itself does not consider
 trustworthy!
 
-\subsection{Cross-iframes confinement}
+\subsection{Cross-iframe confinement}
 \label{sec:system:iframe}
 %Password manager 
 
-In the previous section, the \https{instagra.me} page effectively
-imposed the requirement that the password-strength checker discard its
-network communication capabilities, by raising the compartment label
-sufficiently high, before reading the (labeled) password.
+In the password strength-checker application, the \https{instagra.me}
+page effectively imposed the requirement that the password-strength
+checker discard its network communication capabilities by raising the
+compartment label sufficiently high, before reading the (labeled)
+password.
 %
 More generally, by associating a label with every browsing context and
 restricting read- and write-effects according to it, \sys{}'s
 confinement mechanism can give developers a means for controlling
-where user data can flow, even after the data is made available to
-untrusted browsing contexts.
-%
-Below, we highlight the shortcomings of existing security mechanisms,
-when applied to confinement, by considering the implementation of a
-password manager website---an application that allows users to utilize
-a single master password to manage multiple site-specific passwords.
+where users' data can flow, even after the data is made available to
+untrusted browsing contexts. \sys{} thus meets the requirement of
+confining untrusted code that computes with sensitive data.
 
-\subsubsection{Current approach}
-%
-Today's browser security mechanisms are not useful when building a
-password manager as a website.
-%
-Specifically, the lack of confinement forces users to either trust the
-password manager website with their website-specific  credentials
-(e.g., \https{fb.com}) or trust arbitrary websites (e.g.,
-\https{fb.com}) with the master password.
-% used to protect
-% other credentials.
-%
-The issue of handling such sensitive data in web apps is grave;
-insomuch, that all major browsers are shipped with built-in password
-managers.
-%
-A built-in password manager simply requires the user to place more
-trust on the already-trusted browser.
-%
-Unfortunately, such built-in apps increase the TCB of the browser and, even
-worse, they do not always behave as desired (e.g., some password managers fill in
-forms with credentials before submitting it---making the
-password available to potentially untrustworthy JavaScript code).
-%
-Moreover, building-in more and more functionality into the browser does not
-scale up: are we going to integrate apps into the browser TCB simply because
-there are no mechanisms 
-%allowing developers 
-to express security policies on code which handles sensitive data?
-
-\subsubsection{\sys{} approach}
+%\para{\sys{} approach}
 %
 With \sys{}, we can leverage confinement to build a password manager
-website that does not force the user to place complete trust on 
-any of the participating parties.
+web application that does not force the user to place complete trust on 
+any of the participating parties. We use the password manager as a
+running example of this use of confinement.
 %
 Our password manager is divided into two mutually distrusting
 components: a management layer (provided by e.g., \https{pwd.eff.org})
@@ -665,7 +562,7 @@ password manager is used to both save and retrieve credentials.
 Below, we respectively describe the interaction of all the components
 in saving and retrieving credentials.
 
-\paragraph{Saving credentials}
+\subpara{Saving credentials}
 %
 To save credentials, the integrator, \https{fb.com}, first creates two
 iframes: one containing the \https{pwd.eff.org} management layer and
@@ -761,7 +658,7 @@ into associating \https{fb.com}'s encrypted data with a different
 origin, e.g., \https{goo.gl}, and thus allowing it to be leaked during
 the retrieval process.
 
-\paragraph{Retrieving credentials}
+\subpara{Retrieving credentials}
 %
 As in the case of saving credentials, the integrator, \https{fb.com},
 creates two frames containing the management and storage layers.
@@ -830,6 +727,7 @@ Finally, as shown in Figure~\toref{fig:manager-r-3}, \https{fb.com},
 whose label remains public carries out the login procedure, i.e., it
 submit the login form.
 
+\para{Another example: encrypted online documents}
 Companies often argue against using on-line documents services (like Google
 Docs) due to privacy issues, i.e., they do not want Google to store sensitive
 information present in such documents. Using a similar architecture as the
@@ -875,13 +773,14 @@ The confinement system presented thus far requires developers to
 compartmentalize components/libraries of different trustworthiness into
 multiple labeled iframes/workers.
 %
-Though this is sufficient for many libraries and mashups, placing a library
-such a jQuery, which inherently traverses and modifies many parts of the DOM,
-in a separate iframe/worker is not practical: developers use jQuery as a
-JavaScript domain specific language with which they build application.
+%% Though this is sufficient for many libraries and mashups, placing a library
+%% such a jQuery, which inherently traverses and modifies many parts of the DOM,
+%% in a separate iframe/worker is not practical: developers use jQuery as a
+%% JavaScript domain specific language with which they build application.
 %
-How, then, can \https{bank.ch} ensure that a library such a jQuery does not
-leak the user's bank statement?
+We now return to the \https{bank.ch} example application discussed in
+Section~\ref{sec:goals}. How can we ensure that a library such as
+jQuery does not leak the user's bank statement?
 
 Rather than attempt to solely confine jQuery within such a page, we
 can take a more conservative approach and confine all the code in the

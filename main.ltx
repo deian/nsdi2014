@@ -15,10 +15,11 @@
 \newcommand{\Red}[1]{{\color{red} #1}}
 \newcommand{\todo}[2]{\Red{\textbf{TODO[}#1\textbf{]:} #2}}
 
-
 \newcommand{\tocite}[1]{\Red{\cite{#1}}}
 \newcommand{\toref}[1]{\Red{XX}}
 \newcommand{\https}[1]{\texttt{\small https://#1}}
+\newcommand{\para}[1]{\vspace*{.5ex}\noindent {\bf #1}}
+\newcommand{\subpara}[1]{\vspace*{.5ex}\noindent {\it #1}}
 
 %% code related
 \usepackage{listings}
@@ -98,6 +99,7 @@ different documents, we should use \emph{execution contexts}}
 \input{abstract}
 \input{intro}
 \input{background}
+\input{goals}
 \input{system}
 \input{implementation}
 \input{eval}
