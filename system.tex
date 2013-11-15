@@ -875,30 +875,44 @@ Specifically, its role is to solely carry out requests (submitted via
 safe (e.g., updating local storage to reflect the last page view,
 etc.).
 
-\todo{ds}{Ale: discuss this, I cannot get the following paragraph}
-Unfortunately, such compartmentalization is not trivial for 
-realistic scenarios.
-%
-This is primarily because the trusted iframe cannot inspect the DOM
-(state) of the parent frame and make decisions without falling prone
-to a \emph{confused deputy} attack~\tocite{}.
-%
-For example, suppose we wish to ensure that the library cannot carry out
-self-exfiltration attacks.
-%
-This, firstly, requires that we set the context label to the label
-corresponding to a fresh privilege.
-%
-In turn, we need to grant the privilege to the trusted child iframe
-(as to not restrict it from performing arbitrary requests), and
-request that it fetch the library source code.
-%
-Without knowing a-priori the URL of the source code, or even the order
-in which requests should be made, the trusted frame, must decide
-whether fetching the source will leak any information---a complex
-decision we wish to avoid imposing on developers!
 
-Addressing this, we allow developers to create labeled workers that
+Unfortunately, adapting a web page to work with a privilege frame 
+is far from trivial. There are several reasons for that. 
+%such compartmentalization is not trivial for 
+%realistic scenarios.
+%
+Firstly, the trusted iframe cannot inspect the DOM (state) of the parent frame
+and make decisions based on that. As a consequence, the frames might need to
+implement a complicated \js|postMessage| protocol to communicate information
+between them, e.g., a message to indicate that the parent frame requires to
+fetch certain scripts. Secondly, and more importantly, without knowing a-priori
+the URL of the source code, or even the order in which requests should be made,
+the privileged frame, must decide whether fetching the source will leak any
+information---a complex decision we wish to avoid imposing on developers!
+Lastly, the page might need to be adapted from working with synchronous
+calls (e.g. changing a DOM element based on a URL) into working with
+asynchronous ones (e.g. asking for the URL to the privilege frame first, and
+then changing the DOM in the parent). The work in \cite{Ingram:2012} already
+identifies the drawbacks of such a change in the semantics of web pages.
+
+
+%without falling prone
+%to a \emph{confused deputy} attack~\tocite{}.
+%
+%For example, suppose we wish to ensure that the library cannot carry out
+%self-exfiltration attacks.
+%
+%This, firstly, requires that we set the context label to the label
+%corresponding to a fresh privilege.
+%
+%In turn, we need to grant the privilege to the trusted child iframe
+%(as to not restrict it from performing arbitrary requests), and
+%request that it fetch the library source code.
+%
+
+
+
+To mitigate these problems, we allow developers to create labeled workers that
 have access to the page DOM and page-origin privilege.
 %
 (We naturally call them labeled workers with access to the DOM:
