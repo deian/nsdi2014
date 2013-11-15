@@ -71,6 +71,9 @@ We measured the time it take to check the strength of a randomly generated
 
 Vanilla: just run script in worker
 
+Firefox: With \sys{} it take 59.5ms, Vanilla: 61.4
+
+\Red{
 \paragraph{Password manager}
 %
 We measured the time it take to fetch and decrypt the credentials for a single
@@ -80,6 +83,7 @@ I.e., the total time it takes for fb.com to get the decrypted credentials
 without user-interaction.
 
 Vanilla: just remove sandbox stuff
+}
 
 \paragraph{Encrypted cloud-based editor}
 %
@@ -88,6 +92,8 @@ we measured the time it takes to save an encrypted a document
 
 Vanilla: removed the sandbox stuff.
 
+Firefox: With \sys{} it take 114.8s, Vanilla: 100.2
+
 \paragraph{Third-party mashup}
 
 We measured the time it takes to perform requests to two different origins,
@@ -95,6 +101,8 @@ which return a simple \Red{XXX}-JSON object, including a number.
 %
 Our mashup benchmark simply adds the numbers.
 
+
+Firefox: With \sys{} it take 10.7ms, Vanilla:  10.7ms
 
 Vanilla: just remove sandbox stuff + add CORS
 
@@ -107,3 +115,10 @@ code is treated like an extension and placed in an LWorker with no privileges,
 following the pattern of Section~\ref{sec;system:extension}.
 
 Vanilla: incorporate script directly, no sandboxes.
+
+
+As page confine:
+Firefox: With \sys{} it take 164.8ms, Vanilla:  160.2ms
+
+As extension
+Firefox: With \sys{} it take 224.4ms
