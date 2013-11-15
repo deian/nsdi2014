@@ -1134,13 +1134,18 @@ There are, however, two core difference: we enforce confinement for
 ``extensions'', while they give extensions access to privileged APIs
 and enforce confinement on pages to restrict access these APIs.
 
-In our case, we do not support the extension privileged APIs
-(not just yet)
-which makes it impossible to re-implement all extensions as
-web applications.
+Though we do yet not support the privileged APIs, and thus cannot re-implement
+all types of extensions as web applications, extensions that rely only on
+content scripts can be easily ported to \sys{}.
 %
-However, extensions that rely only on content scripts can be easily
-ported to Browbound.
+This not only removes the unnecessary trust placed on such extensions but further
+makes extensions portable across browsers.
+%
+We note that, in order to allow these extensions to run on pages
+similarly to conventional extensions, we implemented an extension
+management system that injects labeled DOM workers (containing the
+extension code) into pages whose origins are approved by the user (at
+install time).
 %
 In order to allow these extensions
 to run on pages similarly to conventional extensions,
