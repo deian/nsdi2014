@@ -20,7 +20,6 @@
 Iframe ping-pong   &  0.086  &  0.084  &  0.092  &  0.042  &  0.042  &  0.042
 \\\hline%----------------------------------------------------------------------
 % cost of creating an iframe                                         
-%TODO: check the new iframe benchmarks
 New iframe         &   13.27  &  13.3   & 13.97   &   50.63 &   48.73 &  51.77 
 \\\hline%----------------------------------------------------------------------
 % cost of performing XHR                                             
@@ -48,3 +47,11 @@ Label subsumes     &  --     &  \multicolumn{2}{c|}{0.0012} &   --
 \caption{\label{microbench} Micro-benchmarks. \todo{ds}{explain each
 one}. All measurements are in milliseconds.}
 \end{table}
+
+I suspect that the worker ping-pong is faster on Firefox than the iframe
+ping-pong because the access control checks between frames passes through
+wrapper. While access to worker is direct.
+%
+In chrome? (Probably the opposite since checks are done in the bindings)
+%
+Why is iframe creation so slow in chrome?
