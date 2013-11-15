@@ -2,29 +2,34 @@
 \label{sec:intro}
 
 Web applications have proliferated and found wide use because it is
-especially easy for developers to reuse components of existing
+especially easy for developers to reuse components of existing web
 applications to create new ones. While component reuse in the
 venerable desktop software model typically takes the form of
 libraries, the reusable components in web applications aren't limited
 to just JavaScript library code---they further include
 network-accessible content and services ({\em e.g.,} map data and
-storage). The resulting model is one in which web application
-developers cobble together multiple JavaScript libraries, web-based
-content, and web-based services written and operated by various
-parties (some of which may in turn incorporate libraries, content, and
-services from still other sources) and add their own JavaScript code
-that integrates these components and builds the required
-application-specific functionality atop them. Such web applications
-are today commonly referred to as {\em mashups.} A web application's
-behavior may be enhanced and/or customized further by browser {\em
-  extensions} the user has installed into the browser, which in
-Firefox and Chrome take the form of JavaScript code written by other
-parties still. Unfortunately, some of the many contributors to the
-tangle of JavaScript comprising a web application may not have the
-user's best interest at heart. Given that today's web applications
-manipulate such sensitive data as email, bank statements, health
-records, and users' passwords, there is great potential for violations
-of users' privacy by JavaScript contributed by miscreants.
+storage). Such reuse is ubiquitous. jQuery, a widely used JavaScript
+library, is included in and used by 68\% of the Quantcast top-10,000
+web sites, and over 52\% of the Quantcast top-million web
+sites~\cite{quantcast}.
+
+The resulting model is one in which web application developers cobble
+together multiple JavaScript libraries, web-based content, and
+web-based services written and operated by various parties (some of
+which may in turn incorporate libraries, content, and services from
+still other sources) and add their own JavaScript code that integrates
+these components and builds the required application-specific
+functionality atop them. Such web applications are today commonly
+referred to as {\em mashups.} A web application's behavior may be
+enhanced and/or customized further by {\em extensions} the
+user has installed into the browser, which in Firefox and Chrome take
+the form of JavaScript code written by other parties
+still. Unfortunately, some of the many contributors to the tangle of
+JavaScript comprising a web application may not have the user's best
+interest at heart. Given that today's web applications manipulate such
+sensitive data as email, bank statements, health records, and users'
+passwords, there is great potential for violations of users' privacy
+by JavaScript contributed by miscreants.
 
 Out of this state of affairs fall two goals for web
 applications. First, {\em flexibility:} developers should be able to
@@ -32,10 +37,100 @@ flexibly compose services, content, and JavaScript code from multiple
 parties into rich, featureful web applications. And second, {\em
   privacy:} there should be strong guarantees that a user's privacy
 cannot be violated when a web application processes her sensitive
-data. Unfortunately, in the status quo web browser security
-architecture, efforts to advance one of these goals unfortunately
-often hamper achieving the other.
+data. These goals are hardly new. Wang {\em et al.} articulated
+similar ones, and proposed new browser primitives to improve isolation
+within mashups: sandboxes that allow pages not to share their data
+with JavaScript code they include, and discretionary access control
+for inter-frame communication~\cite{mashupos}. Indeed, today's
+browsers incorporate similar mechanisms in the guises of HTML5's
+seamless iframes, iframe sandbox, and postMessage. And the well known
+Same-Origin Policy (SOP, on which more in
+Section~\ref{sec:background}) prevents JavaScript hosted by one
+principal from reading content hosted by another.
 
-% include JQuery use stats: over 68% of Quantcast top 10k sites, and
-% over 52% of Quantcast top million sites. (cite
-% http://trends.builtwith.com/javascript/jQuery)
+Unfortunately, in the status quo web browser security architecture,
+efforts to advance one of these two goals still often hamper achieving
+the other. Application developers (and users) are thus often left with
+only unpalatable choices (though in practice, the desire for
+functionality often dominates the concern for privacy, to users'
+peril). The browser may enhance privacy by applying discretionary
+access control (DAC) when an untrusted script wishes to read
+potentially sensitive data. The various isolation mechanisms a modern
+browser applies ({\em e.g.,} the SOP and Content Security Policies,
+both explored in Section~\ref{sec:background}) are flavors of DAC. But
+the brittle ``all-or-nothing'' character of DAC thwarts the building
+of many useful mashups. Broadly speaking, DAC can either deny or grant
+untrusted JavaScript access to the sensitive data. In the former case,
+that untrusted JavaScript might {\em need} the sensitive data to
+implement the functionality of the application. In the latter case,
+DAC exercises no control over what the untrusted code does with the
+sensitive data.
+
+Modern browsers also incorporate mechanisms that explicitly support
+the prioritization of flexibility over privacy. For example, an
+application developer may choose to include JavaScript from another
+origin with a {\tt <script>} tag, which effectively bypasses the SOP,
+interpolating the untrusted script into the enclosing page and
+granting the script unfettered access to the enclosing page's origin's
+content. Or a web server's operator may use Cross-Origin Resource
+Sharing (CORS, also treated in Section~\ref{sec:background}) to
+explicitly enumerate other origins permitted to read content from that
+server (bypassing the SOP for those other origins). This approach
+still limits flexibility, though, in that it requires a server's
+operator to know {\em a priori} which mashups are hosted by which
+other origins, and worse, potentially allows a service provider to
+limit users' choice of applications that integrate content from the
+provider's site.\footnote{The user also has the further unpalatable
+  choice of providing their login credentials for the service
+  provider's site to the web application developer; a potential
+  privacy and integrity disaster for, say, one's online banking site,
+  yet the precise model that services like {\tt mint.com} use for lack
+  of a better alternative.} It of course also potentially sacrifices
+privacy, because the other origins are typically operated by other
+principals who may in turn leak any sensitive information they
+receive.
+
+To achieve both flexibility and privacy, what is needed is a means to
+allow untrusted code to compute over sensitive data and display
+results for the user, while {\em confining} the untrusted code so that
+it may not exfiltrate the sensitive data (in the web browser,
+typically by writing the sensitive data to an untrusted remote
+origin). To offer the greatest flexibility to web application
+developers, the means of confinement should further be {\em first
+  class,} in that any container ({\em e.g.,} a frame) should be able
+to prevent untrusted code incorporated in a sub-container from
+exfiltrating sensitive data passed into the sub-container, with
+arbitrarily deep nesting, {\em e.g.,} so that a page may include a
+library it does not trust, and that library may in turn include
+another library {\em it} does not trust. And finally, also in the
+interest of flexibility, the means of confinement should be {\em
+  symmetric,} in that it should allow each principal on either side of
+a trust boundary to pass sensitive data to the other, while preventing
+the other principal from exfiltrating the data. No existing
+combination of browser security mechanisms offers these properties.
+
+In this paper, we present Browbound, a simple, label-based mandatory
+access control (MAC) system for web browsers that delivers both
+flexibility for web application developers and robust privacy for
+users. Browbound allows untrusted JavaScript to process sensitive
+data, and confines the untrusted JavaScript in first-class, symmetric
+fashion. To illustrate the value of these properties, we present four
+case-study applications---a password strength-checker, a password
+manager, a third-party mashup, and encrypted cloud-based editor, none
+of which can be implemented in a way that ensures privacy in today's
+web browsers. We then build them atop Browbound. Our contributions
+include:
+
+\begin{itemize}
+\item We characterize four case-study web applications for which
+  today's browser security architecture cannot provide strong privacy.
+\item We describe the design of the Browbound label-based MAC system
+  for web browsers, which meets the requirements of the four
+  case-study web applications.
+\item We describe designs of the four case-study web applications atop
+  Browbound.
+\item We evaluate the performance overhead of Browbound in the Firefox
+  and Chromium open-source browsers, and illustrate that Browbound
+  incurs minimal performance overhead over the respective baseline
+  browsers.
+\end{itemize}
