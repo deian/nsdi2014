@@ -32,7 +32,10 @@ lines of C++ code, respectively.
 We note that much of this is a result of using C++ (and thus having
 to, for example, implement method overloading to support a friendly
 API)---as a comparison our JavaScript implementation of labels is
-roughly 100 lines.
+roughly 100 lines. \todo{ds}{Here, we should explain that the JS implementation
+  is simply calling the native implementation. This is done because i) we need
+  labels at C++ when comparisons take place ii) It could be DC labels
+  implemented in JS but it would be super slow}
 %
 Below we focus on less-obvious implementation details.
 %
@@ -49,12 +52,12 @@ communication (e.g., \js|postMessage| between iframes) is done through
 \emph{wrappers}---an object from one compartment can never reference
 another object from a different compartment directly.
 %
-This has the benefit that GC can be done in parallel, on different
-compartments, and that all inter-browsing context access control
-checks---as specified by the SOP---can be enforced by the wrappers.
+This has the benefit that GC can be done in parallel, on different compartments,
+and that all inter-browsing context access control checks---as specified, for
+instance, by the SOP---can be enforced by the wrappers.
 %
 Naturally, this is possible because each compartment has a security
-principal, i.e., the origin, which is used in making these policy
+principal, i.e., the origin, which is used in making this policy
 decision, in addition to those described in
 Section~\ref{sec:background} (e.g., SOP, CSP and CORS when using XHR).
 
@@ -62,28 +65,36 @@ Section~\ref{sec:background} (e.g., SOP, CSP and CORS when using XHR).
 Our implementation relies on compartments and their properties in
 several ways.
 %
-First, we associate label, clearance, and privilege with the
+First, we associate label, clearance, and privilege with every 
 compartment.
 %
-Once confinement-mode is enabled we ``recompute'' all the
+Once confinement-mode is enabled, we ``recompute'' all the
 cross-compartment wrappers: this ensures that all subsequent
 cross-compartment access is mediated by confinement, i.e., it uses
-labels, and not the SOP, i.e., the principal.
+labels, and not the SOP. %, i.e., the principal.
 %
 We modified the function that recomputes wrappers to ues \sys{}'s
 wrappers when confinement-mode is enabled.
 %
 This 81-line patch, in addition to adding a new field (pointing to a \sys{}
-object that contains the label, privilege, etc.) to the compartment object is
-our most intrusive patch---the other \sys{} components can be maintained
-independently.
+object that contains a label, privileges, etc.) to the compartment
+object is our most intrusive patch---the other \sys{} components can be
+maintained independently.
  
 %
-To enforce CSP, a CSP policy object is associated with a principal.
-We use the compartment principal, and its associated CSP policy to
-restrict network access.
+In order to enforce confinement, we use the CSP mechanism already present 
+in the browser. 
+%We use CSP policies, already present in browsers, to enforce
+%confinement. 
+By doing so, \sys{} does not require to add specific hooks or extra machinery. 
+CSP policies are very expressive; in fact, they are
+information flow control policies~\cite{yang:2013:towards}. This fact allows us
+to precisely control how a page loads content, perform XHR, etc.
+To enforce CSP, Gecko associates a CSP policy object with a principal.
+%We use the compartment principal, and its associated CSP policy to
+%restrict network access.
 %
-Specifically,we set a custom CSP policy whenever the label is
+We set a custom CSP policy whenever the label is
 explicitly set with \js|Browbound.label|.
 %
 For example, if the compartment label is
@@ -93,37 +104,47 @@ is simply \https{mint.biz}, we set the all the CSP directives to
 \js|sandbox| flag that disallows
 navigation~\cite{csp1.1,whatwg-html,html5}.
 %
-Since the CSP policies are very expressive (in fact, they are
-information flow control policies~\cite{yang:2013:towards}) this
-allows us to control how a page loads content, perform XHR, etc.
-without having to add \sys{} specific hooks and enforcement code.
 
-When the effective compartment label, i.e.., label considering
-privileges, is a conjunctive label (or a singleton whose origin is not
-the starting origin) we change the compartment principal to a fresh,
-unique (null-principal) principal.
+When the effective compartment label, i.e.., label considering privileges, is
+a conjunctive label (or a singleton whose origin is not the initially set), 
+we change the compartment principal to a fresh, unique (null-)
+principal. 
 %
-This ensures that the document is no longer of same origin (as at that
+This ensures that the document is no longer of same origin (as that
 at the start of the load) and can thus no longer access the
-starting-origin's storage.
+initially-set-origin's storage.
 %
-Since these principals always differ, the lifetime of the data does
-not span multiple requests.
+Since these fresh principals always differ, the lifetime of the data does not
+span multiple requests.
 %
 Hence, we additionally set the HTML5 \js|iframe sandbox| flag~\cite{html5},
 to revoke access to persistent storage.
+
+
+When privileges are set (either granted or revoked), the CSP policy is adapted
+to reflect that change and allows the corresponding flows of
+information. Nevertheless, a compartment that has been associated to a fresh
+principal (e.g. when the effective label of a compartment is a conjunction), it
+ cannot access the storage even when it later gets granted the privilege to
+do so. While conservative, we believe this approach is
+reasonable; it is not clear what it means for a cookie to be labeled with
+a conjunction of two principals. 
+
 %
 
 Finally, we note that rather than executing labeled workers in a
 separate OS-thread, as is the case for existing workers (whose goals
-are different from ours), our LWorker constructor simply creates a new
-compartment.
+%% To have consistency with other part of the text which use this format
+are different from ours), our \js|LWorker| constructor simply creates a new
+compartment. This design decision provides 
 %
-In addition to faster parent-worker calls (e.g.,
+%In addition to 
+faster parent-worker calls (e.g.,
 \js|postMessage|, or \js|onmessage| dispatch), which are effectively function
-calls for which we add confinement checks,
+calls for which we add confinement checks. 
 %
-this allows us to provide lightweight workers with access to the DOM.
+More importantly, it allows us to provide lightweight workers with access to the
+DOM.
 %
 Specifically, like the new Add-on SDK content-script
 extensions~\cite{addon-sdk}, we rely on Gecko's wrappers (which implement the
@@ -138,3 +159,8 @@ access, including a \js|get|, from a worker as a read-write effect).
 
 
 
+
+% Local Variables:
+% TeX-master: "main.ltx"
+% TeX-command-default: "Make"
+% End:
