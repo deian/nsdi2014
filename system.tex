@@ -1034,10 +1034,28 @@ page clearance) equals that of the parent page.
 %
 
 
-
 \subsection{A cross-browser extension system}
 \label{sec:system:extension}
 
+While the above design pattern is well-suited for confining complex libraries
+such a jQuery, for many libraries, compartmentalizing the application by
+placing trusted code in a labeled DOM worker and confining the main page is too
+conservative.
+%
+For example, if \https{bank.ch} wishes to integrate a third-party library,
+called \emph{Phone2Links}, that traverses the DOM to convert phone numbers to
+links it is sufficient to the library code in an unprivileged labeled DOM worker.
+%
+This allows the library to do its job, inspecting and modifying the DOM,
+without requiring the page to drop its privileges.
+%
+In fact, the page need only raise the browsing context label to ensure that the
+untrusted library cannot both read the page content and communicate with
+XHR.
+%
+Of course, if the bank page does not contain sensitive information (e.g.,
+sensitive statements may included in labeled iframes) then the library can, for
+example, fetch information such the phone number's corresponding address.
 
 \subsection{Relaxing SOP for confined code}
 \label{sec:system:mashup}
