@@ -120,14 +120,20 @@ Label subsumes     &  --     &  \multicolumn{2}{c|}{0.0012} &   --
                              &  \multicolumn{2}{c }{0.0004}
 \\\bottomrule
 \end{tabular}
-\caption{\label{microbench} Micro-benchmarks. \todo{ds}{explain each
-one}. All measurements are in milliseconds.}
+\caption{\label{microbench} Micro-benchmarks (in milliseconds).
+%%Vanilla denotes stock browser measurements, our modified browsers with
+%%confinement-mode turned off and on are respectively
+%%are denoted by unlabeled and labeled.
+}
 \end{table}
 
-I suspect that the worker ping-pong is faster on Firefox than the iframe
-ping-pong because the access control checks between frames passes through
-wrapper. While access to worker is direct.
+Table~\ref{microbench} shows our benchmarks for the stock browsers
+(vanilla), our modified browsers with confinement-mode turned off
+(unlabeled), and confinement-mode enabled (labeled).
 %
-In chrome? (Probably the opposite since checks are done in the bindings)
+The iframe, worker and XHR ping-pong measurements evaluate the cost of 
+sending a message across iframes, workers, and network, respectively.
 %
-Why is iframe creation so slow in chrome?
+In all cases we note that performance impact of \sys{} is negligible;
+Similarly, the performance impact of labels is under 10\%  in every
+case.
