@@ -1,6 +1,9 @@
 \section{Evaluation}
 \label{sec:eval}
 
+\subsection{Micro benchmarks}
+\label{sec:eval:micro}
+
 \newcommand*\rot{\rotatebox{90}}
 
 \begin{table}
@@ -55,3 +58,52 @@ wrapper. While access to worker is direct.
 In chrome? (Probably the opposite since checks are done in the bindings)
 %
 Why is iframe creation so slow in chrome?
+
+
+\subsection{Macro benchmarks}
+\label{sec:eval:macro}
+
+\paragraph{Password-strength checker}
+%
+We measured the time it take to check the strength of a randomly generated
+16-character password.
+%
+
+Vanilla: just run script in worker
+
+\paragraph{Password manager}
+%
+We measured the time it take to fetch and decrypt the credentials for a single
+page, with the master-password pre-determinately set.
+%
+I.e., the total time it takes for fb.com to get the decrypted credentials
+without user-interaction.
+
+Vanilla: just remove sandbox stuff
+
+\paragraph{Encrypted cloud-based editor}
+%
+we measured the time it takes to save an encrypted a document
+\Red{XXX}-character document.
+
+Vanilla: removed the sandbox stuff.
+
+\paragraph{Third-party mashup}
+
+We measured the time it takes to perform requests to two different origins,
+which return a simple \Red{XXX}-JSON object, including a number.
+%
+Our mashup benchmark simply adds the numbers.
+
+
+Vanilla: just remove sandbox stuff + add CORS
+
+\paragraph{Phone2Links}
+
+We measure the load time of a bank page incorporating the Phone2Links library;
+in the first case, the bank trusted code is placed a LWorker, following the
+pattern of Section~\ref{sec:system:script}; in the second case, the untrusted
+code is treated like an extension and placed in an LWorker with no privileges,
+following the pattern of Section~\ref{sec;system:extension}.
+
+Vanilla: incorporate script directly, no sandboxes.

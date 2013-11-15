@@ -226,11 +226,13 @@ a library that converts phone numbers to links
 Browbound {
   attribute Label label
   attribute Label clearance 
+  attribute Privilege privilege
 }
 \end{webidl}
 \begin{webidl}
 LWorker {
-  LWorker LWorker(String, Label[, Privilege, Window])
+  LWorker LWorker(String, Label
+                  [, Privilege, Document])
   LWorker SOLWorker(String, Label)
   postMessage(Object [,Label])
   attribute EventHandler onmessage
