@@ -843,11 +843,12 @@ JavaScript domain specific language with which they build application.
 How, then, can \https{bank.ch} ensure that a library such a jQuery does not
 leak the user's bank statement?
 
-Rather than attempt to solely confine jQuery within such a page, a
-first conservative approach is to confine the whole page. 
+Rather than attempt to solely confine jQuery within such a page, we
+can take a more conservative approach and confine all the code in the
+page.
 %
-To this end, \sys{} can be used to raise the label of the browsing
-context and drop the page privileges before importing the library:
+To this end, we raise the label of the browsing context and drop the
+page privileges before importing the library:
 \begin{jscode}
 // Raise label:
 Browbound.label = new Label(location.origin);
@@ -855,50 +856,64 @@ Browbound.label = new Label(location.origin);
 Browbound.privilege = null;
 \end{jscode}
 %
-This ensures that the page can only leak data to \https{bank.ch}.
+This ensures that the page, independent of jQuery's behavior, can only
+disseminate data to \https{bank.ch}.
 %
-Consequently, the jQuery library code must be also be hosted on the
-same origin.
+However, this also requires the jQuery library code to be hosted on
+the same origin.
 %
 
 To allow the page to communicate with other domains, the application
-must create an iframe, which would have the bank privilege and thus be
-able to communicate arbitrarily.
+must create an iframe to a \https{bank.ch} page, which is granted the
+bank privilege and thus be able to communicate arbitrarily.
 %
-The role of this child frame is to solely implement ``trusted''
+The role of this child frame is to solely implement the ``trusted''
 components of the application.
 %
-Similar to a OS kernel, the iframe it carries out any requests
-(submitted via \js|postMessage|) on behalf of the caller, after
-asserting that the request is safe (e.g., updating local storage to
-reflect the last page view, etc.).
+Specifically, its role is to solely carry out requests (submitted via
+\js|postMessage|) for the parent, after asserting that the request is
+safe (e.g., updating local storage to reflect the last page view,
+etc.).
 
-Unfortunately, such structuring of an application, for any realistic
-scenario, is not trivial.
+Unfortunately, such compartmentalization is not trivial for 
+realistic scenarios.
 %
-For example, to ensure that the library cannot carry out
-self-exfiltration attacks we must set the context label to the label
-of a fresh principal.
+This is primarily because the trusted iframe cannot inspect the DOM
+(state) of the parent frame and make decisions without falling prone
+to a \emph{confused deputy} attack~\tocite{}.
 %
-This, in turn, requires granting the privilege to the trusted
-child iframe (as to not restrict the child from performing arbitrary
-requests), and requesting it to fetch the library source code.
+For example, suppose we wish to ensure that the library cannot carry out
+self-exfiltration attacks.
 %
-Without knowing a-priori the URL of the source code, the trusted
-frame, must decide whether fetching the source will leak any
-information---a complex decision we wish to avoid imposing on
-developers!
+This, firstly, requires that we set the context label to the label
+corresponding to a fresh privilege.
+%
+In turn, we need to grant the privilege to the trusted child iframe
+(as to not restrict it from performing arbitrary requests), and
+request that it fetch the library source code.
+%
+Without knowing a-priori the URL of the source code, or even the order
+in which requests should be made, the trusted frame, must decide
+whether fetching the source will leak any information---a complex
+decision we wish to avoid imposing on developers!
 
-Instead, we allow developers to create labeled workers that have
-access to the page DOM and page-origin privilege.
+Addressing this, we allow developers to create labeled workers that
+have access to the page DOM and page-origin privilege.
+%
+(We naturally call labeled workers with access to the DOM:
+\emph{labeled DOM workers}.)
 %
 As noted in Section~\ref{sec:system:worker}, the \js|LWorker|
 constructor can be supplied with a \js|Privilege| and \js|Window|
 argument.
 %
-This, for example, allows \https{bank.ch} to create a labeled worker
-that has access to the DOM and the \https{bank.ch} privilege, before
-completely confining the page:
+This, for example, allows \https{bank.ch} to create a labeled DOM
+worker that has access \https{bank.ch} privilege before completely
+confining the page:\footnote{
+  Since untrusted code will be executing into the context, we use a
+  closure to ensure that the privileges do not escape into the outer
+  scope.
+}
 \begin{jscode}
 var tcb;
 (function() {
@@ -907,17 +922,61 @@ var tcb;
   // Create worker with priv & DOM access:
   tcb = new LWorker("/statement-TCB.js",
                     p.asLabel, privs, window);
-  // Raise label:
+  // Raise label & lower clearance
   Browbound.label = p.asLabel;
+  Browbound.clearance = p.asLabel;
   // Drop privileges:
   Browbound.privilege = null;
 })();
 \end{jscode}
 %
-Since untrusted code will be imported into the context, we use a
-closure to ensure that the privileges do not escape into the outer
-scope.
+At this point, the page cannot perform any network communications
+(e.g., loading scripts, images, or using XHR).
 %
+However, the labeled DOM worker has access to the window object and
+can thus modify the DOM to insert a \js|script| element that loads
+jQuery, embed an image, for instance, from \https{gravatar.com} that
+may require leaking the hash of the user's name, etc.
+%
+Importantly, the code executing in the page can use the ``injected''
+jQuery library and implement its functionality as before.
+%
+We note that, different from the iframe approach, \https{bank.ch} need
+not implement a complex protocol between the code executing in the
+page (which we should treat as untrusted once jQuery is loaded) and
+the trusted layer that can perform arbitrary network request.
+%
+The worker can directly inspect and modify the DOM!
+
+Of course, allowing a labeled DOM worker to arbitrary inspect and
+modify the page is not safe.
+%
+\sys{} ensures that all DOM access is mediated to ensure that no
+information can leak between the compartments when the worker performs
+an operation.
+%
+Specifically for all \js|get|, \js|set| and \js|call| operations we
+ensure that the both the page label subsumes the label of the worker,
+taking into considering the worker's privileges, and vice
+versa---i.e., the label of the worker and page must be the same, when
+considering the worker's privileges.
+%
+In the above example, the bank \js|tcb| worker is able to inspect and
+modify the DOM because the worker effective label, i.e., label when
+considering privileges, equals that of the parent page.
+%
+Note that we also set the page clearance to ensure that a malicious
+jQuery cannot raise the page label and thus ``revoke'' the worker's
+access.
+%
+We remark that we are conservative in treating every DOM access as
+having a read and write effect, since both \js|get| and \js|call| may
+call a (e.g., getter) function that modifies state.\footnote{
+Though accessing a data property as opposed to a accessors property
+can be used to distinguish between read-only and read-write
+\js|get|s~\tocite{ecma}, having consistent semantics is simpler,
+despite being more conservative.
+}
 
 
 
