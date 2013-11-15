@@ -865,7 +865,7 @@ the same origin, i.e., \https{bank.ch}.
 
 To allow the page to communicate with other domains, the application
 must create an iframe to a \https{bank.ch} page, which is granted the
-bank privilege and thus be able to communicate arbitrarily.
+bank privilege and thus be able to communicate arbitrarily with that origin.
 %
 The role of this child frame is to solely implement the ``trusted''
 components of the application.
@@ -875,6 +875,7 @@ Specifically, its role is to solely carry out requests (submitted via
 safe (e.g., updating local storage to reflect the last page view,
 etc.).
 
+\todo{ds}{Ale: discuss this, I cannot get the following paragraph}
 Unfortunately, such compartmentalization is not trivial for 
 realistic scenarios.
 %
@@ -900,15 +901,15 @@ decision we wish to avoid imposing on developers!
 Addressing this, we allow developers to create labeled workers that
 have access to the page DOM and page-origin privilege.
 %
-(We naturally call labeled workers with access to the DOM:
+(We naturally call them labeled workers with access to the DOM:
 \emph{labeled DOM workers}.)
 %
 As noted in Section~\ref{sec:system:worker}, the \js|LWorker|
 constructor can be supplied with a \js|Privilege| and \js|Window|
 argument.
 %
-This, for example, allows \https{bank.ch} to create a labeled DOM
-worker that has access \https{bank.ch} privilege before completely
+These arguments, for example, allow \https{bank.ch} to create a labeled DOM
+worker that has access to the \https{bank.ch} privilege before completely
 confining the page:\footnote{
   Since untrusted code will be executing into the context, we use a
   closure to ensure that the privileges do not escape into the outer
@@ -941,8 +942,8 @@ may require leaking the hash of the user's name, etc.
 Importantly, the code executing in the page can use the ``injected''
 jQuery library and implement its functionality as before.
 %
-We note that, different from the iframe approach, \https{bank.ch} need
-not implement a complex protocol between the code executing in the
+We note that, different from the iframe approach, \https{bank.ch} does not 
+need to implement a complex protocol between the code executing in the
 page (which we should treat as untrusted once jQuery is loaded) and
 the trusted layer that can perform arbitrary network request.
 %
@@ -955,7 +956,7 @@ modify the page is not safe.
 information can leak between the compartments when the worker performs
 an operation.
 %
-Specifically for all \js|get|, \js|set| and \js|call| operations we
+Specifically, for all \js|get|, \js|set| and \js|call| operations we
 ensure that the both the page label subsumes the label of the worker,
 taking into considering the worker's privileges, and vice
 versa---i.e., the label of the worker and page must be the same, when
