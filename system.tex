@@ -1006,32 +1006,32 @@ The worker can directly inspect and modify the DOM!
 Of course, allowing a labeled DOM worker to arbitrary inspect and
 modify the page is not safe.
 %
-\sys{} ensures that all DOM access is mediated to ensure that no
-information can leak between the compartments when the worker performs
-an operation.
+Thus, \sys{} mediates all worker DOM access to ensure that no information can
+(unsafely) leak between the compartments.
 %
 Specifically, for all \js|get|, \js|set| and \js|call| operations we
-ensure that the both the page label subsumes the label of the worker,
-taking into considering the worker's privileges, and vice
-versa---i.e., the label of the worker and page must be the same, when
-considering the worker's privileges.
+ensure that both the page label subsumes the label of the worker 
+and the label of the worker subsumes the page label,
+both taking into considering the worker's privileges.
 %
-In the above example, the bank \js|tcb| worker is able to inspect and
-modify the DOM because the worker effective label, i.e., label when
-considering privileges, equals that of the parent page.
+In other words, this requires the label of the worker and page be the same,
+when considering the worker's privileges.
 %
-Note that we also set the page clearance to ensure that a malicious
-jQuery cannot raise the page label and thus ``revoke'' the worker's
-access.
+Here, we are conservative in treating every DOM access as
+having both a read and write effect;
 %
-We remark that we are conservative in treating every DOM access as
-having a read and write effect, since both \js|get| and \js|call| may
-call a (e.g., getter) function that modifies state.\footnote{
+this is because both \js|get| and \js|call| may respectively call a getter or
+function that modifies state.\footnote{
 Though accessing a data property as opposed to a accessors property
 can be used to distinguish between read-only and read-write
 \js|get|s~\tocite{ecma}, having consistent semantics is simpler,
 despite being more conservative.
 }
+%
+In the above example, the bank \js|tcb| worker is able to inspect and modify
+the DOM because the effective label of the worker (which is constrained by the
+page clearance) equals that of the parent page.
+%
 
 
 
