@@ -134,6 +134,21 @@ Table~\ref{microbench} shows our benchmarks for the stock browsers
 The iframe, worker and XHR ping-pong measurements evaluate the cost of 
 sending a message across iframes, workers, and network, respectively.
 %
-In all cases we note that performance impact of \sys{} is negligible;
-Similarly, the performance impact of labels is under 10\%  in every
-case.
+We additionally measure the cost of creating iframes, workers and
+labeled workers.
+%
+In all cases, the performance impact of \sys{} is negligible when
+compared to an unmodified browser.
+%
+Moreover, comparing the labeled and unlabeled measurements, we 
+note that the impact of enabling confinement-mode is at most
+\Red{XXX}\%, and, on average, \Red{XXX}\%.
+%
+Finally, we highligh that in-context labeled workers provide
+developers with concurrency primitives that are lighter weight, both
+faster to create and communicate with, than the existing workers.
+
+%%Comparing the 
+%%Similarly, the performance impact of labels is under  5\%  in almost
+%%every case.
+
