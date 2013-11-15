@@ -828,6 +828,44 @@ Finally, as shown in Figure~\toref{fig:manager-r-3}, \https{fb.com},
 whose label remains public carries out the login procedure, i.e., it
 submit the login form.
 
+Companies often argue against using on-line documents services (like Google
+Docs) due to privacy issues, i.e., they do not want Google to store sensitive
+information present in such documents. Using a similar architecture as the
+password manager, we implement a prototype of a mashup capable to handle
+encrypted on-line documents. This prototype shows the feasibility of our
+approach in combining services of online document providers and encryption
+processes. Once keys are configured, the encryption and decryption are
+performed in a transparent manner for the users. Specifically, at the time of
+writing a document, our implementation creates three frames. An outermost,
+label \js|gdocs.com|, a middle one label \js|encrypt.com| with privilege
+\js|encrypt.com|, and an innermost one label \js|gdocs.com|. This last 
+frame would contain the document editor. 
+
+We need to implement a small bootstrap process between the middle and innermost
+process to achieve the desire security guarantees. Once the middle frame is
+loaded, it starts an authentication process with the innermost frame before any
+editing is allowed by the user. Specifically, it sends a token to the innermost
+frame with the label \js|Label("https://gdocs.com").and("https://encrypt.com")|.
+This message taints the innermost frame with the described label, and as a
+result, restricts it from any network communication---so that it avoids leaking
+the plain document to \js|gdocs.com|. Once the innermost frame receives this
+message, it replies to the middle one with another message labeled as
+\js|Label("https://gdocs.com").and("https://encrypt.com")|. To read this
+message, the middle frame raises its context label to
+\js|Label("https://gdocs.com").and("https://encrypt.com")|. The goal of this
+message has is to verify that the innermost frame is indeed tainted with the
+described label and therefore confined to the browser. At this point, the user
+can start editing the document.  When pressing the save bottom, the document is
+sent to the middle frame for encryption. After that, this frame exercises the
+privilege \https{encrypt.com} and sends it to the outermost frame with a message
+labeled as \js|Label("https://gdocs.com")|. The outermost frame receives the
+encrypted document and in turn sends it to the servers in \js|gdocs.com|. As for
+the password manager example, we assume that the parties involved do not collude
+in order to compromise confidentiality. 
+
+
+
+
 \subsection{Privilege separation within iframes}
 \label{sec:system:script}
 
