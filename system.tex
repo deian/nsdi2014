@@ -889,6 +889,14 @@ frame, must decide whether fetching the source will leak any
 information---a complex decision we precisely wish to avoid imposing
 on developers!
 
+%
+As noted in Section~\ref{sec:system:worker},
+the \js|LWorker| constructor takes an optional \js|Privilege| argument.
+%
+This allows a browsing context to grant child workers privileges they
+own (e.g., the page-origin privilege or fresh privileges).
+%
+
 
 
 \subsection{A cross-browser extension system}
