@@ -1,6 +1,79 @@
 \section{Evaluation}
 \label{sec:eval}
 
+In this section we describe the performance of evaluation of \sys{}.
+%
+We first evaluate the end-to-end performance of the \sys{}
+applications described in Section~\ref{sec:system}, relative to
+implementations that simply trade off security for the features the
+apps provide.
+%
+Then, we measure the performance impact of \sys{} on existing browser
+features and the additional overhead when confinement-mode is actually
+enabled.
+%
+All our measurements were conducted on a 4-core i7-2620M machine
+running GNU/Linux 3.11, with 16GB of RAM.
+%
+Our patches are applied to versions 26 and 31 of Firefox and Chromium,
+respectively.
+
+
+\subsection{Macro benchmarks}
+\label{sec:eval:macro}
+
+\paragraph{Password-strength checker}
+%
+We measured the time it take to check the strength of a randomly generated
+16-character password.
+%
+
+Vanilla: just run script in worker
+
+Firefox: With \sys{} it take 59.5ms, Vanilla: 61.4
+Chome: With \sys{} it take 80.5ms, Vanilla:  71.5
+
+
+\paragraph{Encrypted cloud-based editor}
+%
+we measured the time it takes to save an encrypted a document
+\todo{XXX}-character document.
+
+Vanilla: removed the sandbox stuff.
+
+Firefox: With \sys{} it take 114.8s, Vanilla: 100.2
+Chome: With \sys{} it take 248.1, Vanilla; 257.8s
+
+\paragraph{Third-party mashup}
+
+We measured the time it takes to perform requests to two different origins,
+which return a simple \todo{XXX}-JSON object, including a number.
+%
+Our mashup benchmark simply adds the numbers.
+
+
+Firefox: With \sys{} it take 10.7ms, Vanilla:  10.7ms
+Chrome: With \sys{} it take 15ms, Vanilla:  17ms
+
+Vanilla: just remove sandbox stuff + add CORS
+
+\paragraph{Phone2Links}
+
+We measure the load time of a bank page incorporating the Phone2Links library;
+in the first case, the bank trusted code is placed a LWorker, following the
+pattern of Section~\ref{sec:system:script}; in the second case, the untrusted
+code is treated like an extension and placed in an LWorker with no privileges,
+following the pattern of Section~\ref{sec:system:extension}.
+
+Vanilla: incorporate script directly, no sandboxes.
+
+
+As page confine:
+Firefox: With \sys{} it take 164.8ms, Vanilla:  160.2ms
+
+As extension
+Firefox: With \sys{} it take 224.4ms
+
 \subsection{Micro benchmarks}
 \label{sec:eval:micro}
 
@@ -58,59 +131,3 @@ wrapper. While access to worker is direct.
 In chrome? (Probably the opposite since checks are done in the bindings)
 %
 Why is iframe creation so slow in chrome?
-
-
-\subsection{Macro benchmarks}
-\label{sec:eval:macro}
-
-\paragraph{Password-strength checker}
-%
-We measured the time it take to check the strength of a randomly generated
-16-character password.
-%
-
-Vanilla: just run script in worker
-
-Firefox: With \sys{} it take 59.5ms, Vanilla: 61.4
-Chome: With \sys{} it take 80.5ms, Vanilla:  71.5
-
-
-\paragraph{Encrypted cloud-based editor}
-%
-we measured the time it takes to save an encrypted a document
-\todo{XXX}-character document.
-
-Vanilla: removed the sandbox stuff.
-
-Firefox: With \sys{} it take 114.8s, Vanilla: 100.2
-Chome: With \sys{} it take 248.1, Vanilla; 257.8s
-
-\paragraph{Third-party mashup}
-
-We measured the time it takes to perform requests to two different origins,
-which return a simple \todo{XXX}-JSON object, including a number.
-%
-Our mashup benchmark simply adds the numbers.
-
-
-Firefox: With \sys{} it take 10.7ms, Vanilla:  10.7ms
-Chrome: With \sys{} it take 15ms, Vanilla:  17ms
-
-Vanilla: just remove sandbox stuff + add CORS
-
-\paragraph{Phone2Links}
-
-We measure the load time of a bank page incorporating the Phone2Links library;
-in the first case, the bank trusted code is placed a LWorker, following the
-pattern of Section~\ref{sec:system:script}; in the second case, the untrusted
-code is treated like an extension and placed in an LWorker with no privileges,
-following the pattern of Section~\ref{sec:system:extension}.
-
-Vanilla: incorporate script directly, no sandboxes.
-
-
-As page confine:
-Firefox: With \sys{} it take 164.8ms, Vanilla:  160.2ms
-
-As extension
-Firefox: With \sys{} it take 224.4ms
