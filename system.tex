@@ -912,7 +912,7 @@ multiple labeled iframes/workers.
 Though this is sufficient for many libraries and mashups, placing a library
 such a jQuery, which inherently traverses and modifies many parts of the DOM,
 in a separate iframe/worker is not practical: developers use jQuery as a
-JavaScript domain specific language with which they build application.
+JavaScript domain specific language (DSL) with which they build application.
 %
 How, then, can \https{bank.ch} ensure that a library such a jQuery does not
 leak the user's bank statement?
@@ -1076,20 +1076,33 @@ such a jQuery, for many libraries, compartmentalizing the application by
 placing trusted code in a labeled DOM worker and confining the main page is too
 conservative.
 %
-For example, if \https{bank.ch} wishes to integrate a third-party library,
-called \emph{Phone2Links}, that traverses the DOM to convert phone numbers to
-links it is sufficient to the library code in an unprivileged labeled DOM worker.
+For example, if \https{bank.ch} wishes to integrate a simple third-party
+library (that is not used as a DSL), called \emph{Phone2Links}, that traverses
+the DOM to convert phone numbers to links it is sufficient to the library code
+in an unprivileged labeled DOM worker.
 %
 This allows the library to do its job, inspecting and modifying the DOM,
 without requiring the page to drop its privileges.
 %
 In fact, the page need only raise the browsing context label to ensure that the
-untrusted library cannot both read the page content and communicate with
-XHR.
+untrusted library cannot both read the page content and use XHR to communicate
+with arbitrary hosts.
 %
 Of course, if the bank page does not contain sensitive information (e.g.,
 sensitive statements may included in labeled iframes) then the library can, for
-example, fetch information such the phone number's corresponding address.
+example, fetch information such as addresses corresponding to the phone
+numbers (e.g., useful when looking up local branches).
+
+Such use of labeled DOM workers corresponds to the content-script extension
+model pioneered by Chrome and, more recently, adopted by
+Firefox~\cite{Carlini:2012}.
+%
+The code executing in the untrusted labeled DOM worker is akin to
+to current content-script extensions.
+%
+There are, however, two core difference: we enforce confinement for
+``extensions'', while they give extensions access to privileged APIs.
+%
 
 \subsection{Relaxing SOP for confined code}
 \label{sec:system:mashup}
