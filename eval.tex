@@ -5,7 +5,7 @@
 
 \begin{table}
 \centering
-\begin{tabular}{l |c|c|c||c|c|c }
+\begin{tabular}{l |c|c|c|c|c|c }
 \toprule
                    & \multicolumn{3}{c}{\textbf{Firefox}}
                    & \multicolumn{3}{c}{\textbf{Chrome}} \\
@@ -17,31 +17,28 @@
                      \rot{labeled}   
 \\\midrule%--------------------------------------------------------------------
 % cost of labeled postMessage                                        
-Iframe ping-pong   &         &         &         &         &         &
+Iframe ping-pong   &  0.086  &  0.084  &  0.092  &  00000  &  00000  &  00000
 \\\hline%----------------------------------------------------------------------
 % cost of creating an iframe                                         
-New iframe         &         &         &         &         &         &
-\\\hline%----------------------------------------------------------------------
-% cost of loading an image                                           
-Image load         &         &         &         &         &         &
+New iframe         &  122.1  &  122.4  & 122.6   &  00000  &  00000  &  00000
 \\\hline%----------------------------------------------------------------------
 % cost of performing XHR                                             
-XHR ping-pong      &         &         &         &         &         &
+XHR ping-pong      &  3.33   &   3.48  &  3.49   &         &         &
 \\\hline%----------------------------------------------------------------------
 % cost of creating a worker                                          
-New worker         &         &         &         &         &         &
+New worker         &  79.3   &   79.67 &  0.84   &         &         &
 \\\hline%----------------------------------------------------------------------
 % cost of worker ping-pong                                           
-Worker ping-pong   &         &         &         &         &         &
+Worker ping-pong   &  0.059  &   0.055 &  0.037  &         &         &
 \\\hline%----------------------------------------------------------------------
 % cost of setting current label                                      
-Set label          &  --     &  --     &         &   --    &   --    &
-\\\hline%----------------------------------------------------------------------
-% cost of setting current label                                      
-Get label          &  --     &  --     &         &   --    &   --    &
-\\\hline%----------------------------------------------------------------------
-% cost of comparing labels
-Label subsumes     &  --     &  --     &         &   --    &   --    &
+Set label          &  --     &  \multicolumn{2}{c|}{0.0014} &   --    &  \multicolumn{2}{c}{0.0000}
+\\\hline%--------------------------------------------------------------------------------------------------
+% cost of setting current label                                                                    
+Get label          &  --     &  \multicolumn{2}{c|}{0.0003} &   --    &  \multicolumn{2}{c}{0.0000}
+\\\hline%--------------------------------------------------------------------------------------------------
+% cost of comparing labels                                                                         
+Label subsumes     &  --     &  \multicolumn{2}{c|}{0.0012} &   --    &  \multicolumn{2}{c}{0.0000}
 \\\bottomrule
 \end{tabular}
 \caption{\label{microbench} Micro-benchmarks}
