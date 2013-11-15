@@ -17,29 +17,34 @@
                      \rot{labeled}   
 \\\midrule%--------------------------------------------------------------------
 % cost of labeled postMessage                                        
-Iframe ping-pong   &  0.086  &  0.084  &  0.092  &  00000  &  00000  &  00000
+Iframe ping-pong   &  0.086  &  0.084  &  0.092  &  0.042  &  0.042  &  0.042
 \\\hline%----------------------------------------------------------------------
 % cost of creating an iframe                                         
-New iframe         &  122.1  &  122.4  & 122.6   &  00000  &  00000  &  00000
+%TODO: check the new iframe benchmarks
+New iframe         &   13.27  &  13.3   & 13.97   &   50.63 &   48.73 &  51.77 
 \\\hline%----------------------------------------------------------------------
 % cost of performing XHR                                             
-XHR ping-pong      &  3.33   &   3.48  &  3.49   &         &         &
+XHR ping-pong      &  3.33   &   3.48  &  3.49   &  7.0    &  7.4    & 7.2
 \\\hline%----------------------------------------------------------------------
 % cost of creating a worker                                          
-New worker         &  79.3   &   79.67 &  0.84   &         &         &
+New worker         &  20.53  &   21.24 &  1.62   &  18.94  &  18.87  & 3.27
 \\\hline%----------------------------------------------------------------------
 % cost of worker ping-pong                                           
-Worker ping-pong   &  0.059  &   0.055 &  0.037  &         &         &
+Worker ping-pong   &  0.059  &   0.055 &  0.037  &  0.071  &  0.070  & 0.030
 \\\hline%----------------------------------------------------------------------
 % cost of setting current label                                      
-Set label          &  --     &  \multicolumn{2}{c|}{0.0014} &   --    &  \multicolumn{2}{c}{0.0000}
-\\\hline%--------------------------------------------------------------------------------------------------
-% cost of setting current label                                                                    
-Get label          &  --     &  \multicolumn{2}{c|}{0.0003} &   --    &  \multicolumn{2}{c}{0.0000}
-\\\hline%--------------------------------------------------------------------------------------------------
-% cost of comparing labels                                                                         
-Label subsumes     &  --     &  \multicolumn{2}{c|}{0.0012} &   --    &  \multicolumn{2}{c}{0.0000}
+Set label          &  --     &  \multicolumn{2}{c|}{0.0014} &   --   
+                             &  \multicolumn{2}{c }{0.0018}
+\\\hline%-------------------------------------------------------------------------------------------------
+% cost of setting current label                                                                   
+Get label          &  --     &  \multicolumn{2}{c|}{0.0003} &   --   
+                             &  \multicolumn{2}{c }{0.0008}
+\\\hline%-------------------------------------------------------------------------------------------------
+% cost of comparing labels                                                                        
+Label subsumes     &  --     &  \multicolumn{2}{c|}{0.0012} &   --   
+                             &  \multicolumn{2}{c }{0.0004}
 \\\bottomrule
 \end{tabular}
-\caption{\label{microbench} Micro-benchmarks}
+\caption{\label{microbench} Micro-benchmarks. \todo{ds}{explain each
+one}. All measurements are in milliseconds.}
 \end{table}
