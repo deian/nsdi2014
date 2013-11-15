@@ -4,7 +4,21 @@
 %% In this section, we briefly review the browser architecture and
 %% security model.
 %
-As shown in Figure~\toref{fig:browser-arch}, a web page is composed of
+\iffigures
+\begin{figure}
+%\includegraphics[width=\columnwidth]{setting.pdf}
+\begin{center}
+% I printed out, and it reads well!
+\includegraphics[scale=0.35]{setting.pdf}
+\end{center}
+\caption{Browser architecture model}
+\label{fig:browser-arch}
+\end{figure}
+As shown in Figure~\ref{fig:browser-arch}, a 
+\else
+A
+\fi
+web page is composed of
 content and JavaScript code.
 %
 The browser provides an environment, called the \emph{browsing
@@ -91,7 +105,7 @@ The popularization of such ad-hoc cross-origin communication methods,
 introduction of the HTML5 \js|postMessage| API~\cite{webmessaging}.
 %
 This API allows code from different browsing contexts to exchange
-messages, as shown in Figure~\toref{fig:browser-arch}.
+messages, as shown in Figure~\ref{fig:browser-arch}.
 %
 Given a foreign-origin DOM window object \js|win|, the
 \js|postMessage| method can be invoked on it to send the
@@ -128,8 +142,8 @@ specific resources from the provided white-lists.
 For instance, if the CSP header of a page from \https{a.com} contains
 the following three directives
 %
-\texttt{default-src: 'self'}, \texttt{img-src: 'none'}, and
-\texttt{connect-src: https://b.com},
+\texttt{default-src 'self'}, \texttt{img-src 'none'}, and
+\texttt{connect-src https://b.com},
 %
 the page content loading is restricted as follows.
 %

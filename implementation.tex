@@ -3,7 +3,7 @@
 
 We implemented \sys{} in the Firefox and Chrome browsers.
 %
-The API shown in Table~\toref{table:components} is specified in 264
+The API shown in Figures~\ref{fig:APIspec} and \ref{systemAPI} is specified in 264
 lines of WebIDL~\cite{webidl} in Firefox and 70 lines in Chrome.
 %
 The remaining system is implemented in C++, modifying/extending the Gecko and
@@ -19,28 +19,30 @@ applications described in Section~\ref{sec:system}.
 
 %\subsection{Policies}
 %
-Our implementation of \js|Label|s and \js|Privilege|s is simply a port
+Our implementation of the \js|Label|s and \js|Privilege|s is simply a port
 of the Haskell implementation presented
 in~\cite{stefan:2011:dclabels,stefan:2011:flexible}. 
 %
-This implementation is straight forward and only differs in the two
-browsers because of their dependence on different container libraries;
-the Firefox and Chrome implementations are roughly 1K and 0.7K
-lines of C++ code, respectively.
+In both Gecko and Blink, these DOM objects are implemented as C++ objects and
+mapped to JavaScript objects by binding code, i.e., every property access on
+the JavaScript object results in an invocation of a corresponding method on the
+Gecko/Blink C++ object via IDL binding code.
+%
+Our implementation for these objects  is straight forward and only differs in
+the two browsers because of their dependence on different container libraries;
+the Firefox and Chrome implementations are roughly 1K and 0.7K lines of C++
+code, respectively.
 %
 We note that much of this is a result of using C++ (and thus having
 to, for example, implement method overloading to support a friendly
-API)---as a comparison our JavaScript implementation of labels is
-roughly 100 lines. \todo{ds}{Here, we should explain that the JS implementation
-  is simply calling the native implementation. This is done because i) we need
-  labels at C++ when comparisons take place ii) It could be DC labels
-  implemented in JS but it would be super slow}
+API)---as a comparison a JavaScript implementation of labels is
+roughly 100 lines.
 %
-Below we focus on less-obvious implementation details.
+Below we describe the less-obvious implementation details; we focus on our
+Firefox implementation and only describe the Chrome implementation where the
+approach diverges in a non-trivial way.
 %
 
-\subsection{Firefox}
-\label{sec:implementation:firefox}
 
 Gecko's isolation model relies on \emph{compartments}, i.e., disjoint
 JavaScript heaps, for both garbage collection (GC) and
@@ -60,6 +62,20 @@ principal, i.e., the origin, which is used in making this policy
 decision, in addition to those described in
 Section~\ref{sec:background} (e.g., SOP, CSP and CORS when using XHR).
 
+Blink differs from Gecko in the way it implements access control checks for
+DOM elements. 
+%
+Specifically, rather than rely on wrappers, Blink implements the SOP security
+checks in the binding code for a limited subset of DOM elements that may allow
+cross-origin access.
+%
+This ensures that the performance penalty of wrappers between pages of the same
+origin does not exist.
+%
+Unfortunately, it also requires modifications to the binding code to enforce
+confinement for labeled DOM workers (by extending the security checks to all
+DOM objects), which imposes a \Red{XXX} performance overhead, as show in
+Section~\ref{sec:eval}.
 
 Our implementation relies on compartments and their properties in
 several ways.
@@ -72,7 +88,7 @@ cross-compartment wrappers: this ensures that all subsequent
 cross-compartment access is mediated by confinement, i.e., it uses
 labels, and not the SOP. %, i.e., the principal.
 %
-We modified the function that recomputes wrappers to ues \sys{}'s
+We modified the function that recomputes wrappers to use \sys{}'s
 wrappers when confinement-mode is enabled.
 %
 This 81-line patch, in addition to adding a new field (pointing to a \sys{}
@@ -87,7 +103,7 @@ in the browser.
 %confinement. 
 By doing so, \sys{} does not require to add specific hooks or extra machinery. 
 CSP policies are very expressive; in fact, they are
-information flow control policies~\cite{yang:2013:towards}. This fact allows us
+information flow control policies~\cite{yang:2013:towards}. This allows us
 to precisely control how a page loads content, perform XHR, etc.
 To enforce CSP, Gecko associates a CSP policy object with a principal.
 %We use the compartment principal, and its associated CSP policy to
@@ -142,7 +158,7 @@ faster parent-worker calls (e.g.,
 \js|postMessage|, or \js|onmessage| dispatch), which are effectively function
 calls for which we add confinement checks. 
 %
-More importantly, it allows us to provide lightweight workers with access to the
+More importantly, it allows \sys{} to provide lightweight workers with access to the
 DOM.
 %
 Specifically, like the new Add-on SDK content-script
@@ -152,46 +168,15 @@ pattern~\cite{miller2003paradigm,miller2006robust}) to ensure that each DOM
 access abides by confinement (in our case, we conservatively treat each DOM
 access, including a \js|get|, from a worker as a read-write effect).
 %
-
-\subsection{Chrome}
-\label{sec:implementation:firefox}
-
-In this section, we highlight minor differences in
-our Chrome and Firfox implementations due to
-the different platforms.
-
-Chrome differs from Gecko in the way it implements
-access control checks for
-DOM elements. Each DOM element (implemented as a
-C++ object in Blink) is represented by a JavaScript
-object in the JavaScript world. Every access on
-the JS object results in an invocation of a
-corresponding method on the Blink object via IDL
-binding code. Blink implements the SOP security
-checks in the binding code for a limited subset of
-DOM elements that may allow cross-origin access.
-
-We extended the IDL binding code to perform label
-checks on {\em all} DOM elements.
-The added code compares labels of an object's compartment
-and the compartment from which the access originates.
-We must mediate all DOM elements because
-compartment labels
-are dynamic, and a label change may require
-revocation of DOM access for all DOM object that a
-labeled DOM worker or a sandbox-enabled iframe
-currently processes.
-The increased number of DOM elements
-performing label checks incurs
-\Red{significant (maybe not)}
-performance overhead as show in Section~\ref{sec:eval}.
-
-In Chrome, a labeled worker also executes in the same
-OS thread as its creating compartment. This design
-decision allows
-synchronization of DOM access between compartments
-as required in
-the case of the labeled DOM worker.
+In Blink, we extended the IDL binding code to perform label
+checks on \emph{all} DOM elements.
+%
+The added code compares labels of an object's compartment and the compartment
+from which the access originates.
+%
+We must mediate all DOM elements because compartment labels are dynamic, and a
+label change may require revocation of DOM access for all DOM objects that the
+labeled DOM worker currently processes.
 
 
 
