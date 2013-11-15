@@ -291,7 +291,7 @@ password according to some metric (e.g., length, number of special
 characters, etc.).
 %
 Naturally, when using a third-party password-strength checker
-(e.g.,~\tocite{checker1, checker2}) we would like to ensure that the
+(e.g.,~\cite{checker1}) we would like to ensure that the
 code does not leak the user's password.
 %
 A malicious checker should at worst lie about the strength of a
@@ -346,7 +346,7 @@ and express the security concerns of the strength checker as well.
 Second, the CSP policy of the checker cannot be more restricting than
 that of the containing document (since it inherits the policy from
 it)---hence, the checker can potentially carry out a self-exfiltration
-attack~\tocite{self-exfiltration} and leak the password to a public
+attack~\cite{selfex} and leak the password to a public
 page on \https{instagra.me}.
 %
 Finally, this approach cannot be used to confine a password
