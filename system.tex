@@ -1108,8 +1108,23 @@ The code executing in the untrusted labeled DOM worker is akin to
 to current content-script extensions.
 %
 There are, however, two core difference: we enforce confinement for
-``extensions'', while they give extensions access to privileged APIs.
+``extensions'', while they give extensions access to privileged APIs
+and enforce confinement on pages to restrict access these APIs.
+
+In our case, we do not support the extension privileged APIs
+(not just yet)
+which makes it impossible to re-implement all extensions as
+web applications.
 %
+However, extensions that rely only on content scripts can be easily
+ported to Browbound.
+%
+In order to allow these extensions
+to run on pages similarly to conventional extensions,
+we envision a browser's extension management system
+injecting labeled workers with the extension code into pages
+which origins are approved by the user
+for particular extensions.
 
 \subsection{Relaxing SOP for confined code}
 \label{sec:system:mashup}
