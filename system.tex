@@ -139,9 +139,7 @@ label of the browsing context.
 %
 Similarly, performing network requests and accessing persistent storage is
 dictated by the relationship of the context label and implicit labels of these
-end-points.  For completeness, we summarize  \sys{}'s API for compartments
-(using WebIDL-like syntax) in Figure \ref{systemAPI}. In the next subsection, 
-we explain the purpose of the different primitives through examples. 
+end-points.  
 
 
 \sys{} introduces \emph{privileges} to make the SOP notion of
@@ -202,6 +200,9 @@ Clearance imposes a limit on the kind of data a compartment can have,
 i.e., it is an upper-bound on compartment label, and thus the kind of
 data a piece of code executing in the compartment can access.
 
+For completeness, we summarize  \sys{}'s API for compartments
+(using WebIDL-like syntax) in Figure \ref{systemAPI}. In the next subsection, 
+we explain the purpose of the different primitives through examples. 
 We remark that \sys{}'s API is designed to be minimalistic, and as such, it only
 consists on the primitives shown in Figures~\ref{fig:APIspec} and
 \ref{systemAPI}.
