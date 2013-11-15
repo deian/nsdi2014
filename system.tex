@@ -39,7 +39,9 @@ Privilege {
 }
 \end{webidl}
 }}
+\vspace{-10pt}
 \caption{\label{fig:APIspec} API for policy specification}
+\vspace{-10pt}
 \end{figure}
 
 
@@ -244,7 +246,9 @@ LWorker {
 }
 \end{webidl}
 }
+\vspace{-10pt}
 \caption{\label{systemAPI} API for compartments}
+\vspace{-10pt}
 \end{figure}
 
 
@@ -555,7 +559,9 @@ credentials,\footnote{ In Section~\ref{sec:implementation} we describe an
 % I printed out, and it reads well!
 \includegraphics[scale=0.35]{pmanager.pdf}
 \end{center}
+\vspace{-10pt}
 \caption{\label{fig:manager-s-1} Password manager architecture}
+\vspace{-10pt}
 \end{figure}
  as shown in
 Figure~\toref{fig:manager-s-1}.
@@ -783,23 +789,26 @@ whose label remains public carries out the login procedure, i.e., it
 submit the login form.
 
 \para{Another example: encrypted online documents}
-Companies often argue against using on-line documents services (like Google
-Docs) due to privacy issues, i.e., they do not want Google to store sensitive
-information present in such documents. Using a similar architecture as the
-password manager, we implement a prototype of a mashup capable to handle
-encrypted on-line documents. This prototype shows the feasibility of our
-approach in combining services of online document providers and encryption
-processes. Once keys are configured, the encryption and decryption are
-performed in a transparent manner for the users. Specifically, at the time of
-writing a document, our implementation creates three frames. An outermost,
-label \js|gdocs.com|, a middle one label \js|encrypt.com| with privilege
-\js|encrypt.com|, and an innermost one label \js|gdocs.com|. This last 
-frame would contain the document editor. 
+The design pattern used for the password manager can be exploited in other
+scenarios. To illustrate this point, we implemented a prototype of a
+mashup capable to handle encrypted on-line documents.
+%Companies often argue against using on-line documents services (like Google
+%Docs) due to privacy issues, i.e., they do not want Google to store sensitive
+%information present in such documents. Using a similar architecture as the
+%password manager, we implement a prototype of a mashup capable to handle
+%encrypted on-line documents. 
+This prototype shows the feasibility of our approach in combining services of
+online document providers and encryption processes. Once keys are configured,
+the encryption and decryption are performed in a transparent manner for the
+users. At the time of writing a document, our implementation
+creates three frames: an outermost, label \js|gdocs.com|, a middle one label
+\js|encrypt.com| with privilege \js|encrypt.com|, and an innermost one label
+\js|gdocs.com|. This last frame would contain the document editor.
 
 We need to implement a small bootstrap process between the middle and innermost
 process to achieve the desire security guarantees. Once the middle frame is
 loaded, it starts an authentication process with the innermost frame before any
-editing is allowed by the user. Specifically, it sends a token to the innermost
+editing is allowed. Specifically, it sends a token to the innermost
 frame with the label \js|Label("https://gdocs.com").and("https://encrypt.com")|.
 This message taints the innermost frame with the described label, and as a
 result, restricts it from any network communication---so that it avoids leaking

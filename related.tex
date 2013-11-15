@@ -50,14 +50,14 @@ contexts about a given clearance cannot be accessed.
 %updates, and others). 
 Hedin and Sabelfeld~\cite{Hedin:2012} formally describe a sound language-based
 confinement mechanisms for a subset of JavaScript and their ideas are being
-currently applied to JSFlow~\cite{JSFlow}, a IFC-aware JavaScript interpreter.
+currently applied to JSFlow~\cite{JSFlow}. %, a modified JavaScript interpreter.
 JSFlow is designed to confine legacy code, and because of that, it does an
 impressive effort to obtain fine-grain labeling of data. This is achieved at the
 price of proposing detailed models for capturing big parts of the browser
 semantics (e.g. interaction with the DOM), which drastically impact on
 performance (sometimes more than 100\%!).  We provide a more coarse-grain
 approach: \emph{\sys{} does not care for most of the JavaScript and DOM API
-  internals}. Instead, \sys~ uses IFC-aware browsing contexts and simply
+  internals}. Instead, \sys~ uses the browsing contexts and simply
 mediates among them to preserve security.
 % With our
 % approach, webpage developers can obtain fine-grain IFC by restructuring their
