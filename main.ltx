@@ -4,6 +4,7 @@
 \usepackage{enumerate}
 \usepackage[square,comma,numbers,sort&compress]{natbib}
 \usepackage{booktabs}
+
 \newcommand{\sys}{Browbound}
 \newcommand{\xhr}{\js|XMLHttpRequest|}
 
@@ -11,6 +12,7 @@
 \@dblfptop 0pt
 \makeatother
 \usepackage{array}
+\usepackage{amssymb}
 \usepackage[usenames,dvipsnames]{color}
 \newcommand{\Red}[1]{{\color{red} #1}}
 \newcommand{\todo}[2]{\Red{\textbf{TODO[}#1\textbf{]:} #2}}
@@ -96,6 +98,13 @@ Protecting Users by Confining JavaScript with \sys
 
 \todo{all}{rather than use \emph{browsing contexts} which remain alive across
 different documents, we should use \emph{execution contexts}}
+
+\newenvironment{CompactItemize}%
+  {\begin{list}{$\blacktriangleright$}%
+   {\leftmargin=\parindent \itemsep=2pt \topsep=2pt
+     \parsep=0pt \partopsep=0pt}}%
+  {\end{list}}
+\renewcommand{\labelitemi}{$\blacktriangleright$}
 
 \input{abstract}
 \input{intro}
