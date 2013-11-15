@@ -88,7 +88,7 @@ cross-compartment wrappers: this ensures that all subsequent
 cross-compartment access is mediated by confinement, i.e., it uses
 labels, and not the SOP. %, i.e., the principal.
 %
-We modified the function that recomputes wrappers to ues \sys{}'s
+We modified the function that recomputes wrappers to use \sys{}'s
 wrappers when confinement-mode is enabled.
 %
 This 81-line patch, in addition to adding a new field (pointing to a \sys{}
@@ -103,7 +103,7 @@ in the browser.
 %confinement. 
 By doing so, \sys{} does not require to add specific hooks or extra machinery. 
 CSP policies are very expressive; in fact, they are
-information flow control policies~\cite{yang:2013:towards}. This fact allows us
+information flow control policies~\cite{yang:2013:towards}. This allows us
 to precisely control how a page loads content, perform XHR, etc.
 To enforce CSP, Gecko associates a CSP policy object with a principal.
 %We use the compartment principal, and its associated CSP policy to
@@ -158,7 +158,7 @@ faster parent-worker calls (e.g.,
 \js|postMessage|, or \js|onmessage| dispatch), which are effectively function
 calls for which we add confinement checks. 
 %
-More importantly, it allows us to provide lightweight workers with access to the
+More importantly, it allows \sys{} to provide lightweight workers with access to the
 DOM.
 %
 Specifically, like the new Add-on SDK content-script
