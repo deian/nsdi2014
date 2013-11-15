@@ -402,7 +402,9 @@ it through a worker whose label is less sensitive than the context
 label.
 %
 \iffigures
+\ifcompletefigures
 As shown in Figure~\toref{fig:strength-1}, 
+\fi
 \fi
 \sys{} then starts
 executing the checker code in the LWorker; the initial label of the
@@ -451,7 +453,9 @@ receive data at sensitivity level \https{instagra.me}, at the cost of
 giving up arbitrary communication privileges.
 %
 \iffigures
+\ifcompletefigures
 As shown in Figure~\toref{fig:strength-3}, the 
+\fi
 \else
 The
 \fi
@@ -496,7 +500,9 @@ The result of this function is returned to the page via
 %
 The event handler registered by the page 
 \iffigures
+\ifcompletefigures
 (step 5), as shown in Figure~\toref{fig:system:strength-4}, 
+\fi
 \else
 (step 5)
 \fi
@@ -505,8 +511,10 @@ the page subsumes the message label (which is the worker's compartment
 label).
 
 \iffigures
+\ifcompletefigures
 We show the full life-cycle of this application in
 Figure~\toref{fig:system:strength}.
+\fi
 \fi
 %
 In this example, we relied on the page having ownership of the
@@ -754,7 +762,9 @@ layer requests the master password (\js|mpass|) from the user,
 generates a salt (\js|salt|), and encryption key $k =
 H(\texttt{mpass}\|\texttt{"}\https{fb.com}\texttt{"}\|\texttt{salt})$
 \iffigures
+\ifcompletefigures
 ,as shown in Figure~\toref{fig:manager-s-2}
+\fi
 \fi
 .
 %
@@ -835,7 +845,9 @@ via \js|window.parent.frames|, it retrieves a pointer to the storage
 layer.
 %
 \iffigures
+\ifcompletefigures
 As shown in Figure~\toref{fig:manager-r-2}, after 
+\fi
 \else
 After
 \fi
@@ -865,7 +877,9 @@ disseminating the data to any other origin.
 %
 Finally
 \iffigures
+\ifcompletefigures
 , as shown in Figure~\toref{fig:manager-r-3}, 
+\fi
 \fi
 \https{fb.com},
 whose label remains public carries out the login procedure, i.e., it
