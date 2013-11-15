@@ -4,19 +4,18 @@
 We implemented \sys{} in the Firefox and Chrome browsers.
 %
 The API shown in Table~\toref{table:components} is specified in 264
-lines of WebIDL~\cite{webidl}, common to both
-implementations.
+lines of WebIDL~\cite{webidl} in Firefox and 70 lines in Chrome.
 %
 The remaining system is implemented in C++, modifying/extending the Gecko and
-Blink layout engines, in roughly 3.4K and \Red{XXX} lines of code (LOC),
+Blink layout engines, in roughly 3.4K and 2.6K lines of code (LOC),
 respectively.
 %
 In all our LOC reports, we simply count the length of the source files which
 includes comments and empty-lines.
 %
 Below we detail the implementation of the various \sys{} components;
-in Section~\ref{sec:eval}, we describe the implementation of the
-Section~\ref{sec:system} applications.
+in Section~\ref{sec:eval}, we present the implementation of the
+applications described in Section~\ref{sec:system}.
 
 %\subsection{Policies}
 %
@@ -26,7 +25,7 @@ in~\cite{stefan:2011:dclabels,stefan:2011:flexible}.
 %
 This implementation is straight forward and only differs in the two
 browsers because of their dependence on different container libraries;
-the Firefox and Chrome implementations are roughly 1K and \Red{XXX}
+the Firefox and Chrome implementations are roughly 1K and 0.7K
 lines of C++ code, respectively.
 %
 We note that much of this is a result of using C++ (and thus having
@@ -157,6 +156,42 @@ access, including a \js|get|, from a worker as a read-write effect).
 \subsection{Chrome}
 \label{sec:implementation:firefox}
 
+In this section, we highlight minor differences in
+our Chrome and Firfox implementations due to
+the different platforms.
+
+Chrome differs from Gecko in the way it implements
+access control checks for
+DOM elements. Each DOM element (implemented as a
+C++ object in Blink) is represented by a JavaScript
+object in the JavaScript world. Every access on
+the JS object results in an invocation of a
+corresponding method on the Blink object via IDL
+binding code. Blink implements the SOP security
+checks in the binding code for a limited subset of
+DOM elements that may allow cross-origin access.
+
+We extended the IDL binding code to perform label
+checks on {\em all} DOM elements.
+The added code compares labels of an object's compartment
+and the compartment from which the access originates.
+We must mediate all DOM elements because
+compartment labels
+are dynamic, and a label change may require
+revocation of DOM access for all DOM object that a
+labeled DOM worker or a sandbox-enabled iframe
+currently processes.
+The increased number of DOM elements
+performing label checks incurs
+\Red{significant (maybe not)}
+performance overhead as show in Section~\ref{sec:eval}.
+
+In Chrome, a labeled worker also executes in the same
+OS thread as its creating compartment. This design
+decision allows
+synchronization of DOM access between compartments
+as required in
+the case of the labeled DOM worker.
 
 
 
