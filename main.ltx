@@ -19,7 +19,8 @@
 
 
 \newcommand{\tocite}[1]{\Red{\cite{#1}}}
-\newcommand{\toref}[1]{\Red{XX}}
+%\newcommand{\toref}[1]{\Red{XX}}
+\let\toref\ref
 \newcommand{\https}[1]{\texttt{\small https://#1}}
 
 %% code related
@@ -80,7 +81,11 @@
              {:}{}{0\discretionary{:}{}{:}}
 ]}
 
-\setlength{\textfloatsep}{4pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{6pt plus 2pt minus 3pt}
+%\setlength{\floatsep}{4pt plus 2pt minus 2pt}
+%\setlength{\intextsep}{4pt plus 2pt minus 2pt}
+\let\oldcaption\caption
+\renewcommand{\caption}{\vspace*{-5pt}\oldcaption}
 
 %%
 \begin{document}
