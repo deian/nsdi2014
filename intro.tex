@@ -7,7 +7,7 @@ applications to create new ones. While component reuse in the
 venerable desktop software model typically takes the form of
 libraries, the reusable components in web applications aren't limited
 to just JavaScript library code---they further include
-network-accessible content and services ({\em e.g.,} map data and
+network-accessible content and services (e.g., map data and
 storage). Such reuse is ubiquitous. jQuery, a widely used JavaScript
 library, is included in and used by 68\% of the Quantcast top-10,000
 web sites, and over 52\% of the Quantcast top-million web
@@ -43,10 +43,10 @@ within mashups: sandboxes that allow pages not to share their data
 with JavaScript code they include, and discretionary access control
 for inter-frame communication~\cite{mashupos}. Indeed, today's
 browsers incorporate similar mechanisms in the guises of HTML5's
-seamless iframes, iframe sandbox, and postMessage. And the well known
-Same-Origin Policy (SOP, on which more in
-Section~\ref{sec:background}) prevents JavaScript hosted by one
-principal from reading content hosted by another.
+seamless iframes, iframe sandbox, and postMessage API~\cite{html5}.
+And the well known Same-Origin Policy (SOP, detailed in
+Section~\ref{sec:background}) prevents JavaScript hosted by one principal from
+reading content hosted by another.
 
 Unfortunately, in the status quo web browser security architecture,
 efforts to advance one of these two goals still often hamper achieving
@@ -56,7 +56,7 @@ functionality often dominates the concern for privacy, to users'
 peril). The browser may enhance privacy by applying discretionary
 access control (DAC) when an untrusted script wishes to read
 potentially sensitive data. The various isolation mechanisms a modern
-browser applies ({\em e.g.,} the SOP and Content Security Policies,
+browser applies (e.g., the SOP and Content Security Policies,
 both explored in Section~\ref{sec:background}) are flavors of DAC. But
 the brittle ``all-or-nothing'' character of DAC thwarts the building
 of many useful mashups. Broadly speaking, DAC can either deny or grant
@@ -97,10 +97,10 @@ it may not exfiltrate the sensitive data (in the web browser,
 typically by writing the sensitive data to an untrusted remote
 origin). To offer the greatest flexibility to web application
 developers, the means of confinement should further be {\em first
-  class,} in that any container ({\em e.g.,} a frame) should be able
+  class,} in that any container (e.g., a frame) should be able
 to prevent untrusted code incorporated in a sub-container from
 exfiltrating sensitive data passed into the sub-container, with
-arbitrarily deep nesting, {\em e.g.,} so that a page may include a
+arbitrarily deep nesting, e.g., so that a page may include a
 library it does not trust, and that library may in turn include
 another library {\em it} does not trust. And finally, also in the
 interest of flexibility, the means of confinement should be {\em
