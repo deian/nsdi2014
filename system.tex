@@ -19,6 +19,28 @@ followed by the system design itself.
 \subsection{Policies and confinement in \sys{}}
 \label{sec:system:policy}
 
+\begin{figure}
+{\small{
+\begin{webidl}
+Label {
+  Label Label([String])
+  Label and(String or Label)
+  Label or(String or Label)
+  bool subsumes(Label [,Privilege])
+}
+\end{webidl}
+\begin{webidl}
+Privilege {
+  Privilege FreshPrivilege()
+  Privilege combine(Privilege)
+  Label asLabel(Privilege)
+}
+\end{webidl}
+}}
+\caption{\label{fig:APIspec} API for policy specification}
+\end{figure}
+
+
 Conceptually, \sys{} associates a security policy with every piece of
 data in the system, specifying which origins can read and write the
 data.
@@ -31,7 +53,10 @@ labels} presented in~\cite{stefan:2011:dclabels}.
 We chose DC labels, much like Hails~\cite{giffin:2012:hails} and
 Breeze~\cite{Breeze13}, because they have a simple and clear
 semantics, yet are as expressive as the labels used by other practical
-confinement systems~\cite{GenLabels}.
+confinement systems~\cite{GenLabels}. Figure \ref{fig:APIspec} shows the API (in
+WebIDL format) used by \sys{} to handle labels (privileges to be explained
+below). 
+
 
 A privacy label (henceforth just label) is a boolean formula over
 origins, specifying who can read the data.\footnote{
@@ -154,8 +179,10 @@ simply the JavaScript \js|null| object) and privileges corresponding
 to fresh, unique origins (create with \js|new FreshPrivilege()|).
 %
 As in HiStar~\cite{Zeldovich:2006}, the ability to generate fresh privileges
-ensures that all browsing contexts are egalitarian, i.e., a child
-iframe is no less trustworthy than its containing parent.
+ensures that all browsing contexts are egalitarian, i.e., a child iframe is no
+less trustworthy than its containing parent.  Figure~\ref{systemAPI} shows the
+API to handle privileges (the purpose of \js|combine| and \js|asLabel| are
+described in Section \ref{}).
 
 In an ideal confinement system, code can read arbitrary data at the
 cost of raising the context label and thus giving up write privileges.
@@ -183,85 +210,14 @@ For completeness, we summarize the different system components,
 security mechanisms, and DOM API (using WebIDL-like syntax), in
 Table~\toref{table:components}.
 
-\begin{table*}[t]
-\centering
-\begin{tabular}{l | m{2.35in} | m{3.5in}}
-\hline
-\textbf{Component} & \textbf{API} & \textbf{Description} 
-\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Labels &  
+
+\begin{figure}
+{\small
 \begin{webidl}
-Label {
-  Label Label([String])
-  Label and(String or Label)
-  Label or(String or Label)
-  bool subsumes(Label [,Privilege])
-}
+ Browbound {
+   attribute Privilege privileges
+ }
 \end{webidl}
-&
-\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Privileges &  
-\begin{webidl}
-Privilege {
-  Privilege FreshPrivilege()
-  Privilege combine(Privilege)
-  Label asLabel(Privilege)
-}
-\end{webidl}
-&
-\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Context label &  
-\begin{webidl}
-Browbound {
-  attribute Label privacyLabel
-}
-\end{webidl}
-&
-The context label is used to restrict reads and writes from the
-current browsing context.
-%
-Code can only write to entities above the current label.
-%
-Code can read from entities whose label is at most as restricting as
-the context label---when wishing to read more sensitive data, the
-context label can be raised (set) to the more restricting label,
-clearance permitting (see below).
-%
-This comparison between labels (using the current context's
-privileges) is the single mechanism used to restrict reads and writes.
-\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Context clearance  &  
-\begin{webidl}
-Browbound {
-  attribute Label privacyClearance
-}
-\end{webidl}
-&
-Clearance is a label that is used to restrict access to data.
-%
-Code cannot read form or write to entities more sensitive than the
-clearance.
-%
-In the case of reads, this simply implies that the clearance is an
-upper bound on the context label.
-%
-The clearance can be set by code running in the context, but only to a
-label that is more restricting than the context label and less
-restricting than the current clearance.
-\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Context privileges  &  
-\begin{webidl}
-Browbound {
-  attribute Privilege privileges
-}
-\end{webidl}
-&
-Privileges are used to relax label comparisons when performing reads
-and writes.
-%
-Code running in the context can get and set the current privileges.
-\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Labeled Workers  &  
 \begin{webidl}
 LWorker {
   LWorker LWorker(String, Label[, Privilege])
@@ -271,13 +227,9 @@ LWorker {
   void grant(Privilege)
 }
 \end{webidl}
-&
-\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\end{tabular}
-\caption{\label{systemAPI} \sys{} design components and
-  API\todo{ale}{make sure to say in the caption that the API is
-described in a WebIDL-like language}}
-\end{table*}
+}
+\caption{\label{systemAPI} API for compartments}
+\end{figure}
 
 
 \subsection{Confining third-party DOM-less code}
