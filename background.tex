@@ -11,7 +11,8 @@
 % I printed out, and it reads well!
 \includegraphics[scale=0.35]{setting.pdf}
 \end{center}
-\caption{\label{fig:browser-arch} Browser architecture model}
+\caption{Browser architecture model}
+\label{fig:browser-arch}
 \end{figure}
 As shown in Figure~\ref{fig:browser-arch}, a 
 \else
@@ -141,8 +142,8 @@ specific resources from the provided white-lists.
 For instance, if the CSP header of a page from \https{a.com} contains
 the following three directives
 %
-\texttt{default-src: 'self'}, \texttt{img-src: 'none'}, and
-\texttt{connect-src: https://b.com},
+\texttt{default-src 'self'}, \texttt{img-src 'none'}, and
+\texttt{connect-src https://b.com},
 %
 the page content loading is restricted as follows.
 %
