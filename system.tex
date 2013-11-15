@@ -19,6 +19,28 @@ followed by the system design itself.
 \subsection{Policies and confinement in \sys{}}
 \label{sec:system:policy}
 
+\begin{figure}
+{\small{
+\begin{webidl}
+Label {
+  Label Label([String])
+  Label and(String or Label)
+  Label or(String or Label)
+  bool subsumes(Label [,Privilege])
+}
+\end{webidl}
+\begin{webidl}
+Privilege {
+  Privilege FreshPrivilege()
+  Privilege combine(Privilege)
+  Label asLabel(Privilege)
+}
+\end{webidl}
+}}
+\caption{\label{fig:APIspec} API for policy specification}
+\end{figure}
+
+
 Conceptually, \sys{} associates a security policy with every piece of
 data in the system, specifying which origins can read and write the
 data.
@@ -29,9 +51,12 @@ The particular labels used by \sys{} are the \emph{DC
 labels} presented in~\cite{stefan:2011:dclabels}.
 %
 We chose DC labels, much like Hails~\cite{giffin:2012:hails} and
-Breeze~\cite{Breeze13}, because they have a simple and clear
-semantics, yet are as expressive as the labels used by other practical
-confinement systems~\cite{GenLabels}.
+Breeze~\cite{Breeze13}, because they have a simple and clear semantics, yet are
+as expressive as the labels used by other practical confinement
+systems~\cite{GenLabels}. Figure \ref{fig:APIspec} shows the \sys{}'s API (in a
+WebIDL-like syntax) to specify policies (privileges to be
+explained below).
+
 
 A privacy label (henceforth just label) is a boolean formula over
 origins, specifying who can read the data.\footnote{
@@ -112,9 +137,10 @@ Specifically, code is restricted to communicating with browsing
 contexts (e.g., via \js|postMessage|) whose labels subsume the current
 label of the browsing context.
 %
-Similarly, performing network requests and accessing persistent
-storage is dictated by the relationship of the context label and
-implicit labels of these end-points.
+Similarly, performing network requests and accessing persistent storage is
+dictated by the relationship of the context label and implicit labels of these
+end-points.  
+
 
 \sys{} introduces \emph{privileges} to make the SOP notion of
 authority (of code) over page content explicit.
@@ -154,8 +180,11 @@ simply the JavaScript \js|null| object) and privileges corresponding
 to fresh, unique origins (create with \js|new FreshPrivilege()|).
 %
 As in HiStar~\cite{Zeldovich:2006}, the ability to generate fresh privileges
-ensures that all browsing contexts are egalitarian, i.e., a child
-iframe is no less trustworthy than its containing parent.
+ensures that all browsing contexts are egalitarian, i.e., a child iframe is no
+less trustworthy than its containing parent.  Figure~\ref{systemAPI} shows the
+API to handle privileges (primitives \js|combine| and \js|asLabel| to be 
+explained in the next subsection). 
+
 
 In an ideal confinement system, code can read arbitrary data at the
 cost of raising the context label and thus giving up write privileges.
@@ -171,113 +200,45 @@ Clearance imposes a limit on the kind of data a compartment can have,
 i.e., it is an upper-bound on compartment label, and thus the kind of
 data a piece of code executing in the compartment can access.
 
+For completeness, we summarize  \sys{}'s API for compartments
+(using WebIDL-like syntax) in Figure \ref{systemAPI}. In the next subsection, 
+we explain the purpose of the different primitives through examples. 
+We remark that \sys{}'s API is designed to be minimalistic, and as such, it only
+consists on the primitives shown in Figures~\ref{fig:APIspec} and
+\ref{systemAPI}.
+
 In the rest of this section, we expand on the \sys{} design through
 three concrete examples: 
 a password-strength checker (Section~\ref{sec:system:worker}),
 a password manager (Section~\ref{sec:system:iframe}), 
 a third-party mashup (Section~\ref{sec:system:mashup}), and
-an extension that converts phone numbers to links
-(Section~\ref{sec:system:script}).  %
+a library that converts phone numbers to links
+(Section~\ref{sec:system:script}--Section~\ref{sec:system:extension}).
 %
-For completeness, we summarize the different system components,
-security mechanisms, and DOM API (using WebIDL-like syntax), in
-Table~\toref{table:components}.
+%For completeness, we summarize the different system components,
+%security mechanisms, and DOM API (using WebIDL-like syntax), in
+%Table~\toref{table:components}.
 
-\begin{table*}[t]
-\centering
-\begin{tabular}{l | m{2.35in} | m{3.5in}}
-\hline
-\textbf{Component} & \textbf{API} & \textbf{Description} 
-\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Labels &  
-\begin{webidl}
-Label {
-  Label Label([String])
-  Label and(String or Label)
-  Label or(String or Label)
-  bool subsumes(Label [,Privilege])
-}
-\end{webidl}
-&
-\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Privileges &  
-\begin{webidl}
-Privilege {
-  Privilege FreshPrivilege()
-  Privilege combine(Privilege)
-  Label asLabel(Privilege)
-}
-\end{webidl}
-&
-\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Context label &  
+
+\begin{figure}
+{\small
 \begin{webidl}
 Browbound {
-  attribute Label privacyLabel
+  attribute Label label
+  attribute Label clearance 
 }
 \end{webidl}
-&
-The context label is used to restrict reads and writes from the
-current browsing context.
-%
-Code can only write to entities above the current label.
-%
-Code can read from entities whose label is at most as restricting as
-the context label---when wishing to read more sensitive data, the
-context label can be raised (set) to the more restricting label,
-clearance permitting (see below).
-%
-This comparison between labels (using the current context's
-privileges) is the single mechanism used to restrict reads and writes.
-\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Context clearance  &  
-\begin{webidl}
-Browbound {
-  attribute Label privacyClearance
-}
-\end{webidl}
-&
-Clearance is a label that is used to restrict access to data.
-%
-Code cannot read form or write to entities more sensitive than the
-clearance.
-%
-In the case of reads, this simply implies that the clearance is an
-upper bound on the context label.
-%
-The clearance can be set by code running in the context, but only to a
-label that is more restricting than the context label and less
-restricting than the current clearance.
-\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Context privileges  &  
-\begin{webidl}
-Browbound {
-  attribute Privilege privileges
-}
-\end{webidl}
-&
-Privileges are used to relax label comparisons when performing reads
-and writes.
-%
-Code running in the context can get and set the current privileges.
-\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Labeled Workers  &  
 \begin{webidl}
 LWorker {
-  LWorker LWorker(String, Label[, Privilege])
+  LWorker LWorker(String, Label[, Privilege, Window])
   LWorker SOLWorker(String, Label)
   postMessage(Object [,Label])
   attribute EventHandler onmessage
-  void grant(Privilege)
 }
 \end{webidl}
-&
-\\\hline %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\end{tabular}
-\caption{\label{systemAPI} \sys{} design components and
-  API\todo{ale}{make sure to say in the caption that the API is
-described in a WebIDL-like language}}
-\end{table*}
+}
+\caption{\label{systemAPI} API for compartments}
+\end{figure}
 
 
 \subsection{Confining third-party DOM-less code}
@@ -291,7 +252,7 @@ password according to some metric (e.g., length, number of special
 characters, etc.).
 %
 Naturally, when using a third-party password-strength checker
-(e.g.,~\tocite{checker1, checker2}) we would like to ensure that the
+(e.g.,~\cite{checker1}) we would like to ensure that the
 code does not leak the user's password.
 %
 A malicious checker should at worst lie about the strength of a
@@ -346,7 +307,7 @@ and express the security concerns of the strength checker as well.
 Second, the CSP policy of the checker cannot be more restricting than
 that of the containing document (since it inherits the policy from
 it)---hence, the checker can potentially carry out a self-exfiltration
-attack~\tocite{self-exfiltration} and leak the password to a public
+attack~\cite{selfex} and leak the password to a public
 page on \https{instagra.me}.
 %
 Finally, this approach cannot be used to confine a password
@@ -390,15 +351,17 @@ constructor used to perform network requests, and
 parent.
 %
 Different from the \js|Worker| constructor, the \js|LWorker|
-constructor takes two additional arguments: a label that specifies the
-clearance on the code running in the worker and an optional privilege
-to grant the worker.
+constructor takes three additional arguments: a label that specifies the
+clearance on the code running in the worker, an optional privilege
+to grant the worker, and an optional window object to attach to the worker.
+%
+We discuss the role of the latter two arguments in Sections~\ref{sec:system:script}--\ref{sec:system:extension}.
 
 For example, we create a new LWorker that executes the
 password-strength checker code as follows:
 \begin{jscode}
 var url = "https://checker.biz/checker.js";
-var label = new Label(window.location.origin);
+var label = new Label(location.origin);
 // 1. Execute checker in new worker
 var checker = new LWorker(url, label);
 \end{jscode}
@@ -554,7 +517,7 @@ Th modified code is shown below.
 // Create fresh unique privilege
 var p = new FreshPrivilege();
 // Take ownership of this privilege
-Browbound.own(p);
+Browbound.privileges = p.combine(Browbound.privileges);
 // Use it to confine the worker completely:
 var checker = new LWorker(url, p.asLabel);
 // As before ..
@@ -865,12 +828,71 @@ Finally, as shown in Figure~\toref{fig:manager-r-3}, \https{fb.com},
 whose label remains public carries out the login procedure, i.e., it
 submit the login form.
 
-
 \subsection{Privilege separation within iframes}
+\label{sec:system:script}
+
+The confinement system presented thus far requires developers to
+compartmentalize components/libraries of different trustworthiness into
+multiple labeled iframes/workers.
+%
+Though this is sufficient for many libraries and mashups, placing a library
+such a jQuery, which inherently traverses and modifies many parts of the DOM,
+in a separate iframe/worker is not practical: developers use jQuery as a
+JavaScript domain specific language with which they build application.
+%
+How, then, can \https{bank.ch} ensure that a library such a jQuery does not
+leak the user's bank statement?
+
+Rather than attempt to solely confine jQuery within such a page, a
+first conservative approach is to confine the whole page. 
+%
+To this end, \sys{} can be used to raise the label of the browsing
+context and drop the page privileges before importing the library:
+\begin{jscode}
+// Raise label:
+Browbound.label = new Label(location.origin);
+// Drop privileges:
+Browbound.privilege = null;
+\end{jscode}
+%
+This ensures that the page can only leak data to \https{bank.ch}.
+%
+Consequently, the jQuery library code must be also be hosted on the
+same origin.
+%
+
+To allow the page to communicate with other domains, the application
+must create an iframe, which would have the bank privilege and thus be
+able to communicate arbitrarily.
+%
+The role of this child frame is to solely implement ``trusted''
+components of the application.
+%
+Similar to a OS kernel, the iframe it carries out any requests
+(submitted via \js|postMessage|) on behalf of the caller, after
+asserting that the request is safe (e.g., updating local storage to
+reflect the last page view, etc.).
+
+Unfortunately, such structuring of an application, for any realistic
+scenario, is not trivial.
+%
+For example, to ensure that the library cannot carry out
+self-exfiltration attacks we must set the context label to the label
+of a fresh principal.
+%
+This, in turn, requires granting the privilege to the trusted
+child iframe (as to not restrict the child from performing arbitrary
+requests), and requesting it to fetch the library source code.
+%
+Without knowing a-priori the URL of the source code, the trusted
+frame, must decide whether fetching the source will leak any
+information---a complex decision we precisely wish to avoid imposing
+on developers!
+
+
+
+\subsection{A cross-browser extension system}
 \label{sec:system:extension}
-%Phone2Links extension
-\Red{TODO: change section title; this should talk about stashing
-privileges and extending LWorkers with DOM objects}
 
 
 \subsection{Relaxing SOP for confined code}
@@ -993,6 +1015,7 @@ contained in a public parent page.
 The latter page performs all the navigation in addition to conveying
 the user input (e.g., ``get next statement'') to the first two
 labeled contexts.
+
 
 
 

@@ -266,19 +266,20 @@
     month = Jan
 }
 
-@misc{rfc6454,
-    author = "{Internet Engineering Task Force}",
-    title     = "Request for Comments: 6454.",
-    howpublished = "\url{http://www.ietf.org/rfc/rfc6454.txt}",
-    year = 2011, 
-    month = Dec
+@techreport{rfc6454,
+author = {Barth, Adam},
+institution = {IETF},
+title = {The Web Origin Concept},
+url = {https://tools.ietf.org/html/rfc6454},
+year = {2011}
 }
 
 @misc{googlehandbook,
-    author = "Google",
-    title     = "Browser Security Handbook (part 2)",
-    howpublished = "\url{https://code.google.com/p/browsersec/wiki/Part2}",
-    year = 2009, 
+author = {Michal Zelwski},
+title = {Browser Security Handbook, part 2},
+howpublished = {\url{HTtp://code.google.com/p/browsersec/wiki/Part2}},
+note = {Visited March 30, 2011},
+year = {2011}
 }
 
 @misc{jsonp,
@@ -439,6 +440,54 @@ publisher = {IEEE Computer Society},
   pages={119--128},
   year={2011},
   organization={ACM}
+}
+
+@misc{VanKesteren2012,
+abstract = {This document defines a mechanism to enable client-side cross-origin requests. Specifications that enable an API to make cross-origin requests to resources can use the algorithms defined by this specification. If such an API is used on http://example.org resources, a resource on http://hello-world.example can opt in using the mechanism described by this specification (e.g., specifying Access-Control-Allow-Origin: http://example.org as response header), which would allow that resource to be fetched cross-origin from http://example.org.},
+author = {{Van Kesteren}, Anne},
+booktitle = {W3C},
+title = {{Cross-Origin Resource Sharing}},
+howpublished = {\url{http://www.w3.org/TR/cors/}},
+year = {2012}
+}
+@book{thidpartyjs,
+  title={Third-party JavaScript},
+  author={Vinegar, Ben and Kovalyov, Anton},
+  year={2013},
+  publisher={Manning Publ.}
+}
+
+@article{barth2009securing,
+  title={Securing frame communication in browsers},
+  author={Barth, A. and Jackson, C. and Mitchell, J.C.},
+  journal={Communications of the ACM},
+  volume={52},
+  number={6},
+  pages={83--91},
+  year={2009},
+  publisher={ACM}
+}
+@inproceedings{kerschbaum2007simple,
+  title={Simple cross-site attack prevention},
+  author={Kerschbaum, Florian},
+  booktitle={Security and Privacy in Communications Networks and the Workshops, 2007. SecureComm 2007. Third International Conference on},
+  pages={464--472},
+  year={2007},
+  organization={IEEE}
+}
+
+@article{selfex,
+  title={Self-Exfiltration: The Dangers of Browser-Enforced Information Flow Control},
+  author={Chen, Eric Y and Gorbaty, Sergey and Singhal, Astha and Jackson, Collin},
+  journal={Web 2.0 Security and Privacy},
+  year={2012}
+}
+
+@misc{checker1,
+  title = {},
+  author = {Steve Moitozo},
+  howpublished = {\url{http://www.geekwisdom.com/js/passwordmeter.js}},
+  year = 2006
 }
 
 @misc{quantcast,
