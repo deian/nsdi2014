@@ -67,7 +67,18 @@
     {}
 
 
-\newcommand{\js}{\lstinline[language=JavaScript,backgroundcolor=\color{white},breaklines=true,basicstyle=\small\ttfamily]}
+
+%% \newcommand{\js}{\lstinline[language=JavaScript,backgroundcolor=\color{white},breaklines=true,basicstyle=\small\ttfamily]}
+
+
+\newcommand{\js}{\lstinline[language=JavaScript,backgroundcolor=\color{white},
+    breaklines=true,basicstyle=\small\ttfamily,breakatwhitespace,
+    literate={.}{}{0\discretionary{}{.}{.}}
+             {(}{}{0\discretionary{}{(}{(}}
+             {)}{}{0\discretionary{)}{}{)}}
+             {/}{}{0\discretionary{/}{}{/}}
+             {:}{}{0\discretionary{:}{}{:}}
+]}
 
 %%
 \begin{document}
