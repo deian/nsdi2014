@@ -1,3 +1,5 @@
+
+
 \section{The \sys{} confinement system}
 \label{sec:system}
 
@@ -399,7 +401,10 @@ This check ensures that the page cannot declassify data by laundering
 it through a worker whose label is less sensitive than the context
 label.
 %
-As shown in Figure~\toref{fig:strength-1}, \sys{} then starts
+\iffigures
+As shown in Figure~\toref{fig:strength-1}, 
+\fi
+\sys{} then starts
 executing the checker code in the LWorker; the initial label of the
 worker compartment is set to that of the parent (in this case, the
 public label).
@@ -445,7 +450,12 @@ In doing so, the code is effectively stating that it is ready to
 receive data at sensitivity level \https{instagra.me}, at the cost of
 giving up arbitrary communication privileges.
 %
-As shown in Figure~\toref{fig:strength-3}, the checker can now receive
+\iffigures
+As shown in Figure~\toref{fig:strength-3}, the 
+\else
+The
+\fi
+checker can now receive
 sensitive data (the password), but, for example, can only use \xhr{} to
 communicate with \https{instagra.me};
 %
@@ -484,13 +494,20 @@ checking function \js|computeStrength|.
 The result of this function is returned to the page via
 \js|postMessage|.
 %
-The event handler registered by the page (step 5), as shown in
-Figure~\toref{fig:system:strength-4}, is dispatched if the label of
+The event handler registered by the page 
+\iffigures
+(step 5), as shown in Figure~\toref{fig:system:strength-4}, 
+\else
+(step 5)
+\fi
+is dispatched if the label of
 the page subsumes the message label (which is the worker's compartment
 label).
- 
+
+\iffigures
 We show the full life-cycle of this application in
 Figure~\toref{fig:system:strength}.
+\fi
 %
 In this example, we relied on the page having ownership of the
 \https{instagra.me} privilege as to avoid tainting the browsing
@@ -626,8 +643,13 @@ directly, for simplicity, we assume that a website (e.g., \https{fb.com})
 integrates with the manager in order to save and retrieve login
 credentials,\footnote{ In Section~\ref{sec:implementation} we describe an
   untrusted extension system that can be used to inject the password-manager
-  specific code into the integrator page.  } as shown in
+  specific code into the integrator page.  }
+\iffigures
+ as shown in
 Figure~\toref{fig:manager-s-1}.
+\else
+.
+\fi
 %
 Without loss of generality, we also assume that encryption and
 decryption is carried out on the client-side by the management layer.
@@ -723,8 +745,11 @@ Returning to our password manager, upon receiving the credentials
 (\js|credentials|) via the \js|onmessage| handler, the management
 layer requests the master password (\js|mpass|) from the user, 
 generates a salt (\js|salt|), and encryption key $k =
-H(\texttt{mpass}\|\texttt{"}\https{fb.com}\texttt{"}\|\texttt{salt})$,
-as shown in Figure~\toref{fig:manager-s-2}.
+H(\texttt{mpass}\|\texttt{"}\https{fb.com}\texttt{"}\|\texttt{salt})$
+\iffigures
+,as shown in Figure~\toref{fig:manager-s-2}
+\fi
+.
 %
 Here, $H$ is a hash function such as SHA-256.
 %
@@ -802,7 +827,12 @@ registers a message handler to receive the encrypted credentials, and
 via \js|window.parent.frames|, it retrieves a pointer to the storage
 layer.
 %
-As shown in Figure~\toref{fig:manager-r-2}, after raising the
+\iffigures
+As shown in Figure~\toref{fig:manager-r-2}, after 
+\else
+After
+\fi
+raising the
 compartment label to \js|Label("https://fb.com")|, the management
 layer sends the storage a ``fetch'' message, requesting the encrypted
 credentials.
@@ -826,7 +856,11 @@ We note that, as imposed by the storage layer, the management layers'
 context label, \js|Label("https://fb.com")|, prevents it from
 disseminating the data to any other origin.
 %
-Finally, as shown in Figure~\toref{fig:manager-r-3}, \https{fb.com},
+Finally
+\iffigures
+, as shown in Figure~\toref{fig:manager-r-3}, 
+\fi
+\https{fb.com},
 whose label remains public carries out the login procedure, i.e., it
 submit the login form.
 

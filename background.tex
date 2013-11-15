@@ -4,7 +4,20 @@
 %% In this section, we briefly review the browser architecture and
 %% security model.
 %
-As shown in Figure~\toref{fig:browser-arch}, a web page is composed of
+\iffigures
+\begin{figure}
+%\includegraphics[width=\columnwidth]{setting.pdf}
+\begin{center}
+% I printed out, and it reads well!
+\includegraphics[scale=0.35]{setting.pdf}
+\end{center}
+\caption{\label{fig:browser-arch} Browser architecture model}
+\end{figure}
+As shown in Figure~\toref{fig:browser-arch}, a 
+\else
+A
+\fi
+web page is composed of
 content and JavaScript code.
 %
 The browser provides an environment, called the \emph{browsing
