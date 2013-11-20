@@ -1032,7 +1032,7 @@ to current content-script extensions.
 There are, however, two core difference: we enforce confinement for
 ``extensions'', while they give extensions access to privileged APIs
 and enforce confinement on pages to restrict access these APIs.
-%
+
 Though we do yet not support the privileged APIs, and thus cannot re-implement
 all types of extensions as web applications, extensions that rely only on
 content scripts can be easily ported to \sys{}.
@@ -1040,65 +1040,73 @@ content scripts can be easily ported to \sys{}.
 This not only removes the unnecessary trust placed on such extensions but further
 makes extensions portable across browsers.
 %
-We note that, in order to allow these extensions to run on pages similarly to
-conventional extensions, we implemented an extension management system that
-injects labeled DOM workers (containing the extension code) into pages whose
-origins are approved by the user (at install time).
+We note that, in order to allow these extensions to run on pages
+similarly to conventional extensions, we implemented an extension
+management system that injects labeled DOM workers (containing the
+extension code) into pages whose origins are approved by the user (at
+install time).
+%
+In order to allow these extensions
+to run on pages similarly to conventional extensions,
+we envision a browser's extension management system
+injecting labeled workers with the extension code into pages
+which origins are approved by the user
+for particular extensions.
 
-\subsection{relaxing sop for confined code}
+\subsection{Relaxing SOP for confined code}
 \label{sec:system:mashup}
-%third-party mashup
+%Third-party Mashup
 %
 \sys{} restricts the communication capabilities of a browsing context
 once it has read sensitive data, i.e., data from a browsing context
 with a more restricting label.
 %
-as envisioned in~\cite{yang:2013:towards}, by equipping the browser with such
-confinement mechanism we can safely relax the sop.
+As envisioned in~\cite{yang:2013:towards}, by equipping the browser with such
+confinement mechanism we can safely relax the SOP.
 %
-this relaxation, in turn, allows developers to build applications that access
+This relaxation, in turn, allows developers to build applications that access
 cross-origin data---in a safe manner and without server-side support---to build
 applications that are not otherwise possible today.
 %
-as an example, we consider third-party mashups.
+As an example, we consider third-party mashups.
 
-in a third-party mashup, a party, such as \https{mint.biz},
+In a third-party mashup, a party, such as \https{mint.biz},
 incorporates user-sensitive data from unaffiliated origins, such as
 \https{bank.ch} and \https{amazon.com}, in order to present users with new
 interfaces or functionality.
 %
-for instance, the third party, \https{mint.biz}, may wish to present the user with a
+For instance, the third party, \https{mint.biz}, may wish to present the user with a
 visualization of their spending habits, identify fraudulent
 \https{amazon.com} purchases using their \https{bank.ch} account, etc.
 %
-currently, such applications cannot be built since the sop prevents
+Currently, such applications cannot be built since the SOP prevents
 \https{mint.biz} from accessing the users' \https{amazon.com} and
 \https{bank.ch} data, e.g., using \xhr{}.\footnote{
- we assume that neither \https{amazon.com} nor \https{bank.ch}
+ We assume that neither \https{amazon.com} nor \https{bank.ch}
  explicitly trust \https{mint.biz}; otherwise, the parties can
- explicitly set cors headers~\cite{cors13} to grant \https{mint.biz}
+ explicitly set CORS headers~\cite{cors13} to grant \https{mint.biz}
  access to such data.
 }
 %
-in contrast, \sys{} is able to allow \https{mint.biz} to access such
+In contrast, \sys{} is able to allow \https{mint.biz} to access such
 data, provided that once the data is inspected, the page cannot
 perform arbitrary network requests (or storage writes).
  
-to this end, we modify the \xhr{} constructor to add an additional
+To this end, we modify the \xhr{} constructor to add an additional
 flag that indicates whether the object should be treated as an
-\emph{implicitly-labeled xhr object}.
+\emph{implicitly-labeled XHR object}.
 %
-when set, the  label of the object corresponds to the origin
+When set, the  label of the object corresponds to the origin
 to whom the request is being made (set with the \js|open| method). 
-accessing the object state, including the response, is dictated by
-confinement (not sop).
+Accessing the object state, including the response, is dictated by
+confinement (not SOP).
 %
-specifically, when accessing any of the methods or properties of
+Specifically, when accessing any of the methods or properties of
 the object, \sys{} further ensures that underlying read- and
 write-effects do not violate the confinement guarantees provided by
 the context label.
 %
-for example, when calling the \js|send| method, which performs the
+For example, when calling the \js|send| method, which performs the
 actual network request, \sys{} checks that the (implicit) label of the
 remote origin, to whom the request is being sent, subsumes the current
 context label;
@@ -1106,70 +1114,70 @@ context label;
 this ensures that performing the request does not leak any
 information.
 %
-when accessing any of the response attributes (e.g., \js|status|,
-\js|responsetext|, etc.), \sys{} ensures that the browsing context can inspect
-(read) the state of the xhr object which may contain data from the remote host.
+When accessing any of the response attributes (e.g., \js|status|,
+\js|responseText|, etc.), \sys{} ensures that the browsing context can inspect
+(read) the state of the XHR object which may contain data from the remote host.
 %
-specifically, it checks that the browsing context label subsumes the
-label of the xhr object.
+Specifically, it checks that the browsing context label subsumes the
+label of the XHR object.
 %
-finally, and as in the case of dispatching \js|onmessage| handlers,
+Finally, and as in the case of dispatching \js|onmessage| handlers,
 %between labeled browsing contexts, 
-when dispatching any registered xhr
+when dispatching any registered XHR
 handlers (e.g., \js|onabort|, \js|onload|, etc.), \sys{} also ensures
-that the context label subsumes the label of the xhr object, i.e., it
+that the context label subsumes the label of the XHR object, i.e., it
 can observe the presence of the message.
  
-we note that our modified a xhr object allows the response of a
-cross-origin request to be inspected, regardless of the cors headers.
+We note that our modified a XHR object allows the response of a
+cross-origin request to be inspected, regardless of the CORS headers.
 %
-though more flexible than the sop, such action is still safe since inspecting
+Though more flexible than the SOP, such action is still safe since inspecting
 the response raises the context label, and thus restricts all subsequent side
 effects.
 %
-(to avoid unnecessary tainting, this labeled xhr should not be used
-when a resource is expected to have a cors header that would permit
+(To avoid unnecessary tainting, this labeled XHR should not be used
+when a resource is expected to have a CORS header that would permit
 the read.)
 %
-in our mashup application, once \https{mint.biz} inspects the
+In our mashup application, once \https{mint.biz} inspects the
 response of an \https{amazon.com} request, it cannot perform requests
 to any origin other than \https{amazon.com}.
 %
-further inspecting a response from \https{bank.ch} leads to a scenario
+Further inspecting a response from \https{bank.ch} leads to a scenario
 in which no additional requests can be made: the context label  
-\js|label("https://amazon.com").and("https://bank.ch")|
+\js|Label("https://amazon.com").and("https://bank.ch")|
 cannot be subsumed by any origin label. 
 % in order to 
 % to inspect the response.
 %
-however, data in the browsing context can still be shared with labeled
+However, data in the browsing context can still be shared with labeled
 frames and workers which preserve the privacy of the data.
 %whose context labels preserve the privacy described by 
-%\js|label("https://amazon.com").and("https://bank.ch")|.
+%\js|Label("https://amazon.com").and("https://bank.ch")|.
 % %ensures that the privacy of the will be preserved.
 % 
 
-this is important since it allows us to build applications that retain
+This is important since it allows us to build applications that retain
 their ability to perform cross-origin requests accross the lifetime of
 a page.
 %
-for example, in our third-party mashup we create two labeled contexts
-that use the labeled xhr constructor according to user input, one
+For example, in our third-party mashup we create two labeled contexts
+that use the labeled XHR constructor according to user input, one
 communicating with \https{amazon.com} and another with
 \https{bank.ch}.
 %
-the data is is combined in a third iframe (labeled
-\js|label("https://amazon.com").and("https://bank.ch")|, which is
+The data is is combined in a third iframe (labeled
+\js|Label("https://amazon.com").and("https://bank.ch")|, which is
 contained in a public parent page.
 %
-the latter page performs all the navigation in addition to conveying
+The latter page performs all the navigation in addition to conveying
 the user input (e.g., ``get next statement'') to the first two
 labeled contexts.
 
 
 
 
-% local variables:
-% tex-master: "main.ltx"
-% tex-command-default: "make"
+% Local Variables:
+% TeX-master: "main.ltx"
+% TeX-command-default: "Make"
 % End:
