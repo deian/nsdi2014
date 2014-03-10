@@ -5,7 +5,7 @@
 \usepackage[square,comma,numbers,sort&compress]{natbib}
 \usepackage{booktabs}
 
-\newcommand{\sys}{Browbound}
+\newcommand{\sys}{SWAPI}
 \newcommand{\xhr}{\js|XMLHttpRequest|}
 
 \makeatletter
@@ -83,11 +83,11 @@
              {:}{}{0\discretionary{:}{}{:}}
 ]}
 
-\setlength{\textfloatsep}{6pt plus 2pt minus 3pt}
+%\setlength{\textfloatsep}{6pt plus 2pt minus 3pt}
 %\setlength{\floatsep}{4pt plus 2pt minus 2pt}
 %\setlength{\intextsep}{4pt plus 2pt minus 2pt}
-\let\oldcaption\caption
-\renewcommand{\caption}{\vspace*{-5pt}\oldcaption}
+%\let\oldcaption\caption
+%\renewcommand{\caption}{\vspace*{-5pt}\oldcaption}
 
 %%
 \begin{document}
@@ -95,18 +95,18 @@
 \title{
 \Large \bf
 Protecting Users by Confining JavaScript with \sys
-\vspace*{-.5in}
+%\vspace*{-.5in}
 }
 
-%% \author{
-%%      {\rm Dave Herman}\\Mozilla
-%% \and {\rm Brad Karp}\\UCL
-%% \and {\rm Petr Marchenko}\\Google
-%% \and {\rm David Mazi\`eres}\\Stanford
-%% \and {\rm John C. Mitchell}\\Stanford
-%% \and {\rm Alejandro Russo}\\Chalmers
-%% \and {\rm Deian Stefan}\\Stanford
-%% }
+\author{
+     {\rm Deian Stefan}\\Stanford
+\and {\rm Petr Marchenko}\\Google
+\and {\rm Brad Karp}\\UCL
+\and {\rm David Mazi\`eres}\\Stanford
+\and {\rm Alejandro Russo}\\Chalmers
+\and {\rm John C. Mitchell}\\Stanford
+\and {\rm Dave Herman}\\Mozilla
+}
 
 \maketitle
 

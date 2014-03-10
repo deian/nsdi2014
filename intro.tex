@@ -41,7 +41,7 @@ data. These goals are hardly new. Wang {\em et al.} articulated
 similar ones, and proposed new browser primitives to improve isolation
 within mashups: sandboxes that allow pages not to share their data
 with JavaScript code they include, and discretionary access control
-for inter-frame communication~\cite{mashupos}. Indeed, today's
+(DAC) for inter-frame communication~\cite{mashupos}. Indeed, today's
 browsers incorporate similar mechanisms in the guises of HTML5's
 seamless iframes, iframe sandbox, and postMessage API~\cite{html5}.
 And the well known Same-Origin Policy (SOP, detailed in
@@ -54,7 +54,7 @@ the other. Application developers (and users) are thus often left with
 only unpalatable choices (though in practice, the desire for
 functionality often dominates the concern for privacy, to users'
 peril). The browser may enhance privacy by applying discretionary
-access control (DAC) when an untrusted script wishes to read
+access control when an untrusted script wishes to read
 potentially sensitive data. The various isolation mechanisms a modern
 browser applies (e.g., the SOP and Content Security Policies,
 both explored in Section~\ref{sec:background}) are flavors of DAC. But
@@ -92,7 +92,7 @@ receive.
 
 To achieve both flexibility and privacy, what is needed is a means to
 allow untrusted code to compute over sensitive data and display
-results for the user, while {\em confining} the untrusted code so that
+results to  the user, while {\em confining} the untrusted code so that
 it may not exfiltrate the sensitive data (in the web browser,
 typically by writing the sensitive data to an untrusted remote
 origin). To offer the greatest flexibility to web application
@@ -109,29 +109,29 @@ a trust boundary to pass sensitive data to the other, while preventing
 the other principal from exfiltrating the data. No existing
 combination of browser security mechanisms offers these properties.
 
-In this paper, we present Browbound, a simple, label-based mandatory
-access control (MAC) system for web browsers that delivers both
-flexibility for web application developers and robust privacy for
-users. Browbound allows untrusted JavaScript to process sensitive
-data, and confines the untrusted JavaScript in first-class, symmetric
-fashion. To illustrate the value of these properties, we present five
-case-study applications---a password strength-checker, a password
-manager, a banking application that uses the (untrusted) jQuery
-library, a ``phone numbers-to-links'' browser extension, and a
-third-party mashup, none of which can be implemented in a way that
-ensures privacy in today's web browsers. We then build them atop
-Browbound. Our contributions include:
+In this paper, we present \sys{} (the Secure Web API), a simple,
+label-based mandatory access control (MAC) system for web browsers
+that delivers both flexibility for web application developers and
+robust privacy for users. \sys{} allows untrusted JavaScript to
+process sensitive data, and confines the untrusted JavaScript in
+first-class, symmetric fashion.  To illustrate the value of these
+properties, we present five case-study applications---a password
+strength-checker, a password manager, a banking application that uses
+the (untrusted) jQuery library, a ``phone numbers-to-links'' browser
+extension, and a third-party mashup, none of which can be implemented
+in a way that ensures privacy in today's web browsers.  We then build
+them atop \sys. Our contributions include:
 
 \begin{CompactItemize}
 \item We characterize five case-study web applications for which
   today's browser security architecture cannot provide strong privacy.
-\item We describe the design of the Browbound label-based MAC system
+\item We describe the design of the \sys{} label-based MAC system
   for web browsers, which meets the requirements of the five
   case-study web applications.
 \item We describe designs of the five case-study web applications atop
-  Browbound.
-\item We evaluate the performance overhead of Browbound in the Firefox
-  and Chromium open-source browsers, and illustrate that Browbound
+  \sys.
+\item We evaluate the performance overhead of \sys{} in the Firefox
+  and Chromium open-source browsers, and illustrate that \sys{}
   incurs minimal performance overhead over the respective baseline
   browsers.
 \end{CompactItemize}
