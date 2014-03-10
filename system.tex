@@ -6,7 +6,7 @@
 In this section we describe the \sys{} system.
 %
 \sys{} differs from existing browser security mechanism in providing
-\emph{confinement}, i.e., ability to give code access to sensitive
+\emph{confinement}, i.e., the ability to give code access to sensitive
 data while ensuring that it cannot release it
 arbitrarily~\cite{SaltzerS75}.
 %
@@ -96,7 +96,7 @@ logical implication, as implemented by the \js|Label| method
 %
 Specifically, \sys{} ensures that data labeled \js|ldata| can be only sent
 to an entity labeled \js|lentity| if
-\js|lentity.subsumes(ldata) == true|.
+\js|lentity.subsumes(ldata)| is \js|true|.
 %
 Intuitively this states that an entity is allowed to receive data that
 is at most as sensitive as its label, i.e., the entity label
@@ -181,7 +181,8 @@ guarantees.
 %
 In our system, code can only create the empty privilege (which is
 simply the JavaScript \js|null| object) and privileges corresponding
-to fresh, unique origins (create with \js|new FreshPrivilege()|).
+to fresh, unique origins (created with the \js|FreshPrivilege|
+constructor).
 %
 As in HiStar~\cite{Zeldovich:2006}, the ability to generate fresh privileges
 ensures that all browsing contexts are egalitarian, i.e., a child iframe is no
@@ -205,7 +206,7 @@ i.e., it is an upper-bound on compartment label, and thus the kind of
 data a piece of code executing in the compartment can access.
 
 For completeness, we summarize  \sys{}'s API for compartments
-(using WebIDL-like syntax) in Figure \ref{systemAPI}. In the next subsection, 
+in Figure~\ref{systemAPI}. In the next subsection, 
 we explain the purpose of the different primitives through examples. 
 We remark that \sys{}'s API is designed to be minimalistic, and as such, it only
 consists on the primitives shown in Figures~\ref{fig:APIspec} and
@@ -227,7 +228,7 @@ a library that converts phone numbers to links
 \begin{figure}
 {\small
 \begin{webidl}
-Browbound {
+SWAPI {
   attribute Label label
   attribute Label clearance 
   attribute Privilege privilege
@@ -236,7 +237,7 @@ Browbound {
 \begin{webidl}
 LWorker {
   LWorker LWorker(String, Label
-                  [, Privilege, Document])
+                  [, Privilege, Window])
   LWorker SOLWorker(String, Label)
   postMessage(Object [,Label])
   attribute EventHandler onmessage
@@ -286,14 +287,14 @@ However, workers do have access to the \xhr{} constructor, and, thus,
 \https{instagra.me} must additionally host the checker source and set
 a CSP policy that restricts its network communication (e.g.,
 \texttt{connect-src 'self'}).
-\footnote{
-  Workers inherit the CSP policy of the containing page~\cite{csp},
-  hence \https{instagra.me} can create the worker in a ``dummy''
-  iframe which has the set policy.
-  %
-  We assume that the messaging layers between the worker, its parent
-  iframe, and main page are straight forward to implement.
-}
+%% \footnote{
+%%   Workers inherit the CSP policy of the containing page~\cite{csp},
+%%   hence \https{instagra.me} can create the worker in a ``dummy''
+%%   iframe which has the set policy.
+%%   %
+%%   We assume that the messaging layers between the worker, its parent
+%%   iframe, and main page are straight forward to implement.
+%% }
 %
 
 Though this (mostly) accomplishes the desired goal of
@@ -420,7 +421,7 @@ LIO's \js|toLabeled| block~\cite{stefan:2011:flexible} and Breeze's
 \js|bracket|~\cite{Breeze13}.
  
 At this point, the code executing in the labeled worker can fetch
-data, such as a list of weak passwords, from any origin,
+data, such as a list of weak passwords from any origin,
 CORS-permitting.
 %
 It is important to note that since the password-strength checker has
@@ -433,15 +434,16 @@ longer be able to perform such arbitrary network requests.
 
 To retrieve the password, the password-strength checker registers a
 message-event handler, which is invoked when the parent sends it a
-message whose label is subsumed by the checker's label (step 3 below):
+message whose label is subsumed by the checker's label (step 3, on the
+right):
 \begin{jscode}
 // checker.js ...
-// Browbound.label == Label()
+// SWAPI.label == Label()
 function computeStrength(pass) { /* ... */ }
 
 // 2. Raise context label & register handler
-Browbound.label = Browbound.clearance;
-// Browbound.label == Label("https://instagra.me")
+SWAPI.label = SWAPI.clearance;
+// SWAPI.label == Label("https://instagra.me")
 onmessage = function(event) {
   var password = event.data;
   // 4. Check score & send it to parent:
@@ -450,7 +452,7 @@ onmessage = function(event) {
 \end{jscode}
 %
 Importantly, the worker first raises the context label to the
-clearance, which is the worker label, by setting \js|Browbound.label|.
+clearance---which is the worker label---by setting \js|SWAPI.label|.
 %
 In doing so, the code is effectively stating that it is ready to
 receive data at sensitivity level \https{instagra.me}, at the cost of
@@ -459,9 +461,9 @@ giving up arbitrary communication privileges.
 \iffigures
 \ifcompletefigures
 As shown in Figure~\toref{fig:strength-3}, the 
-\fi
 \else
 The
+\fi
 \fi
 checker can now receive
 sensitive data (the password), but, for example, can only use \xhr{} to
@@ -495,7 +497,7 @@ We use this label to ensure that the receiver's message handler is
 dispatched only if its browsing context label is at least as sensitive
 as \js|l|---thus preserving the privacy of the password.
 
-In the final step, the event handler, which is supplied with the
+In the final step, the event handler, which is called with the
 parent-supplied password, invokes the underlying password-strength
 checking function \js|computeStrength|.
 %
@@ -506,9 +508,9 @@ The event handler registered by the page
 \iffigures
 \ifcompletefigures
 (step 5), as shown in Figure~\toref{fig:system:strength-4}, 
-\fi
 \else
 (step 5)
+\fi
 \fi
 is dispatched if the label of
 the page subsumes the message label (which is the worker's compartment
@@ -531,12 +533,13 @@ restrict it from using XHR to self-exfiltrate data to
 \https{instagra.me}.
 %
 Instead, the page must label the worker with a unique origin that does
-not correspond to an actual host, yet still has the privilege to.
+not correspond to an actual host, as to prevent it from leaking data
+using XHR, yet still has the privilege to communicate with its parent.
 
 This is precisely the role of fresh privileges.
 %
 A fresh privilege corresponds to a unique origin whose scheme is
-prefixed by \texttt{x-browbound}; the fake protocol ensures that the
+prefixed by \texttt{x-swapi}; the fake protocol ensures that the
 \xhr{} constructor cannot be used to make requests.
 %
 Hence, to fully confine the password-strength checker we modify the
@@ -548,7 +551,7 @@ Th modified code is shown below.
 // Create fresh unique privilege
 var p = new FreshPrivilege();
 // Take ownership of this privilege
-Browbound.privilege = p.combine(Browbound.privilege);
+SWAPI.privilege = p.combine(SWAPI.privilege);
 // Use it to confine the worker completely:
 var checker = new LWorker(url, p.asLabel);
 // As before ..
@@ -565,7 +568,8 @@ untrusted code:
 %
 the strength checker can perform arbitrary XHR until it raises its
 label to register the \js|onmessage| handler that will inspect the
-password; from this point on it can only communicate with the parent.
+sensitive password; from this point on it can only communicate with
+the parent.
 %
 This is in contrast to either giving the checker irrevocable network
 access or none at all.
@@ -592,7 +596,7 @@ where user data can flow, even after the data is made available to
 untrusted browsing contexts.
 %
 Below, we highlight the shortcomings of existing security mechanisms,
-when applied to confinement, by considering the implementation of a
+when compared to confinement, by considering the implementation of a
 password manager website---an application that allows users to utilize
 a single master password to manage multiple site-specific passwords.
 
@@ -601,7 +605,7 @@ a single master password to manage multiple site-specific passwords.
 Today's browser security mechanisms are not useful when building a
 password manager as a website.
 %
-Specifically, the lack of confinement forces users to either trust the
+The lack of confinement forces users to either trust the
 password manager website with their website-specific  credentials
 (e.g., \https{fb.com}) or trust arbitrary websites (e.g.,
 \https{fb.com}) with the master password.
@@ -621,10 +625,10 @@ forms with credentials before submitting it---making the
 password available to potentially untrustworthy JavaScript code).
 %
 Moreover, building-in more and more functionality into the browser does not
-scale up: are we going to integrate apps into the browser TCB simply because
+scale: are we going to integrate apps into the browser TCB simply because
 there are no mechanisms 
 %allowing developers 
-to express security policies on code which handles sensitive data?
+to express security policies on code that needs to handle sensitive data?
 
 \subsubsection{\sys{} approach}
 %
@@ -679,7 +683,7 @@ In this architecture, the security guarantees and trust concerns
 are as follows:
 \begin{enumerate}[i)]
 \item The management layer never learns the site-specific (\https{fb.com})
-  credentials. The user only need to trust this component with their master
+  credentials. The user only needs to trust this component with their master
   password. Importantly, without the collusion of the storage layer, the
   management layer cannot exploit the master password in order to reveal
   credentials.
@@ -694,7 +698,7 @@ are as follows:
   %
 
 \item The storage layer never learns the site-specific credentials or
-  master password. The user only need to trust this layer to not
+  master password. The user only needs to trust this layer to not
   collude with the management layer (and vice-versa). This is a
   realistic assumption given a decentralized environment like the web.
 
@@ -714,7 +718,7 @@ To save credentials, the integrator, \https{fb.com}, first creates two
 iframes: one containing the \https{pwd.eff.org} management layer and
 another containing the \https{dropcu.be} storage layer.
 %
-As part the initialization process, the management layer saves a
+As part of the initialization process, the management layer saves a
 pointer to the storage layer (via \js|window.parent.frames|), both
 layers register \js|onmessage| event handlers, and the expected
 sensitivity of data, i.e., labels, to be exchanged is shared.
@@ -776,11 +780,11 @@ H(\texttt{mpass}\|\texttt{"}\https{fb.com}\texttt{"}\|\texttt{salt})$
 %
 Here, $H$ is a hash function such as SHA-256.
 %
-We use the integrator origin in addition to the master password and
-salt in the key generation, to ensure that a malicious storage layer
-will not be able to confuse the management layer, during the retrieval
-process, into decrypting \https{fb.com}'s credentials when invoked by
-a different integrator, e.g., \https{goo.gl}.
+We use the integrator origin, in addition to the master password and
+salt, to ensure that a malicious storage layer will not be able to
+confuse the management layer, during the retrieval process, into
+decrypting \https{fb.com}'s credentials when invoked by a different
+integrator, e.g., \https{goo.gl}.
 
 % 
 After the key generation, the management layer encrypts the
@@ -806,7 +810,7 @@ storage layer alongside the encrypted credentials, by having
 \https{fb.com} create the frame in the initialization stage, we ensure
 that a malicious management layer cannot confuse the storage layer
 into associating \https{fb.com}'s encrypted data with a different
-origin, e.g., \https{goo.gl}, and thus allowing it to be leaked during
+origin, e.g., \https{goo.gl}, thus allowing it to be leaked during
 the retrieval process.
 
 \paragraph{Retrieving credentials}
@@ -863,7 +867,7 @@ layer sends the storage a ``fetch'' message, requesting the encrypted
 credentials.
 %
 %
-Subsequently, the storage layer's handler, defined above, is triggered
+Subsequently, the storage layer's handler (defined above) is triggered
 and the message containing the encrypted
 credentials and salt is sent to the management layer.
 %
@@ -893,43 +897,54 @@ submit the login form.
 
 The design pattern used for the password manager can be exploited in other
 scenarios. To illustrate this point, we implemented a prototype of a
-mashup capable to handle encrypted on-line documents.
+mashup capable of handling encrypted on-line documents.
 %Companies often argue against using on-line documents services (like Google
 %Docs) due to privacy issues, i.e., they do not want Google to store sensitive
 %information present in such documents. Using a similar architecture as the
 %password manager, we implement a prototype of a mashup capable to handle
 %encrypted on-line documents. 
-This prototype shows the feasibility of our approach in combining services of
-online document providers and encryption processes. Once keys are configured,
-the encryption and decryption are performed in a transparent manner for the
-users. At the time of writing a document, our implementation
-creates three frames: an outermost, label \js|gdocs.com|, a middle one label
-\js|encrypt.com| with privilege \js|encrypt.com|, and an innermost one label
-\js|gdocs.com|. This last frame would contain the document editor.
+This prototype shows the feasibility of our approach in combining
+services such as online document providers (e.g., Google Docs)
+and encryption processes. In this system, once encryption keys are configured,
+the encryption and decryption are performed in a mostly transparent
+manner.
+The goal of the mashup is to allow the user to use a document editor,
+while ensuring that the editor-provider can only store encrypted data,
+as enforced by an encryption ``provider.''
 
-We need to implement a small bootstrap process between the middle and innermost
-process to achieve the desire security guarantees. Once the middle frame is
-loaded, it starts an authentication process with the innermost frame before any
-editing is allowed. Specifically, it sends a token to the innermost
+Concretely, our prototype creates relies on three iframes: an outermost,
+labeled \js|gdocs.com|, a mediary encryption layer, labeled
+\js|encrypt.com|, and an innermost one labeled \js|gdocs.com|.
+The innermost frame contains the actual document editor (that cannot
+communicate with anything except the parent frame), while the middle
+layer seven as an encryption mediary between the editor and outer-most
+frame that communicates with the \js|gdocs.com| servers.
+
+To enforce the aforementioned security policy we use a small
+bootstrapping protocol between the middle and innermost frames.
+Specifically,
+once the middle, encryption-layer, frame is
+loaded, it starts an authentication process with the innermost,
+editor, frame before any
+editing is allowed. To this end, it sends a token to the innermost
 frame with the label \js|Label("https://gdocs.com").and("https://encrypt.com")|.
-This message taints the innermost frame with the described label, and as a
-result, restricts it from any network communication---so that it avoids leaking
-the plain document to \js|gdocs.com|. Once the innermost frame receives this
-message, it replies to the middle one with another message labeled as
-\js|Label("https://gdocs.com").and("https://encrypt.com")|. To read this
-message, the middle frame raises its context label to
-\js|Label("https://gdocs.com").and("https://encrypt.com")|. The goal of this
-message has is to verify that the innermost frame is indeed tainted with the
-described label and therefore confined to the browser. At this point, the user
-can start editing the document.  When pressing the save bottom, the document is
-sent to the middle frame for encryption. After that, this frame exercises the
-privilege \https{encrypt.com} and sends it to the outermost frame with a message
-labeled as \js|Label("https://gdocs.com")|. The outermost frame receives the
-encrypted document and in turn sends it to the servers in \js|gdocs.com|. As for
-the password manager example, we assume that the parties involved do not collude
-in order to compromise confidentiality. 
+This message requires that innermost frame be (at least) tainted with
+the described label, and as a result, restricted from performing any network
+requests; this ensures that the innermost editor cannot leak
+the plain document as it is composed to \js|gdocs.com|. Once the
+innermost frame receives this
+message, it replies to the encryption layer with the token.
+The encryption-layer, in turn, verifies the token, the receipt of which ensures
+that the editor-layer is confined to solely communicating with its
+parent. At this point, the user
+can start editing the document.
 
-
+When saving the document, the document is
+sent (via \js|postMessage|) to the middle frame for encryption.
+The encryption layer, exercises its privilege \https{encrypt.com} to
+send the encrypted document, labeled \js|Label("https://gdocs.com")|,
+to the outermost frame, which, in turn, uses XHR to store the
+document on \js|gdocs.com| servers.
 
 
 \subsection{Privilege separation within iframes}
@@ -955,9 +970,9 @@ To this end, we raise the label of the browsing context and drop the
 page privileges before importing the library:
 \begin{jscode}
 // Raise label:
-Browbound.label = new Label(location.origin);
+SWAPI.label = new Label(location.origin);
 // Drop privileges:
-Browbound.privilege = null;
+SWAPI.privilege = null;
 \end{jscode}
 %
 This ensures that the page, independent of jQuery's behavior, can only
@@ -969,12 +984,12 @@ the same origin, i.e., \https{bank.ch}.
 
 To allow the page to communicate with other domains, the application
 must create an iframe to a \https{bank.ch} page, which is granted the
-bank privilege and thus be able to communicate arbitrarily with that origin.
+bank privilege and thus able to communicate arbitrarily with that origin.
 %
 The role of this child frame is to solely implement the ``trusted''
 components of the application.
 %
-Specifically, its role is to solely carry out requests (submitted via
+Specifically, its sole role is carry out requests (submitted via
 \js|postMessage|) for the parent, after asserting that the request is
 safe (e.g., updating local storage to reflect the last page view,
 etc.).
@@ -986,7 +1001,7 @@ is far from trivial. There are several reasons for that.
 %realistic scenarios.
 %
 Firstly, the trusted iframe cannot inspect the DOM (state) of the parent frame
-and make decisions based on that. As a consequence, the frames might need to
+and make decisions based on this state. As a consequence, the frames might need to
 implement a complicated \js|postMessage| protocol to communicate information
 between them, e.g., a message to indicate that the parent frame requires to
 fetch certain scripts. Secondly, and more importantly, without knowing a-priori
@@ -994,9 +1009,8 @@ the URL of the source code, or even the order in which requests should be made,
 the privileged frame, must decide whether fetching the source will leak any
 information---a complex decision we wish to avoid imposing on developers!
 Lastly, the page might need to be adapted from working with synchronous
-calls (e.g. changing a DOM element based on a URL) into working with
-asynchronous ones (e.g. asking for the URL to the privilege frame first, and
-then changing the DOM in the parent). The work in \cite{Ingram:2012} already
+calls (e.g., changing a DOM element based on a URL) into working with
+asynchronous ones; the work in~\cite{Ingram:2012} already
 identifies the drawbacks of such a change in the semantics of web pages.
 
 
@@ -1016,7 +1030,7 @@ identifies the drawbacks of such a change in the semantics of web pages.
 
 
 
-To mitigate these problems, we allow developers to create labeled workers that
+To address these issues, we allow developers to create labeled workers that
 have access to the page DOM and page-origin privilege.
 %
 (We naturally call them labeled workers with access to the DOM:
@@ -1029,7 +1043,7 @@ argument.
 These arguments, for example, allow \https{bank.ch} to create a labeled DOM
 worker that has access to the \https{bank.ch} privilege before completely
 confining the page:\footnote{
-  Since untrusted code will be executing into the context, we use a
+  Since untrusted code will be executing in the context, we use a
   closure to ensure that the privileges do not escape into the outer
   scope.
 }
@@ -1037,38 +1051,40 @@ confining the page:\footnote{
 var tcb;
 (function() {
   var p = new FreshPrivilege(),
-      privs = p.combine(Browbound.privilege);
+      privs = p.combine(SWAPI.privilege);
   // Create worker with priv & DOM access:
   tcb = new LWorker("/statement-TCB.js",
                     p.asLabel, privs, window);
   // Raise label & lower clearance
-  Browbound.label = p.asLabel;
-  Browbound.clearance = p.asLabel;
+  SWAPI.label = p.asLabel;
+  SWAPI.clearance = p.asLabel;
   // Drop privileges:
-  Browbound.privilege = null;
+  SWAPI.privilege = null;
 })();
 \end{jscode}
 %
 At this point, the page cannot perform any network communications
 (e.g., loading scripts, images, or using XHR).
 %
-However, the labeled DOM worker has access to the window object and
-can thus modify the DOM to insert a \js|script| element that loads
-jQuery, embed an image, for instance, from \https{gravatar.com} that
-may require leaking the hash of the user's name, etc.
+Importantly, however, the labeled DOM worker has access to the window
+object and can thus modify the DOM to insert a \js|script| element
+that loads jQuery, embed an image, for instance, from
+\https{gravatar.com} that may require leaking the hash of the user's
+name, etc.
 %
-Importantly, the code executing in the page can use the ``injected''
+Moreover, the code executing in the page can use the ``injected''
 jQuery library and implement its functionality as before.
 %
 We note that, different from the iframe approach, \https{bank.ch} does not 
 need to implement a complex protocol between the code executing in the
 page (which we should treat as untrusted once jQuery is loaded) and
-the trusted layer that can perform arbitrary network request.
-%
-The worker can directly inspect and modify the DOM!
+the trusted layer that can perform arbitrary network request---the
+labeled worker can directly inspect and modify the DOM!
 
 Of course, allowing a labeled DOM worker to arbitrary inspect and
 modify the page is not safe.
+%
+(Consider the case when untrusted code is placed in such a worker.)
 %
 Thus, \sys{} mediates all worker DOM access to ensure that no information can
 (unsafely) leak between the compartments.
@@ -1076,10 +1092,14 @@ Thus, \sys{} mediates all worker DOM access to ensure that no information can
 Specifically, for all \js|get|, \js|set| and \js|call| operations we
 ensure that both the page label subsumes the label of the worker 
 and the label of the worker subsumes the page label,
-both taking into considering the worker's privileges.
+both taking into consideration the worker's privileges.
 %
 In other words, this requires the label of the worker and page be the same,
 when considering the worker's privileges.
+%
+In the above example, the bank \js|tcb| worker is able to inspect and modify
+the DOM because the effective label of the worker (which is constrained by the
+page clearance) equals that of the parent page.
 %
 Here, we are conservative in treating every DOM access as
 having both a read and write effect;
@@ -1092,10 +1112,6 @@ can be used to distinguish between read-only and read-write
 despite being more conservative.
 }
 %
-In the above example, the bank \js|tcb| worker is able to inspect and modify
-the DOM because the effective label of the worker (which is constrained by the
-page clearance) equals that of the parent page.
-%
 
 
 \subsection{A cross-browser extension system}
@@ -1106,10 +1122,10 @@ such a jQuery, for many libraries, compartmentalizing the application by
 placing trusted code in a labeled DOM worker and confining the main page is too
 conservative.
 %
-For example, if \https{bank.ch} wishes to integrate a simple third-party
-library (that is not used as a DSL), called \emph{Phone2Links}, that traverses
-the DOM to convert phone numbers to links it is sufficient to the library code
-in an unprivileged labeled DOM worker.
+For example, if \https{bank.ch} wishes to integrate a simple
+third-party library that traverses the DOM to convert phone numbers to
+links (which we call \emph{Phone2Links}), it is sufficient to the library
+code in an unprivileged labeled DOM worker.
 %
 This allows the library to do its job, inspecting and modifying the DOM,
 without requiring the page to drop its privileges.
@@ -1140,19 +1156,13 @@ content scripts can be easily ported to \sys{}.
 %
 This not only removes the unnecessary trust placed on such extensions but further
 makes extensions portable across browsers.
-%
-We note that, in order to allow these extensions to run on pages
-similarly to conventional extensions, we implemented an extension
-management system that injects labeled DOM workers (containing the
-extension code) into pages whose origins are approved by the user (at
+% 
+However, to allow these extensions to run on pages much in the same
+way as conventional extensions, we implemented an extension management
+system that injects labeled DOM workers (containing the extension code
+using SWAPI) into pages whose origins are approved by the user (at
 install time).
 %
-In order to allow these extensions
-to run on pages similarly to conventional extensions,
-we envision a browser's extension management system
-injecting labeled workers with the extension code into pages
-which origins are approved by the user
-for particular extensions.
 
 \subsection{Relaxing SOP for confined code}
 \label{sec:system:mashup}
@@ -1180,7 +1190,8 @@ For instance, the third party, \https{mint.biz}, may wish to present the user wi
 visualization of their spending habits, identify fraudulent
 \https{amazon.com} purchases using their \https{bank.ch} account, etc.
 %
-Currently, such applications cannot be built since the SOP prevents
+Currently, such applications cannot be built without sharing
+credentials since the SOP prevents
 \https{mint.biz} from accessing the users' \https{amazon.com} and
 \https{bank.ch} data, e.g., using \xhr{}.\footnote{
  We assume that neither \https{amazon.com} nor \https{bank.ch}
