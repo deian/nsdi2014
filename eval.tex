@@ -11,12 +11,17 @@ apps provide.
 Then, we measure the performance impact of \sys{} on existing browser
 features and the additional overhead when confinement-mode is actually
 enabled.
-%
+5 
 All our measurements were conducted on a 4-core i7-2620M machine
 running GNU/Linux 3.11, with 16GB of RAM.
 %
-Our patches are applied to versions 26 and 31 of Firefox and Chromium,
-respectively.
+Our patches are applied to Firefox versions 26 and Chromium version
+31.
+%
+%% Below, we use the \emph{vanilla} to denote unmodified browser;
+%% \emph{unlabeled} to denote a modified browser with confinement-mode
+%% off; and, \emph{labeled} to denote a modified browser with \sys{} in
+%% active use.
 
 
 \subsection{Macro benchmarks}
@@ -92,21 +97,21 @@ Firefox: With \sys{} it take 224.4ms
                      \rot{unlabeled} &
                      \rot{labeled}   
 \\\midrule%--------------------------------------------------------------------
-% cost of labeled postMessage                                        
-Iframe ping-pong   &  0.086  &  0.084  &  0.092  &  0.042  &  0.042  &  0.042
-\\\hline%----------------------------------------------------------------------
 % cost of creating an iframe                                         
 New iframe         &   13.27  &  13.3   & 13.97   &   50.63 &   48.73 &  51.77 
+\\\hline%----------------------------------------------------------------------
+% cost of creating a worker                                          
+New worker         &  20.53  &   21.24 &  1.62   &  18.94  &  18.87  & 3.27
+\\\midrule%--------------------------------------------------------------------
+% cost of labeled postMessage                                        
+Iframe ping-pong   &  0.086  &  0.084  &  0.092  &  0.042  &  0.042  &  0.042
 \\\hline%----------------------------------------------------------------------
 % cost of performing XHR                                             
 XHR ping-pong      &  3.33   &   3.48  &  3.49   &  7.0    &  7.4    & 7.2
 \\\hline%----------------------------------------------------------------------
-% cost of creating a worker                                          
-New worker         &  20.53  &   21.24 &  1.62   &  18.94  &  18.87  & 3.27
-\\\hline%----------------------------------------------------------------------
 % cost of worker ping-pong                                           
 Worker ping-pong   &  0.059  &   0.055 &  0.037  &  0.071  &  0.070  & 0.030
-\\\hline%----------------------------------------------------------------------
+\\\midrule%--------------------------------------------------------------------
 % cost of setting current label                                      
 Set label          &  --     &  \multicolumn{2}{c|}{0.0014} &   --   
                              &  \multicolumn{2}{c }{0.0018}
@@ -127,26 +132,64 @@ Label subsumes     &  --     &  \multicolumn{2}{c|}{0.0012} &   --
 }
 \end{table}
 
-Table~\ref{microbench} shows our benchmarks for the stock browsers
-(vanilla), our modified browsers with confinement-mode turned off
-(unlabeled), and confinement-mode enabled (labeled).
+Table~\ref{microbench} shows our micro-benchmarks for the stock
+browsers (vanilla), our modified browsers with confinement-mode turned
+off (unlabeled), and confinement-mode enabled (labeled).
+%
+We measure the cost of creating various compartments (workers and
+iframes), sending messages between various entities
+(compartments and network), and common label operations.
+
+The performance impact of creating an iframe or worker is
+within 3.5\% and 2.5\% of the vanilla implementations on Firefox and
+Chromium, respectively.
+%
+In absolute terms, \sys{} adds, on average, less than 1 millisecond
+latency.
+%
+As also shown in the table, the \sys{} labeled workers provide
+programmers with a considerably more light weight concurrency
+primitive: creating a labeled worker is roughly 12 and 6 times faster
+than a corresponding unlabeled worker.
+
 %
 The iframe, worker and XHR ping-pong measurements evaluate the cost of 
 sending a message across iframes, workers, and network, respectively.
 %
-We additionally measure the cost of creating iframes, workers and
-labeled workers.
-%
 In all cases, the performance impact of \sys{} is negligible when
-compared to an unmodified browser.
+compared to an unmodified, vanilla browser.
 %
-Moreover, comparing the labeled and unlabeled measurements, we 
-note that the impact of enabling confinement-mode is at most
-\Red{XXX}\%, and, on average, \Red{XXX}\%.
+In the case of XHR, the performance impact on the
+(local-network test) is less than 5.5\% for both Firefox and Chromium,
+a less than 0.5 millisecond delay.
 %
-Finally, we highligh that in-context labeled workers provide
-developers with concurrency primitives that are lighter weight, both
-faster to create and communicate with, than the existing workers.
+In most of the other cases the sub 0.1 millisecond differences can be
+attributed to noise.
+%
+The only interesting case is that of communication with
+labeled-workers; as with creating labeled workers, communication with
+a labeled workers is roughly 2 times faster than a corresponding
+vanilla worker.
+
+Finally, getting the current label, setting the current label and
+performing a label comparison (subsumes) are all on the order of a
+microsecond.
+%
+These measurements, as in the case of sending labeled messages, use
+a single label: the public label.
+%
+Hence, when considering more complex labels, we expect the performance
+impact of labels to naturally be higher.
+%
+For a bounded random label comparison, with at most 5 principals, we
+measured a 5\% performance degradation.
+%
+This measurement serves as a reasonable point for real application,
+which are likely to only contain a handful of principals.
+%
+While the 5\% slowdown (for a rare operation) is mostly negligible, we
+note there is much room for speeding up label comparisons since our
+label implementation has not yet been optimized.
 
 %%Comparing the 
 %%Similarly, the performance impact of labels is under  5\%  in almost
