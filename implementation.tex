@@ -74,8 +74,8 @@ origin does not exist.
 %
 Unfortunately, it also requires modifications to the binding code to enforce
 confinement for labeled DOM workers (by extending the security checks to all
-DOM objects), which imposes a \Red{XXX} performance overhead, as show in
-Section~\ref{sec:eval}.
+DOM objects), which imposes a some performance overhead.
+\Red{XXX: How much?}
 
 Our implementation relies on compartments and their properties in
 several ways.
@@ -101,7 +101,7 @@ In order to enforce confinement, we use the CSP mechanism already present
 in the browser. 
 %We use CSP policies, already present in browsers, to enforce
 %confinement. 
-By doing so, \sys{} does not require to add specific hooks or extra machinery. 
+By doing so, \sys{} does not require specific hooks or extra machinery. 
 CSP policies are very expressive; in fact, they are
 information flow control policies~\cite{yang:2013:towards}. This allows us
 to precisely control how a page loads content, perform XHR, etc.
@@ -110,7 +110,7 @@ To enforce CSP, Gecko associates a CSP policy object with a principal.
 %restrict network access.
 %
 We set a custom CSP policy whenever the label is
-explicitly set with \js|Browbound.label|.
+explicitly set with \js|SWAPI.label|.
 %
 For example, if the compartment label is
 \js|Label("https://bank.ch").and("https://amazon.com")| and privilege
@@ -120,10 +120,10 @@ is simply \https{mint.biz}, we set the all the CSP directives to
 navigation~\cite{csp1.1,whatwg-html,html5}.
 %
 
-When the effective compartment label, i.e.., label considering privileges, is
-a conjunctive label (or a singleton whose origin is not the initially set), 
-we change the compartment principal to a fresh, unique (null-)
-principal. 
+When the effective compartment label, i.e., label considering
+privileges, is a conjunctive label (or a singleton whose origin is not
+the initially set origin), we change the compartment principal to a
+fresh, unique (null-) principal. 
 %
 This ensures that the document is no longer of same origin (as that
 at the start of the load) and can thus no longer access the
@@ -141,9 +141,9 @@ to reflect that change and allows the corresponding flows of
 information. Nevertheless, a compartment that has been associated to a fresh
 principal (e.g. when the effective label of a compartment is a conjunction), it
 cannot access the storage even when it later gets granted the privilege to do
-so. While conservative, we believe this approach is reasonable; it is not clear
-what it means for a cookie to be labeled with a conjunction of
-two principals.
+so. While conservative, we believe this approach is reasonable, e.g.,
+it is not clear what it means for a cookie to be labeled with a
+conjunction of two principals.
 
 %
 
