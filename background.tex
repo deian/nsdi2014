@@ -46,9 +46,9 @@ URL.\footnote{
 }
 %
 Below we briefly review the core browser security policies, including
-the \emph{same-origin policy (SOP)}~\cite{rfc6454}, \emph{content security
-policy (CSP)}~\cite{csp}, and \emph{cross-origin resource origin
-(CORS)} policy~\cite{cors13}.
+the Same-Origin Policy~\cite{rfc6454}, Content Security
+Policy~\cite{csp}, and Cross-Origin Resource Origin
+policy~\cite{cors13}.
 %
 %
 We note that our review is not exhaustive (e.g., among other, we not
@@ -58,7 +58,7 @@ to~\cite{googlehandbook} for a more complete discussion on web security.
 
 
 
-\subsection{Same-origin Policy}
+\subsection{Same-Origin Policy}
 \label{sec:background:sop}
 
 The SOP specifies that resources of an origin should only be readable
@@ -116,7 +116,7 @@ Since browsing contexts can be navigated, to prevent man-in-the-middle
 attacks~\cite{barth2009securing}, a second argument
 \js|destOrigin| is used to specify the intended origin of the message.
 %
-Unfortunately, once message is sent to the foreign-origin browsing
+Unfortunately, once the message is sent to the foreign-origin browsing
 context, the page has no control over what the origin can do with the
 data.
 %
@@ -169,14 +169,14 @@ within a page has the authority of the page, regardless of the source
 origin.
 %
 Unfortunately, CSP only gives developers the choices of trusting code
-with communicating with an origin in full or not at all;
+to communicate with an origin in full or not at all;
 %
 in Section~\ref{sec:system:worker} we show how \sys{} overcomes this
 shortcoming to allow code to communicate with an untrusted origin
 until it reads sensitive data.
 
 
-\subsection{Cross-origin Resource Sharing} 
+\subsection{Cross-Origin Resource Sharing} 
 \label{sec:background:cors}
 
 While CSP tightens down the SOP by restricting reads and writes, CORS
