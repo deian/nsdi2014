@@ -74,8 +74,8 @@ origin does not exist.
 %
 Unfortunately, it also requires modifications to the binding code to enforce
 confinement for labeled DOM workers (by extending the security checks to all
-DOM objects), which imposes a some performance overhead.
-\Red{XXX: How much?}
+DOM objects), which imposes the overhead of a branch condition (that
+checks if confinement-mode is enabled).
 
 Our implementation relies on compartments and their properties in
 several ways.

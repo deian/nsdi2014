@@ -11,67 +11,174 @@ apps provide.
 Then, we measure the performance impact of \sys{} on existing browser
 features and the additional overhead when confinement-mode is actually
 enabled.
-5 
+%
 All our measurements were conducted on a 4-core i7-2620M machine
 running GNU/Linux 3.11, with 16GB of RAM.
 %
-Our patches are applied to Firefox versions 26 and Chromium version
+Our patches are applied to Firefox versions 26, and Chromium version
 31.
 %
-%% Below, we use the \emph{vanilla} to denote unmodified browser;
-%% \emph{unlabeled} to denote a modified browser with confinement-mode
-%% off; and, \emph{labeled} to denote a modified browser with \sys{} in
-%% active use.
 
 
 \subsection{Macro benchmarks}
 \label{sec:eval:macro}
 
+We implemented all the applications described in
+Section~\ref{sec:system}.
+%
+Below we measure the performance of some of these applications on our
+modified Firefox browser.
+%
+For comparison, we port the applications by removing any security
+related checks and measure their performance on the unmodified
+(vanilla) version of Firefox.
+
 \paragraph{Password-strength checker}
+%% Vanilla: just run script in worker
+%% Firefox: With \sys{} it take 59.5ms, Vanilla: 61.4
+%% Chome: With \sys{} it take 80.5ms, Vanilla:  71.5
 %
-We measured the time it take to check the strength of a randomly generated
-16-character password.
+We implemented the password-strength checker of
+Section~\ref{sec:system:worker}, using the checker script
+from~\cite{checker1} to perform the actual strength checking.
 %
-
-Vanilla: just run script in worker
-
-Firefox: With \sys{} it take 59.5ms, Vanilla: 61.4
-Chome: With \sys{} it take 80.5ms, Vanilla:  71.5
-
-
-\paragraph{Encrypted cloud-based editor}
+Our end-to-end evaluation measures the average duration it takes to
+create a new labeled worker (with a fresh principal), fetch (with XHR)
+the checker script, which is 8KB long, and perform the actual strength
+checking on a password 16-characters in length.
 %
-we measured the time it takes to save an encrypted a document
-\todo{XXX}-character document.
+We averaged the duration of 10 runs (without caching the script).
+%
+In Firefox the amount of time it takes to perform the strength
+checking is 59.5ms.
+%
+This figure, though predominantly dominated by network delay, is
+roughly 3\% faster than the strength checker running running in a
+``normal'' worker on a vanilla, unmodified, browser (which
+additionally caches the worker script).
+%
+We attribute our speedup to the fact that creating and communicating
+with labeled workers is faster than existing workers (see
+micro-benchmarks, below), and believe that caching the checker script
+would lead to additional speedup gains.
 
-Vanilla: removed the sandbox stuff.
 
-Firefox: With \sys{} it take 114.8s, Vanilla: 100.2
-Chome: With \sys{} it take 248.1, Vanilla; 257.8s
+\paragraph{Encrypted web-based editor}
+%% Vanilla: removed the sandbox stuff.
+%% Firefox: With \sys{} it take 114.8, Vanilla: 100.2
+%% Chome: With \sys{} it take 248.1, Vanilla; 257.8
+
+We implemented a simple document editor with an encryption layer as
+described in Section~\ref{sec:system:iframe}.
+%
+(This application is similar to---but slightly simpler than---the
+password manager, hence we do not report any measurements for the
+password manager.)
+%
+Our benchmark measures the end-to-end time it takes to load the
+application, carry out the protocol described in
+Section~\ref{sec:system:iframe}  and ``encrypt'' a 4KB document with
+the NULL-cipher.
+%
+We measured the \sys{} application to take 114.8ms on the modified
+version of Firefox, while a simplified, insecure version of the app,
+running on vanilla Firefox took 100ms.
+%
+We note that our figure accounts for the amount of time it takes to
+load the document editor page, which itself loads the encryption layer
+as an iframe, which further loads the actual editor.
+%
+We attribute the (small) 14.8ms slowdown to both the label checks
+performed by \sys{} and security layer added on top of the insecurity
+application; in the vanilla case, we removed the label operations and
+authentication layer (used to ensure that the label of the innermost
+iframe is sufficiently high).
+
 
 \paragraph{Third-party mashup}
+%% Firefox: With \sys{} it take 10.7ms, Vanilla:  10.7ms
+%% Chrome: With \sys{} it take 15ms, Vanilla:  17ms
+%% 
+%% Vanilla: just remove sandbox stuff + add CORS
 
-We measured the time it takes to perform requests to two different origins,
-which return a simple \todo{XXX}-JSON object, including a number.
+We implemented a very simple third-party mashup application in which
+the integrator makes an XHR request to two unaffiliated origins, each
+of which produces a response containing a (27 byte) JSON object with a
+number property.
 %
-Our mashup benchmark simply adds the numbers.
+The integrator parses the JSON objects, sums the numbers, and adds the
+sum to the document body.
+%
+The corresponding vanilla application is identical, but uses the
+normal XHR object and requires the origins to set CORS headers permit
+the JSON responses to be inspected by any content from any origin.
+%
+We measured the latency of the application to be 10.7ms in both cases.
+%
+Of course, the \sys{} application has the advantage of treating the
+received content as sensitive (and thus required setting proper CSP
+and iframe sandbox flags) as opposed to the CORS-based approach that
+would allow the integrator to arbitrarily leak the sum.
+
+\paragraph{Untrusted libraries}
+%% Vanilla: incorporate script directly, no sandboxes.
+%% As page confine:
+%% Firefox: With \sys{} it take 164.8ms, Vanilla:  160.2ms
+%% As extension
+%% Firefox: With \sys{} it take 224.4ms
+
+Finally, we measure the load time of a banking page that incorporates
+the untrusted Phone2Links library using two different design patterns.
+%
+In the first case, the bank trusted code is placed a labeled worker,
+with access to the page document and privilege, following the pattern
+of Section~\ref{sec:system:script}; in the second case, the untrusted
+code is treated as an extension and placed in an labeled worker, by
+our extension loader (implemented as an actual Firefox extension),
+with no privileges, following the pattern of
+Section~\ref{sec:system:extension}.
+%
+In both cases the bank page contains an iframe with the sensitive
+(labeled) bank statement, both of which load the jQuery and
+Phone2Links libraries.
+%
+The latter library additionally performs XHR requests in attempt to
+leak the page content.
+
+We measured the total load time of the page. In the first case, the
+duration was 164.8ms, which is 4.6ms longer than an insecure version
+of the application running on vanilla Firefox.
+%
+We remark that this additional slowdown is negligible considering that
+the application contains mixed-sensitivity content (the main banking
+page is public, while the bank statement iframe is labeled with the
+origin of the page), which \sys{} prevents the malicious library from
+leaking; in the vanilla case, the library trivially leaks the bank
+statement.
+
+When incorporating Phone2Links as an extension, the measured page load
+time was 224.4ms.
+%
+Since there is not obvious approach to integrating untrusted
+extensions with existing browsers, we do not compare against a vanilla
+implementation.
+%
+Rather, we compare against the version of the application with
+Phone2Links integrated as a library (above): the extension approach is
+roughly 1.4 times slower, a slowdown we attribute to the fact that the
+extension is loaded by our loader, which is, in turn, an AddOn-SDK
+extension loaded by Firefox.
+%
+Finally, we remark that while the load time is not small, it also does
+not impose a huge performance penalty on the vanilla page.
+%
+Moreover, this figure can easily be improved by optimizing our
+extension loader or implementing it as a traditional extension (which
+is faster than using the AddOn-SDK).
 
 
-Firefox: With \sys{} it take 10.7ms, Vanilla:  10.7ms
-Chrome: With \sys{} it take 15ms, Vanilla:  17ms
-
-Vanilla: just remove sandbox stuff + add CORS
-
-\paragraph{Phone2Links}
-
-We measure the load time of a bank page incorporating the Phone2Links library;
-in the first case, the bank trusted code is placed a LWorker, following the
-pattern of Section~\ref{sec:system:script}; in the second case, the untrusted
-code is treated like an extension and placed in an LWorker with no privileges,
-following the pattern of Section~\ref{sec:system:extension}.
 
 Vanilla: incorporate script directly, no sandboxes.
-
 
 As page confine:
 Firefox: With \sys{} it take 164.8ms, Vanilla:  160.2ms
@@ -125,7 +232,7 @@ Label subsumes     &  --     &  \multicolumn{2}{c|}{0.0012} &   --
                              &  \multicolumn{2}{c }{0.0004}
 \\\bottomrule
 \end{tabular}
-\caption{\label{microbench} Micro-benchmarks (in milliseconds).
+\caption{\label{microbench} Micro-benchmarks, in milliseconds (ms).
 %%Vanilla denotes stock browser measurements, our modified browsers with
 %%confinement-mode turned off and on are respectively
 %%are denoted by unlabeled and labeled.
@@ -144,7 +251,7 @@ The performance impact of creating an iframe or worker is
 within 3.5\% and 2.5\% of the vanilla implementations on Firefox and
 Chromium, respectively.
 %
-In absolute terms, \sys{} adds, on average, less than 1 millisecond
+In absolute terms, \sys{} adds, on average, less than 1ms
 latency.
 %
 As also shown in the table, the \sys{} labeled workers provide
@@ -153,17 +260,18 @@ primitive: creating a labeled worker is roughly 12 and 6 times faster
 than a corresponding unlabeled worker.
 
 %
-The iframe, worker and XHR ping-pong measurements evaluate the cost of 
-sending a message across iframes, workers, and network, respectively.
+The iframe, worker and XHR ping-pong measurements evaluate the cost of
+sending and receiving a message (\js|PING| and \js|PONG|,
+respectively) across iframes, workers, and network, respectively.
 %
 In all cases, the performance impact of \sys{} is negligible when
 compared to an unmodified, vanilla browser.
 %
 In the case of XHR, the performance impact on the
 (local-network test) is less than 5.5\% for both Firefox and Chromium,
-a less than 0.5 millisecond delay.
+a less than 0.5ms delay.
 %
-In most of the other cases the sub 0.1 millisecond differences can be
+In most of the other cases the sub 0.1ms differences can be
 attributed to noise.
 %
 The only interesting case is that of communication with
