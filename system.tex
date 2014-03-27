@@ -435,16 +435,8 @@ In doing so, the code is effectively stating that it is ready to
 receive data at sensitivity level \https{instagra.me}, at the cost of
 giving up arbitrary communication capabilities.
 %
-\iffigures
-\ifcompletefigures
-As shown in Figure~\toref{fig:strength-3}, the 
-\else
-The
-\fi
-\fi
-checker can now receive
-sensitive data (the password), but, for example, can only use \xhr{} to
-communicate with \https{instagra.me};
+The checker can now receive sensitive data (the password), but, for
+example, can only use \xhr{} to communicate with \https{instagra.me};
 %
 performing arbitrary network requests or creating arbitrarily-labeled
 workers is no longer permitted.
@@ -550,6 +542,10 @@ trustworthy.
 %
 (Of course, this is also all dictated by \sys{}'s current label,
 privileges, etc..)
+
+\todo{ds}{add figure showing checker in action}
+\todo{?}{consistent usage of message handler, event handler, and
+callback}
 
 \subsection{Cross-iframe confinement}
 \label{sec:system:iframe}
