@@ -20,13 +20,13 @@ code does not leak her password.
 A malicious checker should at worst lie about the password's strength.
 
 In today's browser security architecture, a page hosted, for instance,
-on \https{instagra.me} can incorporate and partially ``confine'' a
+on \https{instagra.me} can incorporate and partially confine a
 simple third-party strength checker, \https{checker.biz/checker.js}.
 %
 In the interest of simplicity, we consider a checker that does not
 require access to the enclosing page's DOM.
 %
-As such, to ``confine'' the strength checker, \https{instagra.me}
+As such, to confine the strength checker, \https{instagra.me}
 can execute the code in a Worker~\cite{workers};
 %
 since every worker has a separate, fresh compartment with no
@@ -36,14 +36,7 @@ by embedding images, loading scripts, etc.
 However, workers do have access to the \xhr{} constructor, and thus,
 \https{instagra.me} must additionally host the checker source and set
 a CSP policy that restricts its network communication (e.g.,
-\texttt{connect-src: 'self'}).\footnote{
-  Workers inherit the CSP policy of the containing page~\cite{csp},
-  hence \https{instagra.me} can create the worker in a ``dummy''
-  iframe which has the set policy.
-  %
-  We assume that the messaging layers between the worker, its parent
-  iframe, and main page are straightforward to implement.
-}
+\verb|connect-src: 'none'|)
 %
 
 While this approach goes some way toward protecting the password, there
@@ -56,11 +49,20 @@ checker can communicate. As a DAC mechanism, CSP policies are rigid
 and thus rule out certain rich functionality. For example, this
 approach cannot be used to confine a checker that fetches a list of
 commonly used passwords or regular expressions {\em before} checking
-the strength of the password---a completely safe and useful operation.
-We note, then, the requirement of a confinement mechanism that allows
-code in a compartment to communicate with the network {\em until it
-has been exposed to sensitive data.} MAC-based confinement meets this
-requirement.
+the strength of the password---a completely safe and useful operation. 
+%
+The CSP policy can only prohibit the worker from performing any
+network requests (\verb|'none'|) or limit it to a set of origins.
+%
+However, even limiting the requests to the same origin (\verb|'self'|)
+is unsatisfactory; the checker can potentially carry out a
+self-exfiltration attack and leak the password to a public page on
+\https{instagra.me}~\cite{selfex}.
+%
+We note, then, the requirement of a confinement
+mechanism that allows code in a compartment to communicate with the
+network {\em until it has been exposed to sensitive data.} MAC-based
+confinement meets this requirement.
 %
 Moreover, requiring server-side CSP support is problematic for
 developers whose servers only host content, and do not support the
@@ -73,11 +75,11 @@ security concerns of the strength checker as well. We desire a
 confinement mechanism that {\em allows nesting of untrusted code,}
 so that confinement is {\em first class.}
 %
-Finally, in the status quo, the CSP policy of the checker cannot be
-more restricting than that of the containing document (since the
-checker inherits the policy from it). Hence, the checker can
-potentially carry out a self-exfiltration attack~\cite{selfex} and
-leak the password to a public page on \https{instagra.me}.
+%% Finally, in the status quo, the CSP policy of the checker cannot be
+%% more restricting than that of the containing document (since the
+%% checker inherits the policy from it). Hence, the checker can
+%% potentially carry out a self-exfiltration attack~\cite{selfex} and
+%% leak the password to a public page on \https{instagra.me}.
 %
 %
 In part, the above limitations arise because existing browser
@@ -123,6 +125,14 @@ requirement of {\em confinement for code that handles sensitive data.}
 Support for such confinement will obviate growing the browser TCB for
 every application in which code must handle sensitive data.
 
+\todo{?}{make a note that this app requires a symmetrical confinement
+system: pwd manager and website are in mutual distrust}
+\todo{?}{refer to the encrypted document editor at the end; the
+password manager and this app share a very similar security
+architecture/require similar guarantees, should we build this app in?}
+\todo{?}{refer to existing trust-based/extension apps (lastpass,
+1pass, etc.)}
+
 \para{Banking application with untrusted jQuery}
 jQuery, the widely used general-purpose JavaScript library, intimately
 manipulates the DOMs of pages. How would one build a banking web
@@ -130,8 +140,8 @@ application, \https{bank.ch}, that safely uses jQuery? Today the only
 way to give jQuery the access to the DOM that it needs is to include
 the library within \https{bank.ch}'s origin---so jQuery is free to
 leak any sensitive data from the application elsewhere with \xhr{}.
-We note again the requirement for {\em confinement of code that
-  computes over sensitive data.}
+We note, then, the requirement for {\em confinement of code that
+  computes over sensitive data within the same context.}
 
 \para{Browser extensions} Today's browser extensions execute with
 elevated privilege: if authorized at installation time by the user
