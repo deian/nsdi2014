@@ -253,9 +253,11 @@ example applications described in Section~\ref{sec:goals}.
 {\small
 \begin{webidl}
 SWAPI {
-  attribute Label label
-  attribute Label clearance 
-  attribute Privilege privilege
+  static attribute Label label
+  static attribute Label clearance 
+  static attribute Privilege privilege
+  static void postMessage(Window, Object 
+                          [, Label])
 }
 \end{webidl}
 \begin{webidl}
@@ -284,18 +286,21 @@ LWorker {
 %% control.)
 %
 \sys{} allows developers to treat a piece of code as untrusted and
-confine it. This functionality is instrumental in supporting the
-password-checker application, which we use as a running example.
+confine it, in turn. This functionality is instrumental in supporting
+the password-checker application.
 %
-We first consider the confinement of ``DOM-less'' code; in
-Sections~\ref{sec:system:iframe} and \ref{sec:system:extension} we
-address confinement of third-party code with access to the DOM.
+We first consider the confinement of untrusted libraries that do not
+rely on the DOM; in Sections~\ref{sec:system:iframe} and
+\ref{sec:system:extension} we address confinement of third-party code
+with access to the DOM.
 
 As noted in Section~\ref{sec:goals}, and previously observed
 in~\cite{Ingram:2012}, workers are a good first step towards reasoning
 about the security implications of untrusted code that does not need
 to access the DOM, since they provide a clean, isolated environment
 within which untrusted code can be executed.
+%
+However, workers are constrained by the SOP, CSP, etc.
 %
 Hence, we extend the Worker DOM API~\cite{workers} with a
 Labeled-Worker (LWorker).
@@ -306,37 +311,47 @@ compartment that exposes a limited set of objects and properties.
 Concretely, we expose the \sys{} API (including the \js|LWorker|
 constructor used to construct additional labeled Workers), the \xhr{}
 constructor used to perform network requests, and
-\js|onmessage|/\js|postMessage|used for communicating with the
+\js|onmessage|/\js|postMessage| used for communicating with the
 parent.
 %
 Different from the \js|Worker| constructor, the \js|LWorker|
-constructor takes three additional arguments: a label that specifies the
-clearance on the code running in the worker, an optional privilege
-to grant the worker, and an optional window object to attach to the worker.
+constructor, shown in Figure~\ref{systemAPI}, takes three additional
+arguments: a label that specifies the clearance on the code running in
+the worker, an optional privilege to grant the worker, and an optional
+window object to attach to the worker.
 %
-We discuss the role of the latter two arguments in Sections~\ref{sec:system:script}--\ref{sec:system:extension}.
+We discuss the role of the latter two arguments in
+Sections~\ref{sec:system:script} and \ref{sec:system:extension}.
 
-For example, we create a new LWorker that executes the
-password-strength checker code as follows:
+Using this API, we create a new LWorker that executes the
+password-strength checker code and registers a callback to receive the
+strength score:
 \begin{jscode}
+// instagra.me main page ...
 var url = "https://checker.biz/checker.js";
 var label = new Label(location.origin);
 // 1. Execute checker in new worker
 var checker = new LWorker(url, label);
+// 2. Register handler to get score from checker
+checker.onmessage = function(event) {
+  var score = event.data; 
+  // ...
+}
 \end{jscode}
 %
-Assuming the browsing context (main page) creating the worker has not
-enabled \emph{confinement-mode}, \sys{} first enables confinement-mode
-and sets the browsing context label to the public label \js|Label()|.
+\sys{} first enables \emph{confinement-mode} and sets the browsing
+context label to the public label \js|Label()|.
 %
-In general, a script can explicitly enable confinement-mode or set
-the compartment label to a label more restricting than the current
-label; when enabling confinement-mode, \sys{} takes a
+In general, a script enables confinement-mode by using our any part of
+API; when implicitly enabling confinement-mode, \sys{} takes a
 permissive approach and sets the initial browsing context label to the
-public label.
+public label (much like the SOP).
+%
+However, scripts can also set the compartment label to a label more
+restricting than the initial public, current label.
  
-Subsequently, \sys{} ensures that the page is allowed to make
-a request to \js|url| to fetch the source code.
+When creating the worker, \sys{} ensures that the page is allowed to
+make a request to \js|url| to fetch the source code.
 %
 As with loading content (e.g., images, styles and scripts), writing to
 storage (e.g., cookies), or performing explicit network requests with
@@ -354,6 +369,7 @@ current label.
 This check ensures that the page cannot declassify data by laundering
 it through a worker whose label is less sensitive than the context
 label.
+\todo{?}{is this clear to non-IFC experts?}
 %
 \iffigures
 \ifcompletefigures
@@ -363,11 +379,16 @@ As shown in Figure~\toref{fig:strength-1},
 \sys{} then starts
 executing the checker code in the LWorker; the initial label of the
 worker compartment is set to that of the parent (in this case, the
-public label).
+public label).\footnote{
 %
-Our use of labeled workers in this fashion is similar to the executing code in
-LIO's \js|toLabeled| block~\cite{stefan:2011:flexible} and Breeze's
+Our use of labeled workers in this fashion is similar to LIO's
+use of labeled threads~\cite{stefan:addressing-covert}.
+%
+However, when considering workers that share an event loop this more
+closely resembles LIO's \js|toLabeled|
+block~\cite{stefan:2011:flexible} and Breeze's
 \js|bracket|~\cite{Breeze13}.
+}
  
 At this point, the code executing in the labeled worker can fetch
 data, such as a list of weak passwords from any origin,
@@ -383,29 +404,36 @@ longer be able to perform such arbitrary network requests.
 
 To retrieve the password, the password-strength checker registers a
 message-event handler, which is invoked when the parent sends it a
-message whose label is subsumed by the checker's label (step 3, on the
-right):
+message whose label is subsumed by the checker's label.
+%
+The checker code is given below.
 \begin{jscode}
 // checker.js ...
-// SWAPI.label == Label()
+// Assume SWAPI.label == Label()
 function computeStrength(pass) { /* ... */ }
 
-// 2. Raise context label & register handler
+// 3. Raise context label & register handler
 SWAPI.label = SWAPI.clearance;
 // SWAPI.label == Label("https://instagra.me")
 onmessage = function(event) {
   var password = event.data;
-  // 4. Check score & send it to parent:
+  // 5. Check score & send it to parent:
   postMessage(computeStrength(password));
 };
 \end{jscode}
 %
-Importantly, the worker first raises the context label to the
-clearance---which is the worker label---by setting \js|SWAPI.label|.
+Note, that, here, the worker first raises the context label to the
+clearance---which is the worker label---by setting
+\js|SWAPI.label|.\footnote{
+  Alternatively, before raising the current label the worker and
+  parent could implement a message-passing protocol that establishes
+  to what label the worker should raise its label. For simplicity, the
+  worker raises its label to its clearance.
+}
 %
 In doing so, the code is effectively stating that it is ready to
 receive data at sensitivity level \https{instagra.me}, at the cost of
-giving up arbitrary communication privileges.
+giving up arbitrary communication capabilities.
 %
 \iffigures
 \ifcompletefigures
@@ -421,113 +449,107 @@ communicate with \https{instagra.me};
 performing arbitrary network requests or creating arbitrarily-labeled
 workers is no longer permitted.
 
-Next, the page sends the LWorker the
-password via \js|postMessage|, and registers a message handler to
-receive the strength score:
+Next, the page extracts (from the DOM input element) the password and
+sends it, via \js|postMessage|, to the LWorker executing the checker:
 \begin{jscode}
+// instagra.me main page ...
 var password = 
  document.getElementById("password").value;
 // 3. Send checker password 
-checker.postMessage(password, l);
-// 5. Get score
-checker.onmessage = function(event) {
-  var score = event.data; 
-  // ...
-}
+checker.postMessage(password, label);
 \end{jscode}
 Here, \js|postMessage| additionally takes the label of the message
-\js|l|, which must be subsumed by both the browsing context clearance
-and worker label.
+\js|label|, which must be subsumed by both the browsing context
+clearance and worker label.
 %
 (If an explicit label is not supplied, \sys{} uses the browsing
 context label as the message label.)
 %
 We use this label to ensure that the receiver's message handler is
 dispatched only if its browsing context label is at least as sensitive
-as \js|l|---thus preserving the privacy of the password.
+as \js|label|---thus preserving the privacy of the password.
 
-In the final step, the event handler, which is called with the
-parent-supplied password, invokes the underlying password-strength
-checking function \js|computeStrength|.
+The \js|postMessage| dispatches the worker event handler with the
+parent-supplied password. 
 %
-The result of this function is returned to the page via
-\js|postMessage|.
+As shown above, this handler simply invokes the underlying
+password-strength checking function \js|computeStrength|, the result
+of which is returned to the parent via \js|postMessage|.
 %
-The event handler registered by the page 
-\iffigures
-\ifcompletefigures
-(step 5), as shown in Figure~\toref{fig:system:strength-4}, 
-\else
-(step 5)
-\fi
-\fi
-is dispatched if the label of
-the page subsumes the message label (which is the worker's compartment
-label).
 
-\iffigures
-\ifcompletefigures
-We show the full life-cycle of this application in
-Figure~\toref{fig:system:strength}.
-\fi
-\fi
+Finally, the event handler registered by the page is dispatched and
+the score is shown to the user.
 %
-In this example, we relied on the page having ownership of the
-\https{instagra.me} privilege as to avoid tainting the browsing
-context when reading the score from the worker.
+Since SWAPI imposes a symmetric checks, the label of the page must
+subsume the message label (which is the worker's compartment label)
+for the handler to be dispatched.
 %
-Unfortunately, this also means that our confinement of the checker
-code is limited: we cannot label the worker with this label and
-restrict it from using XHR to self-exfiltrate data to
-\https{instagra.me}.
+As described, this is indeed the case, when considering the page
+privileges;
 %
-Instead, the page must label the worker with a unique origin that does
-not correspond to an actual host, as to prevent it from leaking data
-using XHR, yet still has the privilege to communicate with its parent.
+we rely on the page having ownership of the \https{instagra.me}
+privilege to avoid tainting the browsing context before reading the
+score from the worker.
+
+%
+Unfortunately, using the label that corresponds to the page privilege
+in this fashion---to avoid tainting the page to the label the
+worker---also means means that our confinement of the checker code is
+limited: it does not restrict the worker from using XHR to
+self-exfiltrate data to \https{instagra.me} (much like using CSP's
+\verb|'self'| directive).
+%
+Hence, it is important for the page to be able to label the
+worker---and thus messages to it---with an origin that does not
+correspond to an actual host as to confine the worker, but not force
+the page into raising its label.
 
 This is precisely the role of fresh privileges.
 %
 A fresh privilege corresponds to a unique origin whose scheme is
-prefixed by \texttt{x-swapi}; the fake protocol ensures that the
-\xhr{} constructor cannot be used to make requests.
+prefixed by \texttt{x-swapi}; the fake protocol ensures that when the
+current label is raised to the label of this origin, the \xhr{}
+constructor cannot be used to make actual requests.
 %
 Hence, to fully confine the password-strength checker we modify the
 \https{instagra.me} page to first create a fresh privilege and use the
 corresponding label when creating the LWorker.
 %
-Th modified code is shown below.
+The modified code is shown below.
 \begin{jscode}
+// instagra.me main page ...
 // Create fresh unique privilege
 var p = new FreshPrivilege();
 // Take ownership of this privilege
-SWAPI.privilege = p.combine(SWAPI.privilege);
+SWAPI.privilege.combine(p);
+// Get corresponding label:
+var label = p.asLabel;
 // Use it to confine the worker completely:
-var checker = new LWorker(url, p.asLabel);
-// As before ..
-var password = 
- document.getElementById("password").value;
-// 3. Send checker password 
-checker.postMessage(password, p.asLabel);
-// ...
+var checker = new LWorker(url, label);
+// As before ...
 \end{jscode}
 
-We remarks that, different from current approaches, our system
+We remarks that, different from existing approaches, our system
 provides a client-side approach to flexibly and fully confining
 untrusted code:
 %
 the strength checker can perform arbitrary XHR until it raises its
 label to register the \js|onmessage| handler that will inspect the
 sensitive password; from this point on it can only communicate with
-the parent.
+the parent---it cannot perform any XHR.
 %
 This is in contrast to either giving the checker irrevocable network
-access or none at all.
+access (e.g., with CSP's \verb|'self'|) or none at all (e.g., with
+CSP's \verb|'none'|).
 %
 Importantly, our first-class workers and privileges makes security a
 first class citizen: not only can the page consider the checker
 untrusted, but the checker can itself create fresh privileges and 
 LWorkers in which it can execute code it itself does not consider
-trustworthy!
+trustworthy.
+%
+(Of course, this is also all dictated by \sys{}'s current label,
+privileges, etc..)
 
 \subsection{Cross-iframe confinement}
 \label{sec:system:iframe}
