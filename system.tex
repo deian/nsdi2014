@@ -179,7 +179,7 @@ For example, a script running in an \https{amazon.com} page has the
 privilege corresponding to the \https{amazon.com} origin.
 %
 Without this privilege the script cannot perform any XHR requests
-(even to \http{bank.ch}) if the context label is
+(even to \https{bank.ch}) if the context label is
 \js|Label("https://bank.ch").and("https://amazon.com")|;
 such a conjunctive label cannot be subsumed by an end-point-label, and
 in this case, prevents data sensitive to \https{amazon.com}
