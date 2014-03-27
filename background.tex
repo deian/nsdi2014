@@ -40,9 +40,9 @@ Policies are expressed in terms of \emph{origins}; an origin is a
 source of authority encoded by the protocol (e.g., \js|http|), domain
 name (e.g., \js|fb.com|), and port (e.g., \js|443|) of a resource
 URL.\footnote{
-  For brevity, we do not write the port of an origin, when it is the
-  default port for a particular protocol (e.g., \js|80| for \js|http|,
-  \js|443| for \js|https|, etc.).
+  While at least the protocol is necessary to describe an
+  origin, for brevity, we assume that the protocol and port are
+  respectively \js|https| and \js|443| and omit them from URLs.
 }
 %
 Below we briefly review the core browser security policies, including
@@ -67,7 +67,7 @@ VanKesteren2012}.
 %
 Hence, browsers ensure that code executing in a \https{a.com} context
 can only inspect the DOM and cookies of another context if they share
-the same origin.
+the same \https{a.com} origin.
 %
 Similarly, the code can only inspect the response of a network
 request---performed with XHR---if the remote host's origin is
@@ -82,7 +82,7 @@ foreign origins.
 For example, code executing in an \https{a.com} context can trivially
 disclose data to \https{b.com} by using XHR to perform a network
 request; the SOP only prevents the code from inspecting the response
-of such XHR requests, it does not impose any restrictions on sending
+of such XHR requests, it does not impose any restrictions when sending
 the request.
 %
 Similarly, code can exfiltrate data by encoding it in the path of a
@@ -100,10 +100,10 @@ height (which are always readable), scripts can encode data in their
 execution sequence (as done by JSON-P~\cite{jsonp}), etc.
 %
 
-The popularization of such ad-hoc cross-origin communication methods,
-(notably, those relying on \js|window.name| and
-\js|window.location|~\cite{thidpartyjs}), has lead to the
-introduction of the HTML5 \js|postMessage| API~\cite{webmessaging}.
+The popularization of JSON-P and other ad-hoc cross-origin
+communication methods, (notably, those relying on \js|window.name| and
+\js|window.location|~\cite{thidpartyjs}), has lead to the introduction
+of the HTML5 \js|postMessage| API~\cite{webmessaging}.
 %
 This API allows code from different browsing contexts to exchange
 messages, as shown in Figure~\ref{fig:browser-arch}.
@@ -137,7 +137,7 @@ application is allowed to load resources~\cite{csp}.
 %
 Specifically, when first loading a page, the
 \js|Content-Security-Policy| header is inspected for directives that
-instruct the browser to restrict the browsing context to loading
+instruct the browser to limit the browsing context to loading
 specific resources from the provided white-lists.
 %
 For instance, if the CSP header of a page from \https{a.com} contains
@@ -150,9 +150,10 @@ the page content loading is restricted as follows.
 %
 First, loading resources---for which a more specific directive is not
 provided (e.g., scripts, stylesheets, etc.)---is limited to the same
-origin.
+origin (\texttt{'self'}).
 %
-Second, the context is prohibited from loading any images.
+Second, the context is prohibited from loading any images
+(\texttt{'none'}).
 %
 And, third, JavaScript code is restricted to making XHR requests to
 \https{b.com}.
@@ -162,18 +163,18 @@ resources from origins outside the white-list should behave as if the
 remote server responded with a failure (HTTP 400) response, most
 browsers do not actually perform requests.
 %
-Hence, in addition to addressing XSS attacks, in practice, CSP can
-be used to restrict the origins to whom data can be exfiltrated by
-malicious code executing in the browsing context---recall that all code
-within a page has the authority of the page, regardless of the source
-origin.
+Hence, in addition to addressing XSS attacks, in practice, CSP can be
+used to partially restrict the origins to whom data can be exfiltrated
+by malicious code executing in the browsing context---recall that all
+code within a page has the authority of the page, regardless of the
+source origin.
 %
 Unfortunately, CSP only gives developers the choices of trusting code
 to communicate with an origin in full or not at all;
 %
 in Section~\ref{sec:system:worker} we show how \sys{} overcomes this
-shortcoming to allow code to communicate with an untrusted origin
-until it reads sensitive data.
+shortcoming to allow code to communicate with an arbitrary untrusted
+origin until it reads sensitive data.
 
 
 \subsection{Cross-Origin Resource Sharing} 
@@ -190,7 +191,9 @@ the content of a resource.
 Suppose, for instance, that code executing in an \https{a.com} browsing
 context makes an XHR request to \https{b.com}.
 %
-If the response contains the CORS header
+Normally, the SOP would prevent the code from inspecting the response.
+%
+However, if the response contains the CORS header
 \texttt{Access-Control-Allow-Origin: https://a.com}, the browser will
 not restrict the JavaScript code from reading the actual response
 content.
@@ -204,7 +207,7 @@ declare an all-or-nothing trust relationship.
 %
 Though this is sufficient for certain scenarios (e.g., making a
 resource public, or sharing content between origins owned by a single
-entity) in many cases it is overly restricting;
+entity) in many cases it is overly restricting and ridged;
 %
 in Section~\ref{sec:system:mashup} we show how \sys{} overcomes this
 shortcoming by allowing code to read arbitrary cross-origin
