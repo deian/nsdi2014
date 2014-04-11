@@ -554,15 +554,17 @@ callback}
 In the password strength-checker application, the \https{instagra.me}
 page effectively imposed the requirement that the password-strength
 checker discard its network communication capabilities by raising the
-compartment label sufficiently high, before reading the (labeled)
+compartment label sufficiently high, in order to read the (labeled)
 password.
 %
-More generally, by associating a label with every browsing context and
-restricting read- and write-effects according to it, \sys{}'s
-confinement mechanism can give developers a means for controlling
-where users' data can flow, even after the data is made available to
-untrusted browsing contexts. \sys{} thus meets the requirement of
-confining untrusted code that computes with sensitive data.
+This meets the requirement of confining untrusted code that computes
+with sensitive data.
+%
+More generally, however, by associating a label with every browsing
+context and restricting read- and write-effects according to it,
+\sys{}'s confinement mechanism can give developers a means for
+controlling where users' data can flow, even after the data is made
+available to untrusted browsing contexts.
 
 %\para{\sys{} approach}
 %
@@ -572,10 +574,10 @@ any of the participating parties. We use the password manager as a
 running example of this use of confinement.
 %
 Our password manager is divided into two mutually distrusting
-components: a management layer (provided by e.g., \https{pwd.eff.org})
+components: a management layer (provided by \https{pwd.eff.org})
 that interacts with the user, 
 %to store and fetch credentials, 
-and a storage layer (provided by e.g., \https{dropcu.be}) that provides a
+and a storage layer (provided by \https{dropcu.be}) that provides a
 simple
 %---in effect, labeled---
 %A bit confusing describing it at this point
@@ -590,32 +592,32 @@ trusted in full).
 
 %
 Though a user can use such a password manager to store and fetch secrets
-directly, for simplicity, we assume that a website (e.g., \https{fb.com})
-integrates with the manager in order to save and retrieve login
-credentials,\footnote{ In Section~\ref{sec:implementation} we describe an
-  untrusted extension system that can be used to inject the password-manager
-  specific code into the integrator page.  }
-\iffigures
+directly, for simplicity, we assume that a website, \https{fb.com},
+integrates the manager in order to save and retrieve login
+credentials, e.g., through a bookmarklet, \footnote{In Section~\ref{sec:implementation} we describe
+an untrusted extension system that can be used to inject the
+password-manager specific code into the integrator page.  
+} as shown in Figure~\toref{fig:manager-s-1}.
+%
 \begin{figure}
 \begin{center}
 % I printed out, and it reads well!
 \includegraphics[scale=0.35]{pmanager.pdf}
 \end{center}
 \vspace{-10pt}
-\caption{\label{fig:manager-s-1} Password manager architecture}
+\caption{\label{fig:manager-s-1} Password manager
+architecture;\todo{ds}{need better fig}}
 \vspace{-10pt}
 \end{figure}
- as shown in
-Figure~\toref{fig:manager-s-1}.
-\else
-.
-\fi
 %
 Without loss of generality, we also assume that encryption and
 decryption is carried out on the client-side by the management layer.
 %
-In this architecture, the security guarantees and trust concerns
-are as follows:
+While some existing storage layers, such as \Red{Mega}~\tocite{},
+provide encryption, we require that the encryption and storage layers
+be compartmentalized in order to achieve strong security guarantees.
+%
+These security guarantees and trust assumptions are as follows:
 \begin{enumerate}[i)]
 \item The management layer never learns the site-specific (\https{fb.com})
   credentials. The user only needs to trust this component with their master
@@ -634,8 +636,9 @@ are as follows:
 
 \item The storage layer never learns the site-specific credentials or
   master password. The user only needs to trust this layer to not
-  collude with the management layer (and vice-versa). This is a
-  realistic assumption given a decentralized environment like the web.
+  collude with the management layer (and vice-versa). We believe that
+  this is a realistic assumption given a decentralized environment
+  like the web.
 
 \item Finally, the integrator never learns the master password or
   credentials private to other websites (e.g., \https{goo.gl}).
@@ -647,7 +650,7 @@ password manager is used to both save and retrieve credentials.
 Below, we respectively describe the interaction of all the components
 in saving and retrieving credentials.
 
-\subpara{Saving credentials}
+\para{Saving credentials}
 %
 To save credentials, the integrator, \https{fb.com}, first creates two
 iframes: one containing the \https{pwd.eff.org} management layer and
@@ -656,7 +659,7 @@ another containing the \https{dropcu.be} storage layer.
 As part of the initialization process, the management layer saves a
 pointer to the storage layer (via \js|window.parent.frames|), both
 layers register \js|onmessage| event handlers, and the expected
-sensitivity of data, i.e., labels, to be exchanged is shared.
+sensitivity (label) of data to be exchanged is shared.
 %
 Next, the integrator sends the credentials to the management
 layer via \js|postMessage|.
@@ -680,38 +683,35 @@ subsumes the message label.
 This restriction ensures that the browsing context label is
 sufficiently strict to protect the privacy of the message.
 %
-For content (as opposed to workers), the restriction does not solely
-amount to limiting the usage of \js|postMessage| and the \xhr{}
+For iframes, when compared to workers), the restriction does not
+solely amount to limiting the usage of \js|postMessage| and the \xhr{}
 constructor.
 %
 Rather, \sys{} restricts all network, storage and
 cross-browsing-context communication.
 %
 Specifically, just as sending a \js|postMessage| requires the context
-label be subsumed by the message label, when loading content (e.g.,
-with \js|<img>|, \js|<script>|, etc.), writing to local storage (e.g.,
-with \js|document.cookie|), performing explicit HTTP requests (with
+label be subsumed by the message label, as to ensure that sensitive
+informatoin from the context is not exfiltrated to less-sensitive
+entities, when loading content (e.g., with \js|<img>| or
+\js|<script>|), writing to local storage (e.g., with
+\js|document.cookie|), performing network requests (with
 \xhr{}), or navigating the browsing context, we require that the
-context label be subsumed by the (implicit) label of the resource.
+context label be subsumed by the implicit label of the resource.
 %
 This ensures that the action (which is effectively a write) does not
 leak any information from the context to a less-sensitive entity.
 %
-(Of course, in all label comparisons, the context privileges are taken
-into consideration.)
+Of course, in all label comparisons, the context privileges are taken
+into consideration.
 %
  
+\todo{ds}{transition to this paragraph needs work}
 Returning to our password manager, upon receiving the credentials
-(\js|credentials|) via the \js|onmessage| handler, the management
+\js|credentials| via the \js|onmessage| handler, the management
 layer requests the master password (\js|mpass|) from the user, 
-generates a salt (\js|salt|), and encryption key $k =
-H(\texttt{mpass}\|\texttt{"}\https{fb.com}\texttt{"}\|\texttt{salt})$
-\iffigures
-\ifcompletefigures
-,as shown in Figure~\toref{fig:manager-s-2}
-\fi
-\fi
-.
+generates a \js|salt|, and encryption key $k =
+H(\texttt{mpass}\|\texttt{"}\https{fb.com}\texttt{"}\|\texttt{salt})$.
 %
 Here, $H$ is a hash function such as SHA-256.
 %
@@ -719,22 +719,23 @@ We use the integrator origin, in addition to the master password and
 salt, to ensure that a malicious storage layer will not be able to
 confuse the management layer, during the retrieval process, into
 decrypting \https{fb.com}'s credentials when invoked by a different
-integrator, e.g., \https{goo.gl}.
+integrator (e.g., \https{goo.gl}).
 
 % 
 After the key generation, the management layer encrypts the
-credentials using function \js|E| (e.g., AES), and sends
-\js|E|$_k$\js|(credentials)| and the \js|salt| via \js|postMessage| to
+credentials using a function \js|E|, such as AES, and sends the tuple
+(\js|E|$_k$\js|(credentials)|, \js|salt|) via \js|postMessage| to
 the storage layer.
 %
-Assuming that the label of the message subsumes
-\js|Label("https://dropcu.be")|, the storage layer's \js|onmessage|
-handler will be dispatched. 
+Since the management layer's current label---and thus the implicit
+message label---is subsumed by the storage layer's current label,
+\js|Label("https://dropcu.be")|, the latter's \js|onmessage| handler
+will be invoked with the encrypted credentials.
 %
-Since the storage layer frame has the \https{dropcu.be} privilege, it
-does not need to raise its compartment label; this fact allows the
-storage layer to use XHR to send the data to the \https{dropcu.be}
-server.
+We note that, since the storage layer frame has the \https{dropcu.be}
+privilege, it does not need to raise its compartment label; this
+allows the storage layer to use XHR to send the data to the
+\https{dropcu.be} server.
  
 We note that, in addition to the credentials and salt, the storage
 layer also stores the origin of the parent, i.e., \https{fb.com}, as
@@ -745,19 +746,19 @@ storage layer alongside the encrypted credentials, by having
 \https{fb.com} create the frame in the initialization stage, we ensure
 that a malicious management layer cannot confuse the storage layer
 into associating \https{fb.com}'s encrypted data with a different
-origin, e.g., \https{goo.gl}, thus allowing it to be leaked during
-the retrieval process.
+origin, e.g., \https{goo.gl}, and thus allow it to be leaked during
+the retrieval process.\todo{}{Is the above paragragraph clear?}
 
-\subpara{Retrieving credentials}
+\para{Retrieving credentials}
 %
 As in the case of saving credentials, the integrator, \https{fb.com},
 creates two frames containing the management and storage layers.
 %
-In this scenario, the storage layer retrieves the encrypted credentials
-\js|E|$_k$\js|(credentials)|, salt and ownership meta-data (in this
-case, \https{fb.com}) and registers an \js|onmessage| event handler,
-that responds to the management layer's ``fetch'' request.
-A simplified handler is shown below.
+In this case, the storage layer first retrieves the encrypted
+credentials \js|E|$_k$\js|(credentials)|, salt and ownership meta-data
+and registers an \js|onmessage| event handler, that responds to the
+management layer's ``fetch'' request.  A simplified handler is shown
+below.
 \begin{jscode}
 function handler(event) {
   // ... check origin ...
@@ -779,58 +780,41 @@ message.
 %
 This restriction guarantees that, even if the management layer did not encrypt the
 credentials during the save procedure, it cannot learn and
-exfiltrate the credentials through the retrieval process; this
+exfiltrate the credentials through this retrieval process; the message
 label ensures that it can only disseminate the credentials to the
-corresponding owner (\https{fb.com}, in this case).
+corresponding owner (\https{fb.com}).
 %
 
-Like the storage layer, in this scenario, the management layer first
-registers a message handler to receive the encrypted credentials, and
-via \js|window.parent.frames|, it retrieves a pointer to the storage
-layer.
+Like the storage layer, the management layer also firstly registers a
+message handler, though, in this case, to receive the encrypted
+credentials. Then, via \js|window.parent.frames|, it retrieves a
+pointer to the storage layer, and after raising the compartment label
+to \js|Label("https://fb.com")|, it sends the storage layer a
+``fetch'' message, requesting the encrypted credentials.
 %
-\iffigures
-\ifcompletefigures
-As shown in Figure~\toref{fig:manager-r-2}, after 
-\fi
-\else
-After
-\fi
-raising the
-compartment label to \js|Label("https://fb.com")|, the management
-layer sends the storage a ``fetch'' message, requesting the encrypted
-credentials.
+This, in turn, leads to the dispatch of the storage layer's handler
+(defined above), which replies with a message containing the encrypted
+credentials and salt.
 %
+At this point, the management layer's message handler is invoked
+(since the management layer's context label subsumes the label of the
+storage layer message).
 %
-Subsequently, the storage layer's handler (defined above) is triggered
-and the message containing the encrypted
-credentials and salt is sent to the management layer.
+Using the master password, \js|mpass| (that was fetched from the user)
+and salt, the management layer reconstructs key $k$ and uses it to
+decrypt the encrypted credentials.
 %
-At this point, its message handler is dispatched (since the management
-layer's context label subsumes the label of the storage layer message)
-and the master password (\js|mpass|) is retrieved from the user. 
-%
-Using the master password and salt, the management layer reconstructs
-the key $k$, using it to decrypt the encrypted credentials.
-%
-These decrypted credentials are then sent (via \js|postMessage|) to
-the \https{fb.com} browsing context.
+These decrypted credentials are then sent to the \https{fb.com}
+browsing context.
 %
 We note that, as imposed by the storage layer, the management layers'
 context label, \js|Label("https://fb.com")|, prevents it from
 disseminating the data to any other origin.
 %
-Finally
-\iffigures
-\ifcompletefigures
-, as shown in Figure~\toref{fig:manager-r-3}, 
-\fi
-\fi
-\https{fb.com},
-whose label remains public carries out the login procedure, i.e., it
-submit the login form.
+Finally, \https{fb.com}, whose label is still public, carries out the
+login procedure (e.g., by submitting the login form).
 
-\para{Another example: encrypted online documents}
+\subsubsection{Generalizing the application}
 The design pattern used for the password manager can be exploited in other
 scenarios. To illustrate this point, we implemented a prototype of a
 mashup capable of handling encrypted on-line documents.
@@ -841,29 +825,36 @@ mashup capable of handling encrypted on-line documents.
 %encrypted on-line documents. 
 This prototype shows the feasibility of our approach in combining
 services such as online document providers (e.g., Google Docs)
-and encryption processes. In this system, once encryption keys are configured,
-the encryption and decryption are performed in a mostly transparent
-manner.
+and encryption providers. 
+%
 The goal of the mashup is to allow the user to use a document editor,
 while ensuring that the editor-provider can only store encrypted data,
-as enforced by an encryption ``provider.''
+as enforced by an encryption ``provider,'' which is itself confined as
+to no leak the documents.
+%
+Moreover, once encryption keys are configured, the encryption and
+decryption should be performed in a mostly transparent manner.
 
-Concretely, our prototype creates relies on three iframes: an outermost,
-labeled \js|gdocs.com|, a mediary encryption layer, labeled
-\js|encrypt.com|, and an innermost one labeled \js|gdocs.com|.
+Similar to the password manager, our app prototype relies on three
+iframes: an outermost, labeled \js|gdocs.com|, an intermediary encryption
+layer, labeled \js|encrypt.com|, and an innermost one labeled
+\js|gdocs.com|.
 The innermost frame contains the actual document editor (that cannot
 communicate with anything except the parent frame), while the middle
-layer seven as an encryption mediary between the editor and outer-most
+layer serves as the encryption mediary between the editor and outer-most
 frame that communicates with the \js|gdocs.com| servers.
 
+\todo{}{Can squeeze space by just saying ``token-based auth'' vs.
+going into details}
 To enforce the aforementioned security policy we use a small
 bootstrapping protocol between the middle and innermost frames.
 Specifically,
-once the middle, encryption-layer, frame is
-loaded, it starts an authentication process with the innermost,
-editor, frame before any
-editing is allowed. To this end, it sends a token to the innermost
-frame with the label \js|Label("https://gdocs.com").and("https://encrypt.com")|.
+once the middle (encryption-layer) frame is
+loaded, it starts an authentication process with the innermost
+(editor) frame before any
+user input is recorded. To this end, it sends a random token
+labeled \js|Label("https://gdocs.com").and("https://encrypt.com")| to
+the innermost frame.
 This message requires that innermost frame be (at least) tainted with
 the described label, and as a result, restricted from performing any network
 requests; this ensures that the innermost editor cannot leak
@@ -871,16 +862,19 @@ the plain document as it is composed to \js|gdocs.com|. Once the
 innermost frame receives this
 message, it replies to the encryption layer with the token.
 The encryption-layer, in turn, verifies the token, the receipt of which ensures
-that the editor-layer is confined to solely communicating with its
-parent. At this point, the user
-can start editing the document.
+that the editor-layer is confined---it must have raised its label to
+read (and reply with) the token.
+At this point, the user is allowed editing the document.
 
-When saving the document, the document is
-sent (via \js|postMessage|) to the middle frame for encryption.
+We remarks that saving and restoring documents follows in a similar
+fashion to the saving and restoring credentials in the password
+manager example.  For example, when saving the document, the plaintext
+is sent (via \js|postMessage|) to the middle frame for encryption.
 The encryption layer, exercises its privilege \https{encrypt.com} to
 send the encrypted document, labeled \js|Label("https://gdocs.com")|,
-to the outermost frame, which, in turn, uses XHR to store the
-document on \js|gdocs.com| servers.
+to the outermost frame, which, in turn, uses XHR to store the document
+on \js|gdocs.com| servers. Due to the similarities between the two
+applications we do not discuss the encrypted editor further.
 
 
 \subsection{Privilege separation within iframes}
