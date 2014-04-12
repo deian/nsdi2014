@@ -1048,7 +1048,7 @@ having both a read and write effect;
 this is because both \js|get| and \js|call| may respectively call a getter or
 function that modifies state.
 %
-Though accessing a data property as opposed to a accessors property
+Though accessing a data property as opposed to an accessors property
 can be used to distinguish between read-only and read-write
 \js|get|s~\cite{ecma}, having consistent semantics is simpler,
 despite being more conservative.
@@ -1061,50 +1061,79 @@ despite being more conservative.
 
 While the above design pattern is well-suited for confining complex libraries
 such as jQuery, for many libraries, compartmentalizing the application by
-placing trusted code in a labeled DOM worker and confining the main page is too
-conservative.
+placing trusted code in a labeled DOM worker and confining the main
+page may be too conservative.
 %
 For example, if \https{bank.ch} wishes to integrate a simple
 third-party library that traverses the DOM to convert phone numbers to
-links (which we call \emph{Phone2Links}), it is sufficient to the library
-code in an unprivileged labeled DOM worker.
+links (which we call \emph{Phone2Links}), it is sufficient to execute
+the Phone2Links code in an unprivileged labeled DOM worker.
 %
-This allows the library to do its job, inspecting and modifying the DOM,
-without requiring the page to drop its privileges.
+This allows the library to do its job---inspecting and modifying the
+DOM---without requiring the page to drop its privileges.
 %
-In fact, the page need only raise the browsing context label to ensure that the
-untrusted library cannot both read the page content and use XHR to communicate
-with arbitrary hosts.
+In fact, the page need only raise the browsing context label from
+public to \js|Label(document.location)| to ensure that the untrusted
+library---which does not have the page privilege---cannot both read
+the page content and use XHR to communicate with arbitrary hosts.
 %
-Of course, if the bank page does not contain sensitive information (e.g.,
-sensitive statements may included in labeled iframes) then the library can, for
-example, fetch information such as addresses corresponding to the phone
-numbers (e.g., useful when looking up local branches).
+Of course, if the bank page does not contain sensitive information
+(since sensitive statements may included in labeled iframes) then the
+library is allowed to, for example, fetch addresses corresponding to
+phone numbers (as to help users lookup up local branches).
+%
+Though we do not expand on this further, we remark that \sys{} also
+allows pages to ``attach'' the \js|document| object after it was
+created, and thus allow the worker to fetch any resources
+\emph{before} accessing the page's sensitive DOM.
 
-Such use of labeled DOM workers corresponds to the content-script extension
-model pioneered by Chrome and, more recently, adopted by
+\todo{pm}{note on script injection}
+
+Such use of labeled DOM workers is similar to the content-script
+extension model pioneered by Chrome and, more recently, adopted by
 Firefox~\cite{Carlini:2012}.
 %
 The code executing in the untrusted labeled DOM worker is akin to
 to current content-script extensions.
 %
-There are, however, two core difference: we enforce confinement for
-``extensions'', while they give extensions access to privileged APIs
-and enforce confinement on pages to restrict access these APIs.
+Thus our system can be used to implement light-weight extensions by
+simply executing each ``extension'' in a labeled DOM worker, for each
+page.
+%
+There are, however, two core difference between our approach and
+existing ``real'' extensions.
+%
+Frist, we enforce confinement for light-weight extensions, while
+content-scripts are subject to all-or-nothing DAC policies.
+%
+Second, our extensions do not have access to any privileged
+APIs---indeed since they execute in the page---while, while existing
+extensions do.
 
-Though we do yet not support the privileged APIs, and thus cannot re-implement
-all types of extensions as web applications, extensions that rely only on
-content scripts can be easily ported to \sys{}.
+The benefits of confinement for extensions are at least as appealing
+as that of web apps, and previously considered in~\tocite{},
 %
-This not only removes the unnecessary trust placed on such extensions but further
-makes extensions portable across browsers.
+It it worth noting that although we do yet not support privileged
+APIs, and thus cannot re-implement all types of extensions as web
+applications,\footnote{
+  Though we do not believe this to be a fundamental issues, since
+  previous efforts (e.g.~\cite{flume}) have considered labeled
+  filesystems, sockets, etc., we belive that extending the
+  implementation to consider these APIs is outside the scope of this
+  paper.
+}
+existing extensions that rely only on content scripts can be easily
+ported to \sys{}.
+%
+This not only removes the unnecessary trust placed on such extensions
+but further makes extensions portable across browsers.
 % 
-However, to allow these extensions to run on pages much in the same
-way as conventional extensions, we implemented an extension management
-system that injects labeled DOM workers (containing the extension code
-using SWAPI) into pages whose origins are approved by the user (at
-install time).
+As a first step towards this goal goal, we implemented an extension
+management system (as a real extension) that injects labeled DOM
+workers (containing the extension code) into pages whose origins are
+approved by the user (at install time).
 %
+
 
 \subsection{Relaxing SOP for confined code}
 \label{sec:system:mashup}
