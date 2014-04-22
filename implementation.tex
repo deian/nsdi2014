@@ -5,6 +5,7 @@ We implemented \sys{} in the Firefox and Chrome browsers.
 %
 The API shown in Figures~\ref{fig:APIspec} and \ref{systemAPI} is specified in 264
 lines of WebIDL~\cite{webidl} in Firefox and 70 lines in Chrome.
+\todo{pm}{70? we must have copied the info wrong}
 %
 The remaining system is implemented in C++, modifying/extending the Gecko and
 Blink layout engines, in roughly 3.4K and 2.6K lines of code (LOC),
@@ -34,9 +35,9 @@ the Firefox and Chrome implementations are roughly 1K and 0.7K lines of C++
 code, respectively.
 %
 We note that much of this is a result of using C++ (and thus having
-to, for example, implement method overloading to support a friendly
-API)---as a comparison a JavaScript implementation of labels is
-roughly 100 lines.
+to, for instance, implement method overloading to support a friendly
+API or handling errors without exceptions)---as a comparison a
+JavaScript implementation of labels is roughly 100 lines.
 %
 Below we describe the less-obvious implementation details; we focus on our
 Firefox implementation and only describe the Chrome implementation where the
@@ -53,7 +54,7 @@ communication (e.g., \js|postMessage| between iframes) is done through
 \emph{wrappers}---an object from one compartment can never reference
 another object from a different compartment directly.
 %
-This has the benefit that GC can be done in parallel, on different compartments,
+This has the benefit that GC can be done concurrently, on different compartments,
 and that all inter-browsing context access control checks---as specified, for
 instance, by the SOP---can be enforced by the wrappers.
 %
@@ -61,21 +62,6 @@ Naturally, this is possible because each compartment has a security
 principal, i.e., the origin, which is used in making this policy
 decision, in addition to those described in
 Section~\ref{sec:background} (e.g., SOP, CSP and CORS when using XHR).
-
-Blink differs from Gecko in the way it implements access control checks for
-DOM elements. 
-%
-Specifically, rather than rely on wrappers, Blink implements the SOP security
-checks in the binding code for a limited subset of DOM elements that may allow
-cross-origin access.
-%
-This ensures that the performance penalty of wrappers between pages of the same
-origin does not exist.
-%
-Unfortunately, it also requires modifications to the binding code to enforce
-confinement for labeled DOM workers (by extending the security checks to all
-DOM objects), which imposes a \Red{XXX} performance overhead, as show in
-Section~\ref{sec:eval}.
 
 Our implementation relies on compartments and their properties in
 several ways.
@@ -95,13 +81,36 @@ This 81-line patch, in addition to adding a new field (pointing to a \sys{}
 object that contains a label, privileges, etc.) to the compartment
 object is our most intrusive patch---the other \sys{} components can be
 maintained independently.
+
+In Blink the notion of a compartment roughly corresponds to an
+execution context.
+%
+Hence the current label, clearance and privileges are similarly
+attached to the context object. \todo{pm}{confirm}
+%
+Blink differs from Gecko in the way it implements access control checks for
+DOM elements. 
+%
+Specifically, rather than rely on wrappers, Blink implements the SOP security
+checks in the binding code for a limited subset of DOM elements that may allow
+cross-origin access.
+%
+This ensures that the performance penalty of wrappers between pages of the same
+origin does not exist.
+%
+Unfortunately, it also requires modifications to the binding code to
+enforce confinement for labeled DOM workers (by extending the security
+checks to all DOM objects), which imposes the overhead of a branch
+condition (that checks if confinement-mode is enabled).
+\todo{pm}{thoughts on how this will change with the new architecture of process/iframe?}
+
  
 %
 In order to enforce confinement, we use the CSP mechanism already present 
 in the browser. 
 %We use CSP policies, already present in browsers, to enforce
 %confinement. 
-By doing so, \sys{} does not require to add specific hooks or extra machinery. 
+By doing so, \sys{} does not require specific hooks or extra machinery. 
 CSP policies are very expressive; in fact, they are
 information flow control policies~\cite{yang:2013:towards}. This allows us
 to precisely control how a page loads content, perform XHR, etc.
@@ -110,7 +119,7 @@ To enforce CSP, Gecko associates a CSP policy object with a principal.
 %restrict network access.
 %
 We set a custom CSP policy whenever the label is
-explicitly set with \js|Browbound.label|.
+explicitly set with \js|SWAPI.label|.
 %
 For example, if the compartment label is
 \js|Label("https://bank.ch").and("https://amazon.com")| and privilege
@@ -120,30 +129,29 @@ is simply \https{mint.biz}, we set the all the CSP directives to
 navigation~\cite{csp1.1,whatwg-html,html5}.
 %
 
-When the effective compartment label, i.e.., label considering privileges, is
-a conjunctive label (or a singleton whose origin is not the initially set), 
-we change the compartment principal to a fresh, unique (null-)
-principal. 
+When the effective compartment label, i.e., label considering
+privileges, is a conjunctive label (or a singleton whose origin is not
+the initially set origin), we change the compartment principal to a
+fresh, unique (null-) principal. 
 %
-This ensures that the document is no longer of same origin (as that
-at the start of the load) and can thus no longer access the
-initially-set-origin's storage.
+This ensures that the document is no longer of same origin as that
+at the start of the load and can thus no longer access its storage.
 %
 Since these fresh principals always differ, the lifetime of the data does not
 span multiple requests.
 %
-Hence, we additionally set the HTML5 \js|iframe sandbox| flag~\cite{html5},
+Thus, we also set the HTML5 \js|iframe sandbox| flag~\cite{html5},
 to revoke access to persistent storage.
 
 
-When privileges are set (either granted or revoked), the CSP policy is adapted
-to reflect that change and allows the corresponding flows of
-information. Nevertheless, a compartment that has been associated to a fresh
-principal (e.g. when the effective label of a compartment is a conjunction), it
-cannot access the storage even when it later gets granted the privilege to do
-so. While conservative, we believe this approach is reasonable; it is not clear
-what it means for a cookie to be labeled with a conjunction of
-two principals.
+When privileges are set (either granted or revoked), the CSP policy is
+adapted to reflect that change and allows the corresponding flows of
+information. However, a compartment that has been associated with
+fresh principal (e.g., when the effective label of a compartment is a
+conjunction) cannot subsequently access storage even when it later
+gets the privilege of a ``normal'' origin. While conservative, we
+believe this approach is reasonable: it is not clear what it means for
+a cookie to be labeled with a conjunction of two principals.
 
 %
 
@@ -158,18 +166,24 @@ faster parent-worker calls (e.g.,
 \js|postMessage|, or \js|onmessage| dispatch), which are effectively function
 calls for which we add confinement checks. 
 %
-More importantly, it allows \sys{} to provide lightweight workers with access to the
-DOM.
+More importantly, it allows \sys{} to provide lighter-weight workers
+that can also access the DOM.
 %
-Specifically, like the new Add-on SDK content-script
-extensions~\cite{addon-sdk}, we rely on Gecko's wrappers (which implement the
-object-capability \emph{membrane}
-pattern~\cite{miller2003paradigm,miller2006robust}) to ensure that each DOM
-access abides by confinement (in our case, we conservatively treat each DOM
-access, including a \js|get|, from a worker as a read-write effect).
+Though an alternative reasonable approach is to allow code to execute
+labeled workers without DOM access in a separate thread, like existing
+workers.
+ 
+Like the Add-on SDK content-script extensions~\cite{addon-sdk}, we
+rely on Gecko's wrappers---which implement the object-capability
+\emph{membrane}
+pattern~\cite{miller2003paradigm,miller2006robust}---to ensure that
+each DOM access from a worker abides by confinement.
 %
-In Blink, we extended the IDL binding code to perform label
-checks on \emph{all} DOM elements.
+In our case, we conservatively treat each DOM access, including a
+\js|get|, from a worker as a read-write effect.
+%
+Since Blink does not have membranes, we extended the IDL binding code
+to perform label checks on \emph{all} DOM elements.
 %
 The added code compares labels of an object's compartment and the compartment
 from which the access originates.

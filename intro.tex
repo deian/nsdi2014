@@ -12,6 +12,7 @@ storage). Such reuse is ubiquitous. jQuery, a widely used JavaScript
 library, is included in and used by 68\% of the Quantcast top-10,000
 web sites, and over 52\% of the Quantcast top-million web
 sites~\cite{quantcast}.
+\todo{ds}{update numbers}
 
 The resulting model is one in which web application developers cobble
 together multiple JavaScript libraries, web-based content, and
@@ -41,7 +42,7 @@ data. These goals are hardly new. Wang {\em et al.} articulated
 similar ones, and proposed new browser primitives to improve isolation
 within mashups: sandboxes that allow pages not to share their data
 with JavaScript code they include, and discretionary access control
-for inter-frame communication~\cite{mashupos}. Indeed, today's
+(DAC) for inter-frame communication~\cite{mashupos}. Indeed, today's
 browsers incorporate similar mechanisms in the guises of HTML5's
 seamless iframes, iframe sandbox, and postMessage API~\cite{html5}.
 And the well known Same-Origin Policy (SOP, detailed in
@@ -54,9 +55,9 @@ the other. Application developers (and users) are thus often left with
 only unpalatable choices (though in practice, the desire for
 functionality often dominates the concern for privacy, to users'
 peril). The browser may enhance privacy by applying discretionary
-access control (DAC) when an untrusted script wishes to read
+access control when an untrusted script wishes to read
 potentially sensitive data. The various isolation mechanisms a modern
-browser applies (e.g., the SOP and Content Security Policies,
+browser applies (e.g., the SOP and Content Security Policies (CSP),
 both explored in Section~\ref{sec:background}) are flavors of DAC. But
 the brittle ``all-or-nothing'' character of DAC thwarts the building
 of many useful mashups. Broadly speaking, DAC can either deny or grant
@@ -75,11 +76,11 @@ granting the script unfettered access to the enclosing page's origin's
 content. Or a web server's operator may use Cross-Origin Resource
 Sharing (CORS, also treated in Section~\ref{sec:background}) to
 explicitly enumerate other origins permitted to read content from that
-server (bypassing the SOP for those other origins). This approach
-still limits flexibility, though, in that it requires a server's
-operator to know {\em a priori} which mashups are hosted by which
-other origins, and worse, potentially allows a service provider to
-limit users' choice of applications that integrate content from the
+server (\Red{bypassing the SOP for those other origins}).
+This approach still limits flexibility, though, in that it requires a
+server's operator to know {\em a priori} which mashups are hosted by
+which other origins, and worse, potentially allows a service provider
+to limit users' choice of applications that integrate content from the
 provider's site.\footnote{The user has the further unpalatable
   choice of providing her login credentials for the service
   provider's site to the web application---a potential
@@ -92,7 +93,7 @@ receive.
 
 To achieve both flexibility and privacy, what is needed is a means to
 allow untrusted code to compute over sensitive data and display
-results for the user, while {\em confining} the untrusted code so that
+results to  the user, while {\em confining} the untrusted code so that
 it may not exfiltrate the sensitive data (in the web browser,
 typically by writing the sensitive data to an untrusted remote
 origin). To offer the greatest flexibility to web application
@@ -106,34 +107,42 @@ another library {\em it} does not trust. And finally, also in the
 interest of flexibility, the means of confinement should be {\em
   symmetric,} in that it should allow each principal on either side of
 a trust boundary to pass sensitive data to the other, while preventing
-the other principal from exfiltrating the data. No existing
-combination of browser security mechanisms offers these properties.
+the other principal from exfiltrating the data. 
+%
+This property, for instance, ensures that the parent of a
+sub-container cannot arbitrarily exfiltrate data it receives from the
+sub-container.
+%
+No existing combination of browser security mechanisms offers these
+properties.
 
-In this paper, we present Browbound, a simple, label-based mandatory
-access control (MAC) system for web browsers that delivers both
-flexibility for web application developers and robust privacy for
-users. Browbound allows untrusted JavaScript to process sensitive
-data, and confines the untrusted JavaScript in first-class, symmetric
-fashion. To illustrate the value of these properties, we present five
-case-study applications---a password strength-checker, a password
-manager, a banking application that uses the (untrusted) jQuery
-library, a ``phone numbers-to-links'' browser extension, and a
-third-party mashup, none of which can be implemented in a way that
-ensures privacy in today's web browsers. We then build them atop
-Browbound. Our contributions include:
+In this paper, we present \sys{} (the Secure Web API), a simple,
+label-based mandatory access control (MAC) system for web browsers
+that delivers both flexibility for web application developers and
+robust privacy for users. \sys{} allows untrusted JavaScript to
+process sensitive data, and confines the untrusted JavaScript in
+first-class, symmetric fashion.  To illustrate the value of these
+properties, we present five case-study applications---a password
+strength-checker, a password manager, a banking application that uses
+the (untrusted) jQuery library, a ``phone numbers-to-links'' browser
+extension, and a third-party mashup, none of which can be implemented
+in a way that ensures privacy in today's web browsers.  We then build
+them atop \sys. Our contributions include:
 
 \begin{CompactItemize}
-\item We characterize five case-study web applications for which
-  today's browser security architecture cannot provide strong privacy.
-\item We describe the design of the Browbound label-based MAC system
-  for web browsers, which meets the requirements of the five
-  case-study web applications.
+\item We characterize five case-study web applications
+  (Section~\ref{sec:goals}) for which today's browser security
+  architecture cannot provide strong privacy.
+\item We describe the design of the \sys{} label-based MAC system
+  for web browsers (Section~\ref{sec:system}), which meets the
+  requirements of the five case-study web applications.
 \item We describe designs of the five case-study web applications atop
-  Browbound.
-\item We evaluate the performance overhead of Browbound in the Firefox
-  and Chromium open-source browsers, and illustrate that Browbound
-  incurs minimal performance overhead over the respective baseline
-  browsers.
+  \sys.
+\item We describe the implementation of \sys{}
+  (Section~\ref{sec:implementation}) and evaluate the performance
+  overhead in the Firefox and Chromium open-source browsers; our
+  evaluation (Section~\ref{sec:eval}) illustrates that \sys{} incurs
+  minimal performance overhead over the respective baseline browsers.
 \end{CompactItemize}
 
 % Local Variables:
