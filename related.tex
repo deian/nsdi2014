@@ -1,7 +1,128 @@
 \section{Related Work}
 \label{sec:related}
 
-\todo{ds}{have lots of notes, mostly want to rewrite}
+% BFlow
+\Red{BFlow}
+A closely related work is BFlow~\cite{Yip:2009:PBS}.
+%
+Like \sys{}, BFlow allows websites to enforce confinement policies
+that are stricter than the SOP.
+%
+BFlow can, for example, be used to confine third-party code such as
+the password strength checker by placing the untrusted code in a
+tainted \emph{protection zone}, which is a group of iframes that share
+a common label.
+%
+However, unlike \sys{}, BFlow is not amendable to a mutually
+distrusting scenario and thus new applications such as the encrypted
+document editor and password manager cannot be implemented without
+giving up trust.
+%
+This stems from two design design points.
+%
+First, BFlow uses hierarchical confinement: the label of a subframe
+(of a different protection zone) must have a more restricting label
+than its parent; hence, an frame cannot impose any restrictions on its
+parent.
+%
+Second, BFlow labels cannot encode the fact that data may be sensitive
+to two websites and thus application, such as the encrypted editor and
+password manager, that require one party to partially declassify a
+piece of information cannot be expressed.
+%
+(For declassification, BFlow relies on a top-level \emph{trusted zone}
+that can always \emph{completely} declassify the data in the page.)
+%
+This latter design point further prevents BFlow from being amendable
+to building applications, such as our third-party mashup, that rely on
+a policy more flexible than the SOP.
+%
+In fairness, BFlow did not consider applications with mutually
+distrusting parties---their goal was to confine untrusted third-party
+scripts, and indeed succeed at doing so.
+%
+Moreover, while \sys{} propagates labels using HTTP headers and is
+amendable to confining one user's code from another on the same
+website, we do not provide a server that implements this
+functionality; developers can use BFlow's server-side component or
+systems such as Hails~\cite{giffin:2012:hails} and
+Aeolus~\cite{cheng:aeolus} to ensure that labels are propagated
+appropriately in an end-to-end fashion.
+%
+\Red{I think the story might be even better for us: I don't think they
+can build password checker where the latter is an iframe hosted on
+other domain.}
+
+
+% DCS 
+\Red{DCS}
+More recently, Akhawe \emph{et al.} proposed extending the browser
+with data-confined sandboxes (DCS)~\cite{Akhawe2013}.
+%
+DCS provides pages with the ability to intercept and monitor the
+network, storage and cross-origin channels of iframes that have
+\verb|data:| URI.
+%
+This, in turn, can be used used to confine code such as the password
+strength checker.
+%
+Unfortunately, limiting the confinement to \verb|data:| URI iframes
+means that DCS cannot be used to confine a password strength checker
+service, i.e., checker supplied in the form of an iframe by a
+third-party.
+%
+Like BFlow, DCS address the third-party library confinement problem
+and thus does not have the symmetry property of \sys{}---an iframe
+cannot impose restrictions on the parent---that is crucial for
+building new applications such as the encrypted editor or password
+manager.
+%
+Unlike \sys{}, DCS is not limited to using labels for policy
+specification; instead, it allows a page to implement policies using
+arbitrary JavaScript.
+%
+However, to ensure that the monitor cannot be used to learn more
+information about the iframe content than allowed by the SOP, the
+kinds of policies that a page can impose on an iframe is limited
+(e.g., DCS cannot impose restrictions on redirects).
+%
+\sys{} does not have this limitation since the iframe itself imposes
+the policy (albeit as a result of wishing to receive sensitive data
+from the parent).
+%
+This design choice of using declarative policies further allows us to
+relax the SOP and build applications such as the third-party mashup.
+%
+However, while we believe that using labels is sufficient for many
+web applications, we recognize this as a limitations of \sys{} and
+leave the investigation of expressiveness to future work.
+\Red{It's not clear if an iframe can monitor a sub-iframe}
+
+%% Recently, and different from other sandboxes approaches, the
+%% data-confined sandbox system~\cite{Akhawe2013} (DCS) restricts
+%% propagation of information by using \js|iframes| and mediating
+%% cross-domain operations (e.g. access to local storage, fragment-IDs,
+%% network communication, etc.).  Every sandbox communicates by
+%% \js!postMessage! only with its designated parent. The parent defines
+%% the confinement policy and plays the role of man-in-the-middle when a
+%% sandbox wish to communicate with another one. While having similar
+%% goals, DCS is more restrictive than \sys. DCS disallows dynamic code
+%% evaluation inside sandboxes and presents a not egalitarian design,
+%% i.e., a sandbox (\js|iframe|) cannot host another sandbox. Clearly,
+%% the DCS client-side TCB is smaller than ours.
+
+%% BFlow~\cite{Yip:2009:PBS} is a confinement system for web browsers. It tracks
+%% flows of information at the granularity of \emph{secure zones}, i.e.,
+%% compartments composed of one or several iframes.  {\sys} does not require such
+%% abstraction, it relies on the compartment notions already provided by browsers,
+%% i.e., iframes and workers. Similar to our approach, BFlow uses \js|postMessage|
+%% for communication across secure zones. BFlow does not allow JavaScript code in
+%% different secure zones to write to shared DOM variables and cookies regardless
+%% their security labels.  While \sys~ supports more expressive labels, potentially
+%% including different domains, BFlow can propagates labeled data to the server
+%% side. It is stated as future work to achieve a similar feature.
+
+
 
 % Javascript Sandboxing: JSand and TreeHouse
 %Although less related, 
@@ -71,79 +192,6 @@ JavaScript engine and DOM elements. To handle implicit flows, authors use a
 control flow stack (neglecting exceptions), and inject labels at the HTML parser
 for dynamically generated code. Instead, \sys{} allows to handle any type of
 branches or dynamic code by just using browsing contexts.
-
-% BFlow
-\Red{BFlow}
-A closely related work is BFlow~\cite{Yip:2009:PBS}.
-%
-Like \sys{}, BFlow allows websites to enforce confinement policies
-that are stricter than the SOP.
-%
-BFlow can, for example, be used to confine third-party code such as
-the password strength checker by placing the untrusted code in a
-tainted \emph{protection zone}, which is a group of iframes that share
-a common label.
-%
-However, unlike \sys{}, BFlow is not amendable to a mutually
-distrusting scenario and thus new applications such as the encrypted
-document editor and password manager cannot be implemented without
-giving up trust.
-%
-This stems from two design design points.
-%
-First, BFlow uses hierarchical confinement: the label of a subframe
-(of a different protection zone) must have a more restricting label
-than its parent; hence, an frame cannot impose any restrictions on its
-parent.
-%
-Second, BFlow labels cannot encode the fact that data may be sensitive
-to two websites and thus application, such as the encrypted editor and
-password manager, that require one party to partially declassify a
-piece of information cannot be expressed.
-%
-(For declassification, BFlow relies on a top-level \emph{trusted zone}
-that can always \emph{completely} declassify the data in the page.)
-%
-This latter design point further prevents BFlow from being amendable
-to building applications, such as our third-party mashup, that rely on
-a policy more flexible than the SOP.
-%
-In fairness, BFlow did not consider applications with mutually
-distrusting parties---their goal was to confine untrusted third-party
-scripts, and indeed succeed at doing so.
-%
-Moreover, while \sys{} propagates labels using HTTP headers and is
-amendable to confining one user's code from another on the same
-website, we do not provide a server that implements this
-functionality; developers can use BFlow's server-side component or
-systems such as Hails~\cite{giffin:2012:hails} and
-Aeolus~\cite{cheng:aeolus} to ensure that labels are propagated
-appropriately in an end-to-end fashion.
-
-%% BFlow~\cite{Yip:2009:PBS} is a confinement system for web browsers. It tracks
-%% flows of information at the granularity of \emph{secure zones}, i.e.,
-%% compartments composed of one or several iframes.  {\sys} does not require such
-%% abstraction, it relies on the compartment notions already provided by browsers,
-%% i.e., iframes and workers. Similar to our approach, BFlow uses \js|postMessage|
-%% for communication across secure zones. BFlow does not allow JavaScript code in
-%% different secure zones to write to shared DOM variables and cookies regardless
-%% their security labels.  While \sys~ supports more expressive labels, potentially
-%% including different domains, BFlow can propagates labeled data to the server
-%% side. It is stated as future work to achieve a similar feature.
-
-% DCS 
-Recently, and different from other sandboxes approaches, the
-data-confined sandbox system~\cite{Akhawe2013} (DCS) restricts
-propagation of information by using \js|iframes| and mediating
-cross-domain operations (e.g. access to local storage, fragment-IDs,
-network communication, etc.).  Every sandbox communicates by
-\js!postMessage! only with its designated parent. The parent defines
-the confinement policy and plays the role of man-in-the-middle when a
-sandbox wish to communicate with another one. While having similar
-goals, DCS is more restrictive than \sys. DCS disallows dynamic code
-evaluation inside sandboxes and presents a not egalitarian design,
-i.e., a sandbox (\js|iframe|) cannot host another sandbox. Clearly,
-the DCS client-side TCB is smaller than ours.
 
 % Secure multi-execution in the browser? 
 FlowFox~\cite{DeGroef:2012} adapts secure-multi execution~\cite{Devriese:2010}
