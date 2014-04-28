@@ -73,6 +73,15 @@ for dynamically generated code. Instead, \sys{} allows to handle any type of
 branches or dynamic code by just using browsing contexts.
 
 % BFlow
+\Red{
+  - encrypted docs: trusted zone and lack of symmetry on what child
+  can impose on parent frame (want frames)
+  - password manager: labels cannot contain tags from different
+  websites: can't do partial declassification
+  - third party mashup
+  + third-parthy libraries/services
+  + labels to server (we do too)
+}
 BFlow~\cite{Yip:2009:PBS} is a confinement system for web browsers. It tracks
 flows of information at the granularity of \emph{secure zones}, i.e.,
 compartments composed of one or several iframes.  {\sys} does not require such
