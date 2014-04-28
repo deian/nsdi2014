@@ -3,28 +3,27 @@
 
 In this section, we describe the \sys{} system.
 %
-Unlike existing browser security mechanisms, \sys{} provides
-\emph{confinement:} it gives code access to sensitive
+Unlike existing browser security mechanisms, \sys{}'s emphasis
+is on providing \emph{confinement:} the ability to give code access to sensitive
 data while ensuring that the code cannot release that sensitive
 data arbitrarily~\cite{SaltzerS75}.
 %
 Our confinement mechanism allows developers to enforce both policies
 that are stricter than the SOP and policies that are more flexible
-than the SOP (yet still safe), without imposing the limitations of CSP
-and CORS\@.
+than the SOP, while still providing understandable security assurances.
 
-\subsection{Compartments on the web}
+\subsection{Compartments and origins}
 
-A compartment in the browser corresponds to a JavaScript execution
-context with its own heap, e.g.\@ a web page, iframe, or even a Web
-Worker~\cite{workers} (which is isolated from its parent context so that
-it can run in parallel).  A compartment is associated with a security
-policy which dictates what web sites the compartment is allowed to
-access and what other compartments the compartment can communicate with.
-\sys{} adopts the same model of compartment that is already prevalent on
-the web. However, we apply a security policy which is different
-from the traditional Same-Origin Policy, which only restricts reading
-data from other origins.  We describe this policy in the next section.
+The basic unit of confinement in \sys{}---a compartment---corresponds to
+a JavaScript execution context, e.g.\@ a browser tab, an iframe on a
+page, or even a Web Worker~\cite{workers}.  Both compartments as well as
+web sites are associated with security policies which dictate what kind
+of messages and requests are permitted to flow with other compartments
+and web sites.  This model of a compartment is already prevalent on the
+web; however, our security policies are different from the traditional
+Same-Origin Policy, which only restricts compartments from reading data
+from arbitrary web sites.  We describe our new policy in the next
+section.
 
 \subsection{Labels}
 
@@ -32,7 +31,7 @@ The method by which security policies in our system are specified
 are using \emph{labels}.
 %
 Conceptually, a label protects all of the data associated with a
-compartment or website, specifying what origins can read and write the data.
+compartment, specifying what origins can read and write the data.
 %
 The particular labels that are used in \sys{} are \emph{DC
 labels}, presented in~\cite{stefan:2011:dclabels}.
@@ -213,24 +212,9 @@ data a piece of code executing in the compartment can access.
 %security mechanisms, and DOM API (using WebIDL-like syntax), in
 %Table~\toref{table:components}.
 
+\subsection{Lightweight workers}
 
-\section{Applications}
-\label{sec:system:worker}
-
-%\para{\sys{} approach}
-%
-%
-%% (Rather today's mechanisms give developers a limited form of access
-%% control.)
-%
-\sys{} allows developers to treat a piece of code as untrusted and
-confine it, in turn. This functionality is instrumental in supporting
-the password-checker application.
-%
-We first consider the confinement of untrusted libraries that do not
-rely on the DOM; in Sections~\ref{sec:system:iframe} and
-\ref{sec:system:extension} we address confinement of third-party code
-with access to the DOM.
+% DOM workers (paragraph at the end)
 
 As noted in Section~\ref{sec:goals}, and previously observed
 in~\cite{Ingram:2012}, workers are a good first step towards reasoning
@@ -260,6 +244,60 @@ window object to attach to the worker.
 %
 We discuss the role of the latter two arguments in
 Sections~\ref{sec:system:script} and \ref{sec:system:extension}.
+
+To address these issues, we allow developers to create labeled workers that
+have access to the page DOM and page-origin privilege.
+%
+(We naturally call them \emph{labeled DOM workers}.)
+%
+As noted in Section~\ref{sec:system:worker}, the \js|LWorker|
+constructor can be supplied with a \js|Privilege| and \js|Window|
+argument.
+%
+These arguments, for example, allow \https{bank.ch} to create a labeled DOM
+worker that has access to the \https{bank.ch} privilege before completely
+confining the page:\footnote{
+  Since untrusted code will be executing in the context, we use a
+  closure to ensure that the privileges do not escape into the outer
+  scope.
+}
+
+Of course, allowing a labeled DOM worker to arbitrary inspect and
+modify the page is not safe.
+%
+Notably, when untrusted code is executed in such a worker.
+%
+Thus, \sys{} mediates all worker DOM access to ensure that no information can
+(unsafely) leak between the compartments.
+%
+Specifically, for all \js|get|, \js|set| and \js|call| operations we
+ensure that both the page label subsumes the label of the worker 
+and the label of the worker subsumes the page label,
+both taking into consideration the worker's privileges.
+%
+In other words, this requires the label of the worker and page be the same,
+when considering the worker's privileges.
+
+\subsection{Labeled blobs}
+
+\section{Applications}
+\label{sec:system:worker}
+
+%\para{\sys{} approach}
+%
+%
+%% (Rather today's mechanisms give developers a limited form of access
+%% control.)
+%
+\sys{} allows developers to treat a piece of code as untrusted and
+confine it, in turn. This functionality is instrumental in supporting
+the password-checker application.
+%
+We first consider the confinement of untrusted libraries that do not
+rely on the DOM; in Sections~\ref{sec:system:iframe} and
+\ref{sec:system:extension} we address confinement of third-party code
+with access to the DOM.
+
 
 Using this API, we create a new LWorker that executes the
 password-strength checker code and registers a callback to receive the
@@ -905,22 +943,6 @@ change in the semantics of web pages.
 
 
 
-To address these issues, we allow developers to create labeled workers that
-have access to the page DOM and page-origin privilege.
-%
-(We naturally call them \emph{labeled DOM workers}.)
-%
-As noted in Section~\ref{sec:system:worker}, the \js|LWorker|
-constructor can be supplied with a \js|Privilege| and \js|Window|
-argument.
-%
-These arguments, for example, allow \https{bank.ch} to create a labeled DOM
-worker that has access to the \https{bank.ch} privilege before completely
-confining the page:\footnote{
-  Since untrusted code will be executing in the context, we use a
-  closure to ensure that the privileges do not escape into the outer
-  scope.
-}
 \begin{jscode}
 var tcb =
   (function() {
@@ -960,21 +982,6 @@ layer that can perform arbitrary network request---the labeled worker
 can directly inspect and modify the DOM and has the privilege to fetch
 arbitrary resources.
 
-Of course, allowing a labeled DOM worker to arbitrary inspect and
-modify the page is not safe.
-%
-Notably, when untrusted code is executed in such a worker.
-%
-Thus, \sys{} mediates all worker DOM access to ensure that no information can
-(unsafely) leak between the compartments.
-%
-Specifically, for all \js|get|, \js|set| and \js|call| operations we
-ensure that both the page label subsumes the label of the worker 
-and the label of the worker subsumes the page label,
-both taking into consideration the worker's privileges.
-%
-In other words, this requires the label of the worker and page be the same,
-when considering the worker's privileges.
 %
 In the above example, the bank \js|tcb| worker is able to inspect and
 modify the DOM because the effective label of the worker equals that
