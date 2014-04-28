@@ -1,6 +1,57 @@
 \section{Implementation}
 \label{sec:implementation}
 
+\begin{figure}
+{\small{
+\begin{webidl}
+Label {
+  Label Label([String])
+  Label and(String or Label)
+  Label or(String or Label)
+  bool subsumes(Label [,Privilege])
+}
+\end{webidl}
+\begin{webidl}
+Privilege {
+  Privilege FreshPrivilege()
+  Privilege combine(Privilege)
+  Label asLabel()
+}
+\end{webidl}
+}}
+\vspace{-10pt}
+\caption{\label{fig:APIspec} API for policy specification}
+\vspace{-10pt}
+\end{figure}
+
+
+\begin{figure}
+{\small
+\begin{webidl}
+SWAPI {
+  static attribute Label label
+  static attribute Label clearance 
+  static attribute Privilege privilege
+  static void postMessage(Window, Object 
+                          [, Label])
+}
+\end{webidl}
+\begin{webidl}
+LWorker {
+  LWorker LWorker(String, Label
+                  [, Privilege, Window])
+  LWorker SOLWorker(String, Label)
+  postMessage(Object [,Label])
+  attribute EventHandler onmessage
+}
+\end{webidl}
+}
+\vspace{-10pt}
+\caption{\label{systemAPI} API for compartments}
+\vspace{-10pt}
+\end{figure}
+
+
 We implemented \sys{} in the Firefox and Chrome browsers.
 %
 The API shown in Figures~\ref{fig:APIspec} and \ref{systemAPI} is specified in 264
