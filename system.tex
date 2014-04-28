@@ -16,25 +16,34 @@ than the SOP, while still providing understandable security assurances.
 
 The basic unit of confinement in \sys{}---a compartment---corresponds to
 a JavaScript execution context, e.g.\@ a browser tab, an iframe on a
-page, or even a Web Worker~\cite{workers}.  Both compartments as well as
-web sites are associated with security policies which dictate what kind
-of messages and requests are permitted to flow with other compartments
-and web sites.  This model of a compartment is already prevalent on the
-web; however, our security policies are different from the traditional
-Same-Origin Policy, which only restricts compartments from reading data
-from arbitrary web sites.  We describe our new policy in the next
-section.
+page, or even a Web Worker~\cite{workers}.
+%
+Each compartment and web site is associated with security policy which
+dictates what kind of messages and requests are permitted to flow with
+other compartments and web sites.%
+%
+\footnote{
+    Excepting web site to web site flow, which is a strictly server-side
+    concern and might be addressed by a system
+    like~\cite{giffin:2012:hails}.
+}
+%
+This model of a compartment is already prevalent on the web; however,
+our security policies are different from the traditional Same-Origin
+Policy, which only restricts compartments from reading data from
+arbitrary web sites.
+%
+We describe the structure of our security policies in the next section.
 
 \subsection{Labels}
 
-The method by which security policies in our system are specified
-are using \emph{labels}.
+The security policies in our system are specified using \emph{labels}.
 %
-Conceptually, a label protects all of the data associated with a
-compartment, specifying what origins can read and write the data.
+Conceptually, a label protects all data associated with a compartment or
+web site, specifying what origins can read the data.
 %
-The particular labels that are used in \sys{} are \emph{DC
-labels}, presented in~\cite{stefan:2011:dclabels}.
+The particular labels that are used in \sys{} are \emph{DC labels},
+presented in~\cite{stefan:2011:dclabels}.
 %
 We chose DC labels, much like Hails~\cite{giffin:2012:hails} and
 Breeze~\cite{Breeze13}, because they have a simple and clear
@@ -42,54 +51,63 @@ semantics, yet are as expressive as the labels used by other practical
 confinement systems~\cite{GenLabels}.
 
 A privacy label (henceforth just label) is a boolean formula over
-origins:  intuitively, it specifies what origins can read this data.%
+origins.%
+%
 \footnote{
   Our system also handles \emph{integrity}, but it is omitted from
   the discussion for simplicity.
 }
 %
-We sometimes abuse terminology and use the phrase  ``label of a
-browsing context'' to mean the label on the compartment that contains
-the browsing context's document, even though, for example, Worker
-compartments do not have a document or browsing
-context~\cite{workers}.
-%
-By default, the label of a compartment is the origin of the source
-website; e.g.\ an iframe hosted by {\tt https://bank.ch} would be
-labeled {\tt https://bank.ch}.
-%
-When a compartment wishes to send a message to another compartment (or
-any sort of one-way communication), we check if the target
-label logically implies the source label: intuitively, we are checking
-that the security of the destination is sufficient to preserve the
-original security policy.
+When a compartment wishes to send a message to another compartment or
+web site, we check if the target label logically implies the source
+label: intuitively, this require that the security of the destination be
+\emph{as strong as} original security policy.
 %Reworded version: Intuitively, an entity is allowed to receive data that is at most as
 %sensitive as its label, i.e., the entity's label always \js|subsumes|
 %the label of the data it can receive, preserving the latter's privacy.
-\Red{maybe something about how this makes it first
-class: the fact that policies are preserved means that if a library has
-sub-libraries, they will get the appropriate policy enforced}
+%   \Red{maybe something about how this makes it first
+%   class: the fact that policies are preserved means that if a library has
+%   sub-libraries, they will get the appropriate policy enforced}
 %
-For example, a compartment labeled ``\https{bank.ch} and \https{amazon.com}''
-%\js|Label("https://bank.ch").and("https://amazon.com")|
-could contain sensitive data from both origins.
+Why is a label represented as a boolean formula rather than simply
+as a set of origins?
 %
-%Such a label may be used by an application that compares bank
-%statements with Amazon purchases.
+As it turns out, both conjunctions (``and'')
+and disjunctions (``or'') are useful for specifying security policies.
 %
-It can read data from either website, but
-it cannot make a request to \https{amazon.com}, since the logical
-implication does not hold: rightfully
-so, since such a request could leak private information from \https{bank.ch}
-to \https{amazon.com}.
+Informally, a conjunction states what origins contributed sensitive data
+to the compartment, while a disjunction states what origins are allowed
+to read the data.
 %
-Conversely, data labeled ``\https{bank.ch} or \https{amazon.com}''
-can be passed to either website. \Red{Forward reference to privileges.}
+For example, a worker that processes your bank statement and your shopping
+history might have the label ``\https{bank.ch} and \https{amazon.com}''.
 %
-\todo{ds}{Maybe note that stylesheets are not compartment but a load
-caused by parsing a styleshee also obeys IFC since the stylesheet
-has a principal which contains a CSP encoding most of the important
-IFC stuff}
+While it can read messages from either origin, it cannot send data to
+\https{bank.ch}, as doing so might leak private information from
+\https{amazon.com} (and vice versa).\footnote{Note that even initiating a
+GET request constitutes sending data to an origin.}
+%
+Conversely, a compartment labeled ``\https{bank.ch} or \https{amazon.com}''
+could send data to either website; however, it could not receive any
+messages from either origin.
+%
+If this sounds restrictive, it is: in Section~\Red{priv} we discuss how
+an origin can exercise authority to relax this restriction.
+%
+%   \todo{ds}{Maybe note that stylesheets are not compartment but a load
+%   caused by parsing a styleshee also obeys IFC since the stylesheet
+%   has a principal which contains a CSP encoding most of the important
+%   IFC stuff}
+
+By default, the label of a compartment is simply the origin of the
+source website.
+%
+We sometimes abuse terminology and use the phrase  ``label of a browsing
+context'' to mean the label on the compartment that contains the
+browsing context's document, even though, for example, worker
+compartments do not have a document or browsing context~\cite{workers}.
+%
+For more details about DC labels, please see~\cite{stefan:2011:dclabels}.
 
 % it sort of sounds like this might be handled
 %   The implicit label of an end-point is simply \js|Label(|\emph{resource
@@ -109,23 +127,18 @@ IFC stuff}
 %to an entity labeled \js|lentity| if
 %\js|lentity.subsumes(ldata)| is \js|true|.
 %
-%
-We refer the interested reader to~\cite{stefan:2011:dclabels} for more
-details.
 
-\subsection{Label changes and privileges}
+\subsection{Label changes, privileges and clearance}
 
 While we have specified that the security policies of compartments
-are labels, we have not said how these policies are assigned.  A
-compartment can freely choose to \emph{raise} its label (opting
-into a more restrictive security policy).
+are labels, we have not said how these policies are assigned.
 %
-For example, a compartment labeled \https{bank.ch} cannot read data
-from \https{amazon.com} unless it raises its label to ``\https{bank.ch} and \https{amazon.com}''.
+We allow a compartment can freely choose to \emph{raise} its label,
+i.e.\ change its label to any label it logically implies.
 %
 This leads to a common interpretation of labels as ``taint;'' as
-a compartment reads data from more sources, the sensitivity of the
-data it contains increases.
+a compartment receives data from more sources, it raises its label
+to ensure that it can read the data.
 
 \Red{motivating sentence for privileges}
 %
