@@ -21,6 +21,7 @@ status quo web browsers.
 %forms the core of our system, \sys{}.
 
 \subsection{Contexts and the SOP}
+\label{sec:goals}
 
 \paragraph{Browsing contexts}
 \iffigures
@@ -133,11 +134,11 @@ tag referencing a resource at \js|sketchy.ru|, then the referenced
 script will have unfettered access to both the user's password
 (provided by the Facebook page, which the library {\em must} see to do
 its job) and to write to the network via XHR. This simple state of
-affairs is emblematic of the ease with which naive web developers can
+affairs is emblematic of the ease with which na\"{\i}ve web developers can
 introduce leaks of sensitive data in applications.
 
 A more skilled web developer could today host the checker script on
-its {\em own} server and have that server specify a content security
+her {\em own} server and have that server specify a content security
 policy (CSP)~\cite{csp} for the page that disallows scripts within the
 page from initiating XHRs to any other origins. But this discretionary
 access control policy is {\em too} restrictive, in that it precludes
