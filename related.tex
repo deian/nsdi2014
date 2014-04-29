@@ -191,20 +191,23 @@ mutual distrust (as the web). While recent results show how to lift this
 requirement in reactive systems (as the browser)~\cite{ZanariniJR13}, FlowFox
 has not yet incorporate them into its design.
 
-
-% Javascript Sandboxing: JSand and TreeHouse
-%Although less related, 
-Language-based approaches for sandboxing 
-JavaScript code have been a topic of recent research interest
-(e.g. Caja~\cite{GoogleCaja}, BrowserShield~\cite{Reis:2007}, WebJail~\cite{VanAcker:2011}, 
-TreeHouse~\cite{Ingram:2012}, JSand~\cite{Agten:2012:JCC}, SafeScript~\cite{SafeScript}, etc.).
-%Focusing on different security policies, several language-based approaches has
-%been divised to sandbox Javascript.  
-These proposals usually work in a similar manner: they mediate security critical
-operations as well as some of the browser's API (e.g. the DOM). We note that
-sandboxing policies are naturally different from confinement. \sys{}'s notion of
-cleareance, however, provides a notion of sandboxing, i.e., browsing
-contexts about a given clearance cannot be accessed.
+There is much work on sandboxing and developing subsets of JavaScript (e.g.,
+Caja~\cite{GoogleCaja}, BrowserShield~\cite{Reis:2007},
+WebJail~\cite{VanAcker:2011}, TreeHouse~\cite{Ingram:2012},
+JSand~\cite{Agten:2012:JCC}, SafeScript~\cite{SafeScript}, Defensive
+JavaScript~\cite{djs}). 
+%
+While some of these systems (e.g., TreeHouse) have inspired our design, the
+underlying high-level ideas behind these systems are to mediate security
+critical operations, restrict access to the DOM, and restrict communication APIS.
+%
+In contrast to the mandatory nature of confinement, however, most restrictions
+are imposed in a discretionary fashion and are thus not suitable to the
+building a number of the applications we consider (in particular, the encrypted
+editor).
+%
+Nevertheless, we believe that access control and language subsets are a crucial
+complement to confinement when building robust secure applications.
 
  
 % % JSand
