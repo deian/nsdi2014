@@ -1,0 +1,202 @@
+\section{Primer, Examples, and Goals}
+
+A single top-level web page often incorporates multiple scripts
+written by different authors.\footnote{Throughout we refer to ``web
+  page'' and ``web application'' (or ``web app'') interchangeably, and
+  ``JavaScript code'' and ``script'' interchangeably.} Ideally, the browser
+should robustly protect the user's sensitive data from unauthorized
+disclosure, yet afford page developers the greatest possible
+flexibility to construct rich, featureful applications that reuse
+functionality implemented in scripts provided by (potentially
+distrusted) parties. To make concrete the diversity of potential trust
+relationships between scripts' authors and diverse ways page
+developers may wish to structure amalgamations of scripts, we describe
+several example web applications, none of which can be implemented
+with strong privacy for the user in today's web browsers. These
+examples illustrate key requirements for the design of a flexible
+browser confinement mechanism. Before describing these examples,
+however, we offer a brief primer on the privacy policy enforced by
+status quo web browsers.
+% and a sketch of the labeling mechanism that
+%forms the core of our system, \sys{}.
+
+\subsection{Contexts and the SOP}
+
+\paragraph{Browsing contexts}
+\iffigures
+\begin{figure}
+%\includegraphics[width=\columnwidth]{setting.pdf}
+\begin{center}
+% I printed out, and it reads well!
+\includegraphics[scale=0.35]{setting.pdf}
+\end{center}
+\vspace{-10pt}
+\caption{\label{fig:primer-browser-arch} Browser architecture.}
+\vspace{-10pt}
+\end{figure}
+As shown in Figure~\ref{fig:primer-browser-arch}, a \else A \fi web page
+consists of content and JavaScript code.  A \emph{browsing context}
+presents a page's content to the user, and JavaScript code accesses
+content within the page through the \emph{Document Object Model
+  (DOM)}~\cite{html5}. Browsing contexts may be nested (e.g., by using
+iframes). They also may read and write persistent storage (e.g.,
+cookies) and issue network requests (either implicitly in page content
+that references a URL retrieved over the network, or explicitly in
+JavaScript, through invoking the \xhr{} (XHR) constructor).
+
+\paragraph{Origins and the SOP}
+Since different authors may contribute components within a page,
+today's status quo browsers impose a security policy on interactions
+among components. Policies are expressed in terms of \emph{origins}.
+An origin is a source of authority encoded by the protocol (e.g.,
+\js|http|), domain name (e.g., \js|fb.com|), and port (e.g., \js|443|)
+of a resource URL.\footnote{For brevity, we elide the protocol and
+  port from URLs throughout, and assume that they are respectively
+  \js|https| and \js|443|.}
+
+The {\em same-origin policy} (SOP) specifies that resources of an
+origin should only be readable by content from the same
+origin~\cite{rfc6454, googlehandbook, VanKesteren2012}.  Browsers
+ensure that code executing in an \https{a.com} context can only
+inspect the DOM and cookies of another context if they share the same
+(i.e., \https{a.com}) origin. Similarly, such code can only inspect
+the response to a network request (performed with XHR) if the remote
+host's origin is \https{a.com}.
+%
+%% In general, the SOP isolates code in one page from accessing client-
+%% and server-side data associated with another origin.
+ 
+The SOP does not, however, prevent code from disclosing data to
+foreign origins. For example, code executing in an \https{a.com}
+context can trivially disclose data to \https{b.com} by using XHR to
+perform a network request; the SOP only prevents the code from
+inspecting responses to such XHR requests, but does not impose any
+restrictions on sending such requests.
+Similarly, code can exfiltrate data by encoding it in the path of a
+URL whose origin is \https{b.com}, and setting the \js|src| property
+of an \js|img| element to this URL.
+
+% More generally, the ability to embed content from an arbitrary origin
+% can also be used to communicate data back into the page and ``bypass''
+% the SOP's goal of disallowing cross-origin reads.
+% %
+% This is possible because most content is not completely opaque. 
+% %
+% For example, images can encode data in properties such as width and
+% height (which are always readable), scripts can encode data in their
+% execution sequence (as done by JSON-P~\cite{jsonp}), etc.
+% %
+
+% The popularization of JSON-P and other ad-hoc cross-origin
+% communication methods, (notably, those relying on \js|window.name| and
+% \js|window.location|~\cite{thidpartyjs}), has lead to the introduction
+The HTML5 \js|postMessage| API~\cite{webmessaging}.
+allows code in different browsing contexts to exchange
+messages, as shown in Figure~\ref{fig:browser-arch}.
+%
+% Given a foreign-origin DOM window object \js|win|, the
+% \js|postMessage| method can be invoked on it to send the
+% foreign origin a message: \js|win.postMessage(message, destOrigin)|.
+% %
+% Since browsing contexts can be navigated, to prevent man-in-the-middle
+% attacks~\cite{barth2009securing}, a second argument
+% \js|destOrigin| is used to specify the intended origin of the message.
+%
+Unfortunately, a sending browsing context has no control over what a
+receiving browsing context can do with the the received data. Hence in the
+status quo, a developer should only send sensitive data using
+\js|postMessage| if she trusts the foreign origin.
+%
+% in Section~\ref{sec:system:iframe}, we describe how \sys{} precisely
+% allows code to impose restrictions on where the foreign-origin can
+% disseminate data received via \js|postMessage|, removing this need for
+% complete trust.
+
+%\paragraph{Labels}
+Having reviewed the building blocks of security policies in status-quo
+web browsers, we now turn to examples of web applications for which
+strong privacy is not achievable in the status quo. These examples
+illuminate key design requirements for the \sys{} browser confinement
+system, as well as the overall intuition behind its design.
+
+\subsection{Password Checker}
+
+Given users' propensity for choosing poor (i.e., easily guessable)
+passwords, many web sites today incorporate functionality to check the
+strength of a password selected by a user and offer the user feedback
+(e.g., ``too weak; choose another,'' ``strong,'' etc.). Suppose a
+developer at Facebook (at origin \js|fb.com|) wishes to re-use
+password-checking functionality provided in a JavaScript library by a
+third party, say, from origin \js|sketchy.ru|. If the developer at
+\js|fb.com| simply includes the third party's code in a \js|<script>|
+tag referencing a resource at \js|sketchy.ru|, then the referenced
+script will have unfettered access to both the user's password
+(provided by the Facebook page, which the library {\em must} see to do
+its job) and to write to the network via XHR. This simple state of
+affairs is emblematic of the ease with which naive web developers can
+introduce leaks of sensitive data in applications.
+
+A more skilled web developer could today host the checker script on
+its {\em own} server and have that server specify a content security
+policy (CSP)~\cite{csp} for the page that disallows scripts within the
+page from initiating XHRs to any other origins. But this discretionary
+access control policy is {\em too} restrictive, in that it precludes
+useful operations by the checker script, e.g., retrieving an updated
+set of regular expressions describing weak passwords from a remote
+server (essentially, ``updating'' the checker's functionality). Doing
+so requires communicating with a remote origin other than that of the
+top-level page.\footnote{Unfortunately, even permitting communication
+  with the top-level page's same origin is risky---a malicious script
+  could then write the password to a public page at that same origin,
+  in a {\em self-exfiltration attack}~\cite{selfex}.}
+
+Note that it is entirely safe and useful for an untrusted script to
+communicate with remote origins {\em before} it obtains sensitive
+data. We note, then, the requirement of a confinement mechanism that
+allows code in a browsing context to communicate with the network {\em
+  until it has been exposed to sensitive data.} MAC-based confinement
+meets this requirement.
+
+\begin{figure}
+\centerline{\includegraphics[width=\columnwidth]{checker-byhand}}
+\caption{\label{fig:checker} Third-party password checker architecture
+under \sys{}.}
+\end{figure}
+
+Figure~\ref{fig:checker} shows how such a design might look. In this
+and subsequent examples, rectangular frames denote browser contexts,
+arrows denote communication (either between a context and the network,
+or IPC-style between contexts), and events during execution are
+numbered sequentially in time. Contexts may be {\em labeled} with the
+origins to whose sensitive data they have been exposed. A context that
+has not yet observed sensitive data is denoted \js|public|, and a page
+that contains sensitive data can {\em raise} the label of its own
+browsing context to its own origin. Here, a top-level page at
+\js|fb.com| encapsulates a password-checker script from a third-party
+origin within an iframe browsing context. Each browsing context has a
+distinct current label. First, in step (1), the checker script is free
+to download updated regular expressions from an arbitrary remote
+origin. In step (2), the top-level page sends the user's password to
+the checker script's iframe using XHR; the browser {\em labels} the
+sent data with the origin of the page that sent it (in this case,
+\js|fb.com|). When the browser delivers the password to the checker
+script's context, it raises the label of the context to reflect that
+the context is about to be exposed to sensitive data from \js|fb.com|,
+and atomically denies the context further access to the network, to
+prevent exfiltration of the sensitive data. The checker script is then
+free to compute the result, which it returns via XHR to the top-level
+page; the result carries the label \js|fb.com| to reflect that the
+sender may be sending data derived from sensitive data owned by
+\js|fb.com|.
+% bk: unneeded to clutter this first simple example with the below, as
+% other examples illustrate the need for hierarchical confinement?
+%  We note further the requirement of a {\em hierarchical}
+% confinement mechanism: the checker script may itself invoke untrusted
+% code from still {\em other} third-party origins, and should be able to
+% further confine such untrusted code.
+
+\subsection{Ad Blocker}
+
+\subsection{Password Manager}
+
+\subsection{Third-Party Mashup}
