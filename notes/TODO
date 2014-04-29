@@ -1,0 +1,22 @@
+we definitely need to state explicitly (possibly even in the intro?)
+that our design doesn't break legacy pages/scripts (true, yes?), and
+explicitly explain why this is the case in the design section.
+
+can Deian or EZ convert the handwritten app figures into
+computer-drawn (i.e., straight lines, typeset text) ones? Thanks!
+
+need to update ezyang-adblock.pdf to incorporate numbers (to match
+other figures)!
+
+overall, "tab" depiction in figures won't be understood as "implying
+DOM" by OSDI reviewers; need to draw DOM explicitly within an origin's
+frame (e.g., as a rectangle within the frame)
+
+one more pretty relevant piece of related work:
+
+Embassies: Radically Refactoring the Web (Howell et al., NSDI 2013)
+Broadly speaking, takes on confining malicious code supplied by web
+servers within the browser. Pretty different than what we're doing in
+design, but not unrelated in end-to-end goal. Also a *very* impressive
+piece of work (won best paper).
+
