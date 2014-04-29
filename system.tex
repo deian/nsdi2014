@@ -20,14 +20,12 @@ page, or even a Web Worker~\cite{workers}.
 %
 Each compartment and web site is associated with security policy which
 dictates what kind of messages and requests are permitted to flow with
-other compartments and web sites.%
+other compartments and web sites.
 %
-\footnote{
-    Excepting web site to web site flow, which is a strictly server-side
-    concern and might be addressed by a system
-    like~\cite{giffin:2012:hails}.
-}
-%
+Compartments can create new compartments (e.g.\ a page can start a Web
+Worker); \sys{} extends the relevant APIs to also accept the security
+policy which should be applied to the new compartment.
+
 This model of a compartment is already prevalent on the web; however,
 our security policies are different from the traditional Same-Origin
 Policy, which only restricts compartments from reading data from
@@ -37,10 +35,12 @@ We describe the structure of our security policies in the next section.
 
 \subsection{Labels}
 
-The security policies in our system are specified using \emph{labels}.
+A \emph{label} is used to encode security policies in our system.
 %
 Conceptually, a label protects all data associated with a compartment or
 web site, specifying what origins can read the data.
+%
+Individual pieces of data can also be labeled, see Section~\Red{labeled}.
 %
 The particular labels that are used in \sys{} are \emph{DC labels},
 presented in~\cite{stefan:2011:dclabels}.
@@ -49,6 +49,9 @@ We chose DC labels, much like Hails~\cite{giffin:2012:hails} and
 Breeze~\cite{Breeze13}, because they have a simple and clear
 semantics, yet are as expressive as the labels used by other practical
 confinement systems~\cite{GenLabels}.
+%
+In this section, we give a brief description of DC labels; an interesting
+reader should see~\cite{stefan:2011:dclabels} for more details.
 
 A privacy label (henceforth just label) is a boolean formula over
 origins.%
@@ -59,9 +62,11 @@ origins.%
 }
 %
 When a compartment wishes to send a message to another compartment or
-web site, we check if the target label logically implies the source
-label: intuitively, this require that the security of the destination be
+web site, we check if the target label $l'$ logically implies the source
+label $l$ ($l' \rightarrow l$): intuitively, this require that the security of the destination be
 \emph{as strong as} original security policy.
+%
+We call this a \emph{label check}.
 %Reworded version: Intuitively, an entity is allowed to receive data that is at most as
 %sensitive as its label, i.e., the entity's label always \js|subsumes|
 %the label of the data it can receive, preserving the latter's privacy.
@@ -90,91 +95,85 @@ GET request constitutes sending data to an origin.}
 Conversely, a compartment labeled ``\https{bank.ch} or \https{amazon.com}''
 could send data to either website; however, it could not receive any
 messages from either origin.
+
+By default, the label of a compartment is simply the origin of the
+source website, unless the creator of the compartment explicitly
+specified a label for the compartment.
+%
+A compartment can freely \emph{raise} its label, i.e.\ change its label
+to any label it logically implies, but not vice versa.
+%
+This leads to a common interpretation of labels as ``taint;'' as
+a compartment receives data from more sources, it accumulates more
+conjuncts on account of raising its label to read the received data.
 %
 If this sounds restrictive, it is: in Section~\Red{priv} we discuss how
 an origin can exercise authority to relax this restriction.
-%
-%   \todo{ds}{Maybe note that stylesheets are not compartment but a load
-%   caused by parsing a styleshee also obeys IFC since the stylesheet
-%   has a principal which contains a CSP encoding most of the important
-%   IFC stuff}
 
-By default, the label of a compartment is simply the origin of the
-source website.
-%
-We sometimes abuse terminology and use the phrase  ``label of a browsing
-context'' to mean the label on the compartment that contains the
-browsing context's document, even though, for example, worker
-compartments do not have a document or browsing context~\cite{workers}.
-%
-For more details about DC labels, please see~\cite{stefan:2011:dclabels}.
+\subsection{Labeled blobs}
 
-% it sort of sounds like this might be handled
-%   The implicit label of an end-point is simply \js|Label(|\emph{resource
-%   origin}\js|)|.
-%   %
-%   So, for example, when performing an XHR request to \https{a.com} the
-%   label of the end server is considered to be \js|Label("https://a.com")|.
-%   %
-%   Thus this label must subsume the current label if the request is to be
-%   permitted.
+A \emph{labeled blob} is an arbitrary piece of data with a label
+associated with it.
+%
+A programmer can use labeled blobs to express security policy at
+a more fine-grained level than per-compartment.
+%
+Labeled blobs can be passed around as an opaque object (in which case one merely
+checks the security policy of the compartments involved).
+%
+However, when a piece of code wishes to inspect the contents of the
+labeled blob, a label check between the label of the blob and the
+current compartment occurs.
 
-%When exchanging information, the actual check performed by \sys{} is
-%logical implication, as implemented by the \js|Label| method
-%\js|subsumes|.
+Labeled blobs can be explicitly created by the programmer, and then
+passed around by container-to-container message passing.
 %
-%Specifically, \sys{} ensures that data labeled \js|ldata| can be only sent
-%to an entity labeled \js|lentity| if
-%\js|lentity.subsumes(ldata)| is \js|true|.
+However, a compartment can also make a request to a website using
+\emph{labeled XHR} and received a labeled blob, without raising their
+label read the data.
 %
+This effectively allows a developer to defer reading the result of
+a request: this is useful if the compartment merely plans on passing
+the labeled blob to another compartment, or if it needs to query
+multiple websites without raising its label (otherwise, upon reading
+its first response, it would raise its label and be unable to
+make any further requests.)
 
-\subsection{Label changes, privileges and clearance}
+\Red{I dunno, maybe some comments about how this pattern shows up
+in some web APIs, e.g.\ service workers}
 
-While we have specified that the security policies of compartments
-are labels, we have not said how these policies are assigned.
-%
-We allow a compartment can freely choose to \emph{raise} its label,
-i.e.\ change its label to any label it logically implies.
-%
-This leads to a common interpretation of labels as ``taint;'' as
-a compartment receives data from more sources, it raises its label
-to ensure that it can read the data.
+\subsection{Privileges}
 
-\Red{motivating sentence for privileges}
+In the opposite direction, it is often desirable for trusted code to be
+able to lower the current label or send a message with a lower label, so
+the recipient does not need to raise its label in order to read it.
 %
-A \emph{privilege} is an unforgeable object with which code can assert the
-authority of the corresponding origin, allowing it to declassify
-data.
+A \emph{privilege} is an unforgeable object with which code can assert
+the authority of the corresponding origin, allowing it to declassify
+data in this manner.
 %
-In \sys, a browsing context has the privilege corresponding to the
-page origin.
+Privileges are exercised implicitly: a compartment with a privilege $p$
+adjusts a label checks from $l$ to $l'$ by requiring that $l' \land p
+\rightarrow l$; intuitively, the privilege lets us sidestep security
+policy requirements related to the privilege's origin.
+
+There are two recurring usage patterns for privileges.
 %
-For example, a script running in an \https{amazon.com} page has the
-privilege corresponding to the \https{amazon.com} origin, and
-can take data labeled with this origin and make it public.
+The first is straight-forward declassification: a compartment labeled
+``\https{amazon.com}'' with the \https{amazon.com} privilege can decide
+to publicize your data to an arbitrary website by exercising its
+privilege.
 %
-In turn, this privilege is used when performing any \js|subsumes|
-label checks.
+The second is for creating data that is disjunctively labeled:
+with the privilege \https{amazon.com}, I can create data with
+the label ``\https{amazon.com} or \https{bank.ch}'': that is,
+data that can be read by either web site, but no one else.
+
+By default, a browsing context has the privilege corresponding to the
+page origin; this context might spawn other containers which don't
+retain the privilege.
 %
-\Red{Examples here are confusing, but basically the right idea}
-Without this privilege the script cannot perform any XHR requests
-(even to \https{bank.ch}) if the context label is
-``\https{bank.ch} and \https{amazon.com}'';
-such a conjunctive label cannot be subsumed by an end-point-label, and
-in this case, prevents data sensitive to \https{amazon.com}
-from being leaked to \https{bank.ch}.
-%
-However, with the  \https{amazon.com} privilege, the code can perform
-XHR requests to \https{bank.ch}; in doing so, it is exercising the
-authority over \https{amazon.com} data and effectively declassifying
-any \https{amazon.com}-sensitive data used in the request.
- 
-Importantly, code cannot synthesize arbitrary privileges.
-%
-For example a script executing in a \https{amazon.com} browsing
-context cannot create a privilege for \https{bank.ch} and declassify
-arbitrary bank data---this would trivially violate any confinement
-guarantees.
+The only case when 
 %
 In our system, code can only create the empty privilege (which is
 simply the JavaScript \js|null| value) and privileges corresponding
@@ -187,6 +186,7 @@ less trustworthy than its containing parent.  Figure~\ref{systemAPI} shows the
 API to handle privileges (primitives \js|combine| and \js|asLabel| to be 
 explained in the next subsection). 
 
+\subsection{Clearance}
 
 In an ideal confinement system, code can read arbitrary data at the
 cost of raising the context label (and thus giving up write
@@ -202,6 +202,8 @@ simply a label---with every compartment.
 Clearance imposes a limit on the kind of data a compartment can have,
 i.e., it is an upper-bound on compartment label, and thus the kind of
 data a piece of code executing in the compartment can access.
+
+\Red{Talk about user-prompted clearance setting}
 
 %   For completeness, we summarize  \sys{}'s API for compartments
 %   in Figure~\ref{systemAPI}. In the next subsection, 
@@ -224,74 +226,6 @@ data a piece of code executing in the compartment can access.
 %For completeness, we summarize the different system components,
 %security mechanisms, and DOM API (using WebIDL-like syntax), in
 %Table~\toref{table:components}.
-
-\subsection{Lightweight workers}
-
-% DOM workers (paragraph at the end)
-
-As noted in Section~\ref{sec:goals}, and previously observed
-in~\cite{Ingram:2012}, workers are a good first step towards reasoning
-about the security implications of untrusted code that does not need
-to access the DOM, since they provide a clean, isolated environment
-within which untrusted code can be executed.
-%
-However, workers are constrained by the SOP, CSP, etc.
-%
-Hence, we extend the Worker DOM API~\cite{workers} with a
-Labeled-Worker (LWorker).
-%
-Like a standard worker, an LWorker executes a piece of code in a fresh
-compartment that exposes a limited set of objects and properties.
-%
-Concretely, we expose the \sys{} API (including the \js|LWorker|
-constructor used to construct additional labeled Workers), the \xhr{}
-constructor used to perform network requests, and
-\js|onmessage|/\js|postMessage| used for communicating with the
-parent.
-%
-Different from the \js|Worker| constructor, the \js|LWorker|
-constructor, shown in Figure~\ref{systemAPI}, takes three additional
-arguments: a label that specifies the clearance on the code running in
-the worker, an optional privilege to grant the worker, and an optional
-window object to attach to the worker.
-%
-We discuss the role of the latter two arguments in
-Sections~\ref{sec:system:script} and \ref{sec:system:extension}.
-
-To address these issues, we allow developers to create labeled workers that
-have access to the page DOM and page-origin privilege.
-%
-(We naturally call them \emph{labeled DOM workers}.)
-%
-As noted in Section~\ref{sec:system:worker}, the \js|LWorker|
-constructor can be supplied with a \js|Privilege| and \js|Window|
-argument.
-%
-These arguments, for example, allow \https{bank.ch} to create a labeled DOM
-worker that has access to the \https{bank.ch} privilege before completely
-confining the page:\footnote{
-  Since untrusted code will be executing in the context, we use a
-  closure to ensure that the privileges do not escape into the outer
-  scope.
-}
-
-Of course, allowing a labeled DOM worker to arbitrary inspect and
-modify the page is not safe.
-%
-Notably, when untrusted code is executed in such a worker.
-%
-Thus, \sys{} mediates all worker DOM access to ensure that no information can
-(unsafely) leak between the compartments.
-%
-Specifically, for all \js|get|, \js|set| and \js|call| operations we
-ensure that both the page label subsumes the label of the worker 
-and the label of the worker subsumes the page label,
-both taking into consideration the worker's privileges.
-%
-In other words, this requires the label of the worker and page be the same,
-when considering the worker's privileges.
-
-\subsection{Labeled blobs}
 
 \section{Applications}
 \label{sec:system:worker}
