@@ -32,20 +32,27 @@ application which integrates the content and services of other web
 sites---they must trust the application itself with the login
 credentials and personal information of the constituent services.
 
-Out of this state of affairs fall two goals for web
-applications. First, {\em flexibility:} developers should be able to
+\Red{This transition is botched} Broadly speaking, we can identify two goals for web applications.
+%
+The first goal is {\em flexibility:\/} developers should be able to
 flexibly compose services, content, and JavaScript code from multiple
-parties into rich, featureful web applications. And second, {\em
-  privacy:} there should be strong guarantees that a user's privacy
-cannot be violated when a web application processes her sensitive
-data. These goals are hardly new. Wang {\em et al.} articulated
-similar ones, and proposed new browser primitives to improve isolation
-within mashups: sandboxes that allow pages not to share their data
-with JavaScript code they include, and discretionary access control
-(DAC) for inter-frame communication~\cite{mashupos}. Indeed, today's
-browsers incorporate similar mechanisms in the guises of HTML5's
-seamless iframes, iframe sandbox, and postMessage API~\cite{html5}.
-And the well known Same-Origin Policy (SOP, detailed in
+parties into rich, featureful web applications.
+%
+The second is {\em privacy:\/} there should be strong guarantees that a
+user's privacy cannot be violated when a web application processes her
+sensitive data.
+%
+These goals are hardly new: Wang {\em et al.} articulated similar goals
+and proposed new browser primitives to improve isolation within mashups:
+sandboxes that allow pages not to share their data with JavaScript code
+they include and discretionary access control (DAC) for inter-frame
+communication~\cite{mashupos}.
+%
+Indeed, today's browsers incorporate similar mechanisms, including
+HTML5's seamless iframes, iframe sandbox, and postMessage
+API~\cite{html5}.
+%
+And of course, the well-known Same-Origin Policy (SOP, detailed in
 Section~\ref{sec:background}) prevents JavaScript hosted by one principal from
 reading content hosted by another.
 
