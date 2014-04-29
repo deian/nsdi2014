@@ -53,6 +53,17 @@ appropriately in an end-to-end fashion.
 can build password checker where the latter is an iframe hosted on
 other domain.}
 
+%% BFlow~\cite{Yip:2009:PBS} is a confinement system for web browsers. It tracks
+%% flows of information at the granularity of \emph{secure zones}, i.e.,
+%% compartments composed of one or several iframes.  {\sys} does not require such
+%% abstraction, it relies on the compartment notions already provided by browsers,
+%% i.e., iframes and workers. Similar to our approach, BFlow uses \js|postMessage|
+%% for communication across secure zones. BFlow does not allow JavaScript code in
+%% different secure zones to write to shared DOM variables and cookies regardless
+%% their security labels.  While \sys~ supports more expressive labels, potentially
+%% including different domains, BFlow can propagates labeled data to the server
+%% side. It is stated as future work to achieve a similar feature.
+
 
 % DCS 
 \Red{DCS}
@@ -111,17 +122,74 @@ leave the investigation of expressiveness to future work.
 %% i.e., a sandbox (\js|iframe|) cannot host another sandbox. Clearly,
 %% the DCS client-side TCB is smaller than ours.
 
-%% BFlow~\cite{Yip:2009:PBS} is a confinement system for web browsers. It tracks
-%% flows of information at the granularity of \emph{secure zones}, i.e.,
-%% compartments composed of one or several iframes.  {\sys} does not require such
-%% abstraction, it relies on the compartment notions already provided by browsers,
-%% i.e., iframes and workers. Similar to our approach, BFlow uses \js|postMessage|
-%% for communication across secure zones. BFlow does not allow JavaScript code in
-%% different secure zones to write to shared DOM variables and cookies regardless
-%% their security labels.  While \sys~ supports more expressive labels, potentially
-%% including different domains, BFlow can propagates labeled data to the server
-%% side. It is stated as future work to achieve a similar feature.
 
+
+% JSFlow 
+JSFlow~\cite{JSFlow} is a fine-grained IFC system for JavaScript,
+implemented in JavaScript.
+%
+By associates labels with individual objects, JSFlow can be used to
+confine untrusted libraries, such as jQuery, that are intertwined with
+the page page, which may need to communicate over the network.
+%
+\sys{} is coarse-grained and, like BFlow. generally requires the
+application to be compartmentalized (e.g., by placing the page code
+that needs to communicate with the network in a lightweight DOM
+worker).
+%
+Unfortunately, the approach of providing an interpreter in JavaScript
+for JavaScript has three main drawbacks.
+%
+First, JSFlow cannot be used to confine style sheets that execute code
+or build applications that rely on policies more flexible than SOP,
+such as the third-party mashup, cannot be implemented in JSFlow.
+%
+%%Second, developers need to understand a new semantics for the core
+%%JavaScript language~\cite{Hedin:2012}, in contrast to a new DOM-leve
+%%API.
+%
+Second, library APIs, including the JavaScript built-in APIs and the
+DOM, must be individually modeled.
+%
+This not only restricts the APIs available to developers, but also
+incurs a huge performance cost (by two orders of magnitude).
+%
+While the goal of JSFlow has been to understand the foundation for
+fine-grained IFC for JavaScript, as opposed to providing a deployable
+solution, we believe that their work is complimentary.
+%
+Indeed, one can envision a system where some \sys{} compartments
+enforce fine-grained IFC by leveraging JSFlow (which may itself use
+the \sys{} API).
+
+
+%% Hedin and Sabelfeld~\cite{Hedin:2012} formally describe a sound language-based
+%% confinement mechanisms for a subset of JavaScript and their ideas are being
+%% currently applied to JSFlow~\cite{JSFlow}. %, a modified JavaScript interpreter.
+%% JSFlow is designed to confine legacy code, and because of that, it does an
+%% impressive effort to obtain fine-grain labeling of data. This is achieved at the
+%% price of proposing detailed models for capturing big parts of the browser
+%% semantics (e.g. interaction with the DOM), which drastically impact on
+%% performance (sometimes more than 100\%!).  We provide a more coarse-grain
+%% approach: \emph{\sys{} does not care for most of the JavaScript and DOM API
+%%   internals}. Instead, \sys~ uses the browsing contexts and simply
+%% mediates among them to preserve security.
+
+
+
+% With our
+% approach, webpage developers can obtain fine-grain IFC by restructuring their
+% code for security reasons.
+% Secure multi-execution in the browser? 
+FlowFox~\cite{DeGroef:2012} adapts secure-multi execution~\cite{Devriese:2010}
+(SME) for the web scenario. Authors show how FlowFox can enforce
+non-interference like policies for popular web cites. While \sys{} does not
+target legacy code, it can enforce a wider-range of policies
+(e.g. declassification). Different from \sys{}, FlowFox requires a total
+ordering of the security lattice, an uncommon assumption in an scenario with
+mutual distrust (as the web). While recent results show how to lift this
+requirement in reactive systems (as the browser)~\cite{ZanariniJR13}, FlowFox
+has not yet incorporate them into its design.
 
 
 % Javascript Sandboxing: JSand and TreeHouse
@@ -165,27 +233,6 @@ contexts about a given clearance cannot be accessed.
 % browser. Similarly, TreeHouse changes a synchronous call semantics to the DOM
 % API by an asynchronous one.
 
-
-% JSFlow 
-%Tracking IFC at the granularity level of JavaScript instructions is indeed
-%challenging. The main reason for that being the ramification of side-effects
-%triggered when evaluation scripts (e.g., implicit coercions, live collections
-%updates, and others). 
-Hedin and Sabelfeld~\cite{Hedin:2012} formally describe a sound language-based
-confinement mechanisms for a subset of JavaScript and their ideas are being
-currently applied to JSFlow~\cite{JSFlow}. %, a modified JavaScript interpreter.
-JSFlow is designed to confine legacy code, and because of that, it does an
-impressive effort to obtain fine-grain labeling of data. This is achieved at the
-price of proposing detailed models for capturing big parts of the browser
-semantics (e.g. interaction with the DOM), which drastically impact on
-performance (sometimes more than 100\%!).  We provide a more coarse-grain
-approach: \emph{\sys{} does not care for most of the JavaScript and DOM API
-  internals}. Instead, \sys~ uses the browsing contexts and simply
-mediates among them to preserve security.
-% With our
-% approach, webpage developers can obtain fine-grain IFC by restructuring their
-% code for security reasons.
-
 % ConDOM 
 Using WebKit, ConDOM~\cite{ConDOM} implements fine-grain label tracking at the
 JavaScript engine and DOM elements. To handle implicit flows, authors use a
@@ -193,16 +240,6 @@ control flow stack (neglecting exceptions), and inject labels at the HTML parser
 for dynamically generated code. Instead, \sys{} allows to handle any type of
 branches or dynamic code by just using browsing contexts.
 
-% Secure multi-execution in the browser? 
-FlowFox~\cite{DeGroef:2012} adapts secure-multi execution~\cite{Devriese:2010}
-(SME) for the web scenario. Authors show how FlowFox can enforce
-non-interference like policies for popular web cites. While \sys{} does not
-target legacy code, it can enforce a wider-range of policies
-(e.g. declassification). Different from \sys{}, FlowFox requires a total
-ordering of the security lattice, an uncommon assumption in an scenario with
-mutual distrust (as the web). While recent results show how to lift this
-requirement in reactive systems (as the browser)~\cite{ZanariniJR13}, FlowFox
-has not yet incorporate them into its design.
 
 
 
