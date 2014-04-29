@@ -1,3 +1,5 @@
+switch back to USENIX style rather than freaky IEEE proc
+
 we definitely need to state explicitly (possibly even in the intro?)
 that our design doesn't break legacy pages/scripts (true, yes?), and
 explicitly explain why this is the case in the design section.
