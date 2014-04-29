@@ -1,4 +1,9 @@
-\documentclass[conference]{IEEEtran}
+%\documentclass[conference]{IEEEtran}
+\documentclass[letterpaper,10pt,twocolumn]{article}
+\usepackage[nocopyright]{sigmin}
+%\usepackage{usenix}
+\usepackage{times}
+\usepackage{mathptmx}
 \usepackage{epsfig,endnotes}
 \usepackage{graphicx, url}
 \usepackage{enumerate}
@@ -98,21 +103,34 @@
 %%
 \begin{document}
 
+\frenchspacing
 \title{
-\Large \bf
+%\Large \bf
 Protecting Users by Confining JavaScript with \sys
 %\vspace*{-.5in}
 }
 
 \author{
-     {\rm Deian Stefan}\\Stanford
-\and {\rm Petr Marchenko}\\Google
-\and {\rm Brad Karp}\\UCL
-\and {\rm David Mazi\`eres}\\Stanford
-\and {\rm Alejandro Russo}\\Chalmers
-\and {\rm Dave Herman}\\Mozilla
-\and {\rm John C. Mitchell}\\Stanford
+Deian Stefan$^1\; $
+Petr Marchenko$^2\; $
+Edward Z. Yang$^1\; $\\
+Brad Karp$^3\; $
+David Mazi\`eres$^1\; $
+Alejandro Russo$^4\; $
+Dave Herman$^5\; $
+John Mitchell$^1$
 }
+\date{\vspace*{-.12in}$^1$Stanford University\quad $^2$Google\quad $^3$UCL\quad $^4$Chalmers\quad $^5$Mozilla\vspace*{-.28in}}
+
+% \author{
+%      {\rm Deian Stefan}\\Stanford
+% \and {\rm Petr Marchenko}\\Google
+% \and {\rm Brad Karp}\\UCL
+% \and {\rm David Mazi\`eres}\\Stanford
+% \and {\rm Alejandro Russo}\\Chalmers
+% \and {\rm Dave Herman}\\Mozilla
+% \and {\rm John C. Mitchell}\\Stanford
+% }
 
 \maketitle
 
@@ -129,11 +147,11 @@ Protecting Users by Confining JavaScript with \sys
 %\todo{all}{rather than use \emph{browsing contexts} which remain alive across
 %different documents, we should use \emph{execution contexts}}
 
-\newenvironment{CompactItemize}%
-  {\begin{list}{$\blacktriangleright$}%
-   {\leftmargin=\parindent \itemsep=2pt \topsep=2pt
-     \parsep=0pt \partopsep=0pt}}%
-  {\end{list}}
+% \newenvironment{CompactItemize}%
+%   {\begin{list}{$\blacktriangleright$}%
+%    {\leftmargin=\parindent \itemsep=2pt \topsep=2pt
+%      \parsep=0pt \partopsep=0pt}}%
+%   {\end{list}}
 \renewcommand{\labelitemi}{$\blacktriangleright$}
 
 \input{abstract}
