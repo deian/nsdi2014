@@ -14,6 +14,8 @@ than the SOP, while still providing understandable security assurances.
 
 \subsection{Compartments and origins}
 
+\Red{Have to be careful because this kind of repeats with Brad's new opening.}
+
 The basic unit of confinement in \sys{}---a compartment---corresponds to
 a JavaScript execution context, e.g.\@ a browser tab, an iframe on a
 page, or even a Web Worker~\cite{workers}.
@@ -21,6 +23,13 @@ page, or even a Web Worker~\cite{workers}.
 Each compartment and web site is associated with security policy which
 dictates what kind of messages and requests are permitted to flow with
 other compartments and web sites.
+%
+These messages might constitute one-way {\tt postMessage}s, or they might
+be two-way manipulation of a shared DOM\@.\footnote{While shared DOMs
+usually occur in the context of iframes, we also introduce a new type
+of Web Worker called a DOM Worker which shares a DOM with its parent.
+These workers run synchronously with the parent (rather than in parallel)
+and are solely used for confinement.}
 %
 Compartments can create new compartments (e.g.\ a page can start a Web
 Worker); \sys{} extends the relevant APIs to also accept the security
@@ -144,47 +153,51 @@ in some web APIs, e.g.\ service workers}
 
 \subsection{Privileges}
 
-In the opposite direction, it is often desirable for trusted code to be
+% Description of privileges
+A compartment is associated with a label representing its \emph{privilege}.
+%
+Privileges confer the authority to relax policy requirements
+with respect to the origins in the label.
+%
+This is useful when you have some trusted code which should be
 able to lower the current label or send a message with a lower label, so
 the recipient does not need to raise its label in order to read it.
 %
-A \emph{privilege} is an unforgeable object with which code can assert
-the authority of the corresponding origin, allowing it to declassify
-data in this manner.
-%
 Privileges are exercised implicitly: a compartment with a privilege $p$
 adjusts a label checks from $l$ to $l'$ by requiring that $l' \land p
-\rightarrow l$; intuitively, the privilege lets us sidestep security
-policy requirements related to the privilege's origin.
+\rightarrow l$.
 
-There are two recurring usage patterns for privileges.
+% Basic usage patterns of privileges
+Privileges offer another dimension of separation for compartments: two
+compartments might have the same label, but a trusted compartment might
+have a privilege while an untrusted compartment does not.
 %
-The first is straight-forward declassification: a compartment labeled
-``\https{amazon.com}'' with the \https{amazon.com} privilege can decide
-to publicize your data to an arbitrary website by exercising its
-privilege.
+The trusted compartment then has the ability to declassify data (making
+it public or sending it to a cross-origin website) or create data
+that is disjunctively labeled.
 %
-The second is for creating data that is disjunctively labeled:
-with the privilege \https{amazon.com}, I can create data with
-the label ``\https{amazon.com} or \https{bank.ch}'': that is,
-data that can be read by either web site, but no one else.
+That is, with the privilege \https{amazon.com}, I can create data with
+the label ``\https{amazon.com} or \https{bank.ch}'': this
+data can be sent to either web site but not to any other site.
 
+% Initial privileges and privilege creation
 By default, a browsing context has the privilege corresponding to the
-page origin; this context might spawn other containers which don't
-retain the privilege.
+page origin; this context can drop the privilege if it is not
+needed or spawn other containers sans privilege to run untrusted code.
 %
-The only case when 
+While privileges for existing origins cannot be created (that would be
+forgery), a privilege can be created for a fresh origin, i.e.\ an origin
+which does not correspond any actual web site, but which is guaranteed
+to be unique.
 %
-In our system, code can only create the empty privilege (which is
-simply the JavaScript \js|null| value) and privileges corresponding
-to fresh, unique origins (created with the \js|FreshPrivilege|
-constructor).
+A fresh origin is often used to run code under full isolation, since any
+compartment labeled with the fresh origin cannot communicate with any
+other compartment without exercising the corresponding privilege.
 %
-As in HiStar~\cite{Zeldovich:2006}, the ability to generate fresh privileges
-ensures that all browsing contexts are egalitarian, i.e., a child iframe is no
-less trustworthy than its containing parent.  Figure~\ref{systemAPI} shows the
-API to handle privileges (primitives \js|combine| and \js|asLabel| to be 
-explained in the next subsection). 
+Importantly, any code can allocate a origin-privilege pair: this
+makes isolation an egalitarian security mechanism: an untrusted library
+can use this mechanism to isolate a sub-library that it itself
+may not trust~\cite{Zeldovich:2006}.
 
 \subsection{Clearance}
 
@@ -203,7 +216,20 @@ Clearance imposes a limit on the kind of data a compartment can have,
 i.e., it is an upper-bound on compartment label, and thus the kind of
 data a piece of code executing in the compartment can access.
 
-\Red{Talk about user-prompted clearance setting}
+\Red{Clearance choice by user? We need to know what the default
+    clearance is.  The attack model is kind of funny: we want to argue
+    that covert channels are obvious (e.g. crashing your browser) or low
+    bit-rate; i.e. set in such a way that opting in to run the untrusted
+code on the sensitive data is materially less harmful than if the
+untrusted code ran automatically}
+
+%   In \sys{}, the clearance assigned to browsing contexts is primarily a
+%   choice made by the user.
+%   %
+%   ``Do I want to give this mash-up website (confined) access to my
+%   bank statement?''  In absence of covert channels, the user's choice
+%   makes no difference
+%   \Red{Similarity to content scripts}
 
 %   For completeness, we summarize  \sys{}'s API for compartments
 %   in Figure~\ref{systemAPI}. In the next subsection, 
