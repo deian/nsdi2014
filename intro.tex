@@ -25,12 +25,12 @@ referred to as {\em mashups.} A web application's behavior may be
 enhanced and/or customized further by {\em extensions} the
 user has installed into the browser, which in Firefox and Chrome take
 the form of JavaScript code written by other parties
-still. Unfortunately, some of the many contributors to the tangle of
+as well. Unfortunately, some of the many contributors to the tangle of
 JavaScript comprising a web application may not have the user's best
 interest at heart. Given that today's web applications manipulate such
 sensitive data as email, bank statements, health records, and users'
 passwords, there is great potential for violations of users' privacy
-by JavaScript contributed by miscreants.
+contributed by JavaScript miscreants.
 
 Out of this state of affairs fall two goals for web
 applications. First, {\em flexibility:} developers should be able to
@@ -86,7 +86,7 @@ provider's site.\footnote{The user has the further unpalatable
   provider's site to the web application---a potential
   privacy and integrity disaster for, say, one's online banking site,
   yet the precise model that services like {\tt mint.com} use for lack
-  of a better alternative.} It of course also potentially sacrifices
+  of a better alternative.} This, of course, also potentially sacrifices
 privacy, because the other origins are typically operated by other
 principals who may in turn leak any sensitive information they
 receive.
@@ -107,7 +107,7 @@ another library {\em it} does not trust. And finally, also in the
 interest of flexibility, the means of confinement should be {\em
   symmetric,} in that it should allow each principal on either side of
 a trust boundary to pass sensitive data to the other, while preventing
-the other principal from exfiltrating the data. 
+the other principal from exfiltrating it.  
 %
 This property, for instance, ensures that the parent of a
 sub-container cannot arbitrarily exfiltrate data it receives from the
