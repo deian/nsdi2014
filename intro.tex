@@ -1,36 +1,36 @@
 \section{Introduction}
 \label{sec:intro}
 
-Web applications have proliferated and found wide use because it is
-especially easy for developers to reuse components of existing web
-applications to create new ones. While component reuse in the
-venerable desktop software model typically takes the form of
-libraries, the reusable components in web applications aren't limited
-to just JavaScript library code---they further include
-network-accessible content and services (e.g., map data and
-storage). Such reuse is ubiquitous. jQuery, a widely used JavaScript
-library, is included in and used by 68\% of the Quantcast top-10,000
-web sites, and over 52\% of the Quantcast top-million web
+Web applications have proliferated because of the ease by which
+developers can reuse components of existing web applications.
+%
+While component reuse in the venerable desktop software model typically
+takes the form of libraries, the reusable components in web applications
+aren't limited to just JavaScript library code---they include
+network-accessible content and services.
+%
+This reuse is ubiquitous\@: jQuery, a widely used JavaScript
+library, is included in and used by 78\% of the Quantcast top-10,000
+web sites, and over 59\% of the Quantcast top-million web
 sites~\cite{quantcast}.
-\todo{ds}{update numbers}
 
-The resulting model is one in which web application developers cobble
-together multiple JavaScript libraries, web-based content, and
-web-based services written and operated by various parties (some of
-which may in turn incorporate libraries, content, and services from
-still other sources) and add their own JavaScript code that integrates
-these components and builds the required application-specific
-functionality atop them. Such web applications are today commonly
-referred to as {\em mashups.} A web application's behavior may be
-enhanced and/or customized further by {\em extensions} the
-user has installed into the browser, which in Firefox and Chrome take
-the form of JavaScript code written by other parties
-as well. Unfortunately, some of the many contributors to the tangle of
-JavaScript comprising a web application may not have the user's best
-interest at heart. Given that today's web applications manipulate such
-sensitive data as email, bank statements, health records, and users'
-passwords, there is great potential for violations of users' privacy
-contributed by JavaScript miscreants.
+When a developer uses these various libraries and services to build
+their application, one might wonder: to whom are we entrusting our
+private data---our email and bank statements, our health records and
+passwords?
+%
+Today, a web application trusts all of the parties who wrote and
+operate its dependencies.
+%
+This includes the developers of the libraries it uses and the content
+distribution network that hosts copies of these libraries; it even
+includes browser extensions a user might have installed, which run
+JavaScript written by other parties still.
+%
+From the perspective of a user, if the web application is a mashup---an
+application which integrates the content and services of other web
+sites---they must trust the application itself with the login
+credentials and personal information of the constituent services.
 
 Out of this state of affairs fall two goals for web
 applications. First, {\em flexibility:} developers should be able to
