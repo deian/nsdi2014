@@ -1,16 +1,31 @@
 \section{Evaluation}
 \label{sec:eval}
 
-In this section we evaluate the performance of \sys{}.
+When adding new browser features, even security-centric ones, the
+question of how performance or functionality is affected can become a
+roadblock to adoption.
 %
-We first evaluate the end-to-end performance of the
-applications described in Section~\ref{sec:app}, relative to
-implementations that simply trade off security for the features the
-apps provide.
+In the case of \sys{}, this question is two-fold.
+%
+First, are existing websites affected by our modifications?
+%
+Since our system relies on a page to enable confinement mode by using
+our API, the functionality of existing websites is not
+affected---hence we are solely concerned with how \sys{} affects the
+performance of existing apps.
+%
+Second, is the performance of an end-to-end application that uses
+\sys{} acceptable, for instance, when compared to a comparable, but
+insecure app?
+%
+In this section we answer these questions.
+%
+Specifically, we first evaluate the end-to-end performance of the
+applications described in Section~\ref{sec:apps}, relative to
+implementations that simply trade off security for features.
 %
 Then, we measure the performance impact of \sys{} on existing browser
-features and the additional overhead when confinement-mode is actually
-enabled.
+features with and without confinement-mode enabled.
 %
 All our measurements were conducted on a 4-core i7-2620M machine
 running GNU/Linux 3.13, with 16GB of RAM.
