@@ -8,7 +8,7 @@ Trying to think of a FAQ:
     7. Why does your design work? How do I know it's OK?
     8. What's new?
 
-switch back to USENIX style rather than freaky IEEE proc
+[DONE] switch back to USENIX style rather than freaky IEEE proc
 
 we definitely need to state explicitly (possibly even in the intro?)
 that our design doesn't break legacy pages/scripts (true, yes?), and
