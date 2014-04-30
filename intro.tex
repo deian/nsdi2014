@@ -52,9 +52,8 @@ Indeed, today's browsers incorporate similar mechanisms, including
 HTML5's seamless iframes, iframe sandbox, and postMessage
 API~\cite{html5}.
 %
-And of course, the well-known Same-Origin Policy (SOP, detailed in
-Section~\ref{sec:background}) prevents JavaScript hosted by one principal from
-reading content hosted by another.
+And of course, the well-known Same-Origin Policy prevents JavaScript
+hosted by one principal from reading content hosted by another.
 
 Unfortunately, in the status quo web browser security architecture,
 efforts to advance one of these two goals still often hamper achieving
@@ -64,8 +63,7 @@ functionality often dominates the concern for privacy, to users'
 peril). The browser may enhance privacy by applying discretionary
 access control when an untrusted script wishes to read
 potentially sensitive data. The various isolation mechanisms a modern
-browser applies (e.g., the SOP and Content Security Policies (CSP),
-both explored in Section~\ref{sec:background}) are flavors of DAC. But
+browser applies (e.g., the SOP and Content Security Policies (CSP)) are flavors of DAC. But
 the brittle ``all-or-nothing'' character of DAC thwarts the building
 of many useful mashups. Broadly speaking, DAC can either deny or grant
 untrusted JavaScript access to the sensitive data. In the former case,
@@ -81,7 +79,7 @@ origin with a {\tt <script>} tag, which effectively bypasses the SOP,
 interpolating the untrusted script into the enclosing page and
 granting the script unfettered access to the enclosing page's origin's
 content. Or a web server's operator may use Cross-Origin Resource
-Sharing (CORS, also treated in Section~\ref{sec:background}) to
+Sharing to
 explicitly enumerate other origins permitted to read content from that
 server (\Red{bypassing the SOP for those other origins}).
 This approach still limits flexibility, though, in that it requires a
