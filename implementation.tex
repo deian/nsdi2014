@@ -1,247 +1,346 @@
 \section{Implementation}
 \label{sec:implementation}
 
-\begin{figure}
-{\small{
-\begin{webidl}
-Label {
-  Label Label([String])
+\begin{figure}[t]
+  \begin{subfigure}{\columnwidth}
+    {\small
+    \begin{webidl}
+interface Label :
+  Label Label(String)
   Label and(String or Label)
   Label or(String or Label)
   bool subsumes(Label [,Privilege])
-}
-\end{webidl}
-\begin{webidl}
-Privilege {
+    \end{webidl}
+    \begin{webidl}
+interface Privilege :
   Privilege FreshPrivilege()
   Privilege combine(Privilege)
-  Label asLabel()
-}
-\end{webidl}
-}}
-\vspace{-10pt}
-\caption{\label{fig:APIspec} API for policy specification}
-\vspace{-10pt}
-\end{figure}
-
-
-\begin{figure}
-{\small
-\begin{webidl}
-SWAPI {
+  readonly attribute Label asLabel
+    \end{webidl}
+    }
+    \vspace*{-8pt}
+    \subcaption{Policy specification}
+    \label{fig:api:policy} 
+    \vspace*{8pt}
+  \end{subfigure}
+  \begin{subfigure}{\columnwidth}
+    {\small
+    \begin{webidl}
+interface LabeledBlob :
+  readonly attribute Label label
+  readonly attribute Blob blob
+    \end{webidl}
+    }
+    \vspace*{-8pt}
+    \subcaption{Labeled blobs}
+    \label{fig:api:blob} 
+    \vspace*{8pt}
+  \end{subfigure}
+  \begin{subfigure}{\columnwidth}
+    {\small
+    \begin{webidl}
+interface SWAPI :
+  static void enable()
   static attribute Label label
   static attribute Label clearance 
   static attribute Privilege privilege
-  static void postMessage(Window, Object 
-                          [, Label])
-}
-\end{webidl}
-\begin{webidl}
-LWorker {
+  static attribute Label domLabel
+    \end{webidl}
+    \begin{webidl}
+interface LWorker :
   LWorker LWorker(String, Label
-                  [, Privilege, Window])
-  postMessage(Object [,Label])
+                  [, Privilege, object])
+  postMessage(object)
   attribute EventHandler onmessage
-}
-\end{webidl}
-}
-\vspace{-10pt}
-\caption{\label{systemAPI} API for compartments}
-\vspace{-10pt}
+    \end{webidl}
+    }
+    \vspace*{-8pt}
+    \subcaption{Labeled compartments}
+    \label{fig:api:compartments}
+  \end{subfigure}
+  \caption{\sys{} programming interface in simplified WebIDL.}
+  \label{fig:api}
 \end{figure}
 
-
-We implemented \sys{} in the Firefox and Chrome browsers.
+We implemented \sys{} for the Firefox 31.0a1 and Chromium 31\Red{XXX}
+browsers.
 %
-The API shown in Figures~\ref{fig:APIspec} and \ref{systemAPI} is specified in 264
-lines of WebIDL~\cite{webidl} in Firefox and 70 lines in Chrome.
-\todo{pm}{70? we must have copied the info wrong}
+One of the motivations behind taking a coarse grained approach was to
+avoid reasoning about the complexities of information flow at the
+language level.
 %
-The remaining system is implemented in C++, modifying/extending the Gecko and
-Blink layout engines, in roughly 3.4K and 2.6K lines of code (LOC),
-respectively.
+This allowed us to implement \sys{} as a new DOM API for the Gecko and
+Blink layout engines, without modifying the JavaScript engines.
 %
-In all our LOC reports, we simply count the length of the source files which
-includes comments and empty-lines.
+The core parts of this API are shown in Figure~\ref{fig:api}; our full
+specification consists of \Red{264} lines of WebIDL~\cite{webidl}.
 %
-Below we detail the implementation of the various \sys{} components;
-in Section~\ref{sec:eval}, we present the implementation of the
-applications described in Section~\ref{sec:system}.
-
-%\subsection{Policies}
+The underlying Gecko and Blink implementations are roughly \Red{3.4K}
+and \Red{2.6K} lines of C++, respectively.\footnote{
+  In all our line counts we simply report the length of the source
+  files, which includes both comments and white space.
+}
 %
-Our implementation of the \js|Label|s and \js|Privilege|s is simply a port
-of the Haskell implementation presented
-in~\cite{stefan:2011:dclabels,stefan:2011:flexible}. 
-%
-In both Gecko and Blink, these DOM objects are implemented as C++ objects and
-mapped to JavaScript objects by binding code, i.e., every property access on
-the JavaScript object results in an invocation of a corresponding method on the
-Gecko/Blink C++ object via IDL binding code.
-%
-Our implementation for these objects  is straight forward and only differs in
-the two browsers because of their dependence on different container libraries;
-the Firefox and Chrome implementations are roughly 1K and 0.7K lines of C++
-code, respectively.
-%
-We note that much of this is a result of using C++ (and thus having
-to, for instance, implement method overloading to support a friendly
-API or handling errors without exceptions)---as a comparison a
-JavaScript implementation of labels is roughly 100 lines.
-%
-Below we describe the less-obvious implementation details; we focus on our
-Firefox implementation and only describe the Chrome implementation where the
+Below, we describe the these implementations; we focus on the Firefox
+implementation and only describe the Chromium implementation where the
 approach diverges in a non-trivial way.
 %
 
+\subsection{\sys{} DOM objects}
 
-Gecko's isolation model relies on \emph{compartments}, i.e., disjoint
-JavaScript heaps, for both garbage collection (GC) and
-security~\cite{wagner2011compartmental}.
+\paragraph{Labels and privileges}
 %
-The isolation is guaranteed by ensuring that all cross-compartment
+DOM objects such as \js|Label|s and \js|Privilege|s are implemented in
+C++ and made available to JavaScript using DOM binding code.
+%
+Hence, every property access on a JavaScript object results in an
+invocation of a corresponding method on the underlying Gecko/Blink C++
+object.
+%
+For example, \js|x.subsumes(y)| calls the underlying \js|Subsumes|
+method on the C++ object corresponding to \js|x|.
+%
+The implementation of labels and privileges is straight forward and
+follows directly from~\cite{stefan:2011:dclabels}.
+
+%% We solely remark that this approach of 
+%% imlementation corresponds to rougly 1/3 of
+%% the \sys{} code base; this large fraction is a direct result of using
+%% C++ and having to, for example, implement method overloading to
+%% support a friendly API and handle exceptional code with error codes.
+%% Do we care??
+
+\paragraph{Labeled blobs}
+%
+Though we rely on the cross-language barriers to ensure that arbitrary
+JavaScript cannot inspect the blob contents without raising the
+current label, the implementation of labels blobs is mostly straight
+forward.
+%
+There are only two details worth remarking.
+%
+First, instead of overloading the definition of \js|postMessage| to
+allow sending labeled data across browsing contexts, we modified the
+layout engine to add support for structurally cloning labeled blobs;
+this allows us to flexibly use labeled blobs where other structurally
+clonable objects (e.g., JSON) can be used, including \js|postMessage|.
+%
+Second, we modified the XHR code allow arbitrary cross-origin reading
+when the repose type is set to \verb|labeled-blob|;
+%
+as a consequence the \js|response| attribute returns a labeled blob.
+%
+Unfortunately, the XHR specification for other attributes, such as
+\js|status|, is to return primitive values (non objects) and our
+implementation raises the current label to reflect the observation of
+potentially sensitive data.\footnote{
+An alternative implementation can, at the cost of backwards
+incompatibility, label all the attributes of XHR instead of raising
+the current label and returning the ``unlabeled'' attribute.
+}
+
+\paragraph{Light-weight workers}
+%
+The \js|LWorker| API of Figure~\ref{fig:api:compartment} is used to
+create and communicate with light-weight labeled workers.
+%
+Different from ``normal'' workers which create a new OS thread, the
+constructor code for \js|LWorker| simply create a new compartment
+(described below) which contains a fresh JavaScript global; the
+execution of this code shares the event-loop with its parent (much
+like creating a callback with \js|setTimeout|).
+%
+As such, a page can confine code without incurring the
+penalties of creating OS threads or full IPC for message
+passing---dispatching messages to/from light-weight workers is cheap
+since it the data is on the same heap.
+%
+(Of course this is at the cost of parallelism.)
+%
+More importantly, the sharing of the event loop also allows a page to
+give workers access their DOM.
+%
+Our implementation of this is very similar to the implementation of
+Add-on SDK content-scripts~\cite{addon-sdk}; in fact, our Firefox
+implementation uses the same \js|Sandbox| objects~\cite{mdn-sandbox}
+used by these content scripts.
+%
+Below we consider compartments more generally.
+ 
+
+\subsection{Compartments}
+\begin{table}
+\resizebox{1.0\columnwidth}{!}{
+\centering
+\begin{tabular}{l|l}
+\toprule
+\textbf{Channel}           & \textbf{Mechanism}
+\\\midrule%------------------------------------------------------
+\js|postMessage|           & Cross-compartment wrappers\footnote{
+Since the Chromium architecture does not have cross-compartment
+wrappers, our implementation modifies the DOM binding code to insert
+label checks.}
+\\\hline%--------------------------------------------------------
+DOM window properties      & Cross-compartment wrappers
+\\\hline%--------------------------------------------------------
+Content loading            & CSP
+\\\hline%--------------------------------------------------------
+XHR                        & CSP
+\\\hline%--------------------------------------------------------
+Browser storage            & SOP + iframe sandbox
+\\\hline%--------------------------------------------------------
+Other (e.g., iframe height)& DOM interposition
+\\\bottomrule
+\end{tabular}
+}
+\caption{Confining code from exfiltrating data using existing browser
+mechanisms.}
+\label{fig:comm}
+\end{table}
+ 
+Gecko's isolation model relies on JavaScript compartments, i.e.,
+disjoint JavaScript heaps, for both efficient garbage collection and
+security isolation~\cite{wagner2011compartmental}.
+%
+(Hence our use of the term ``compartments''.)
+%
+The isolation is enforced by ensuring that all cross-compartment
 communication (e.g., \js|postMessage| between iframes) is done through
-\emph{wrappers}---an object from one compartment can never reference
-another object from a different compartment directly.
+\emph{wrappers}, that implement the object-capability \emph{membrane}
+pattern~\cite{miller2003paradigm,miller2006robust} to sound reason
+about ``border crossing''. 
+%% I want to say that they soundly let us reason about calls back into
+%% the caller's compartment and border crossing came to mind, but I
+%% don't really like it
 %
-This has the benefit that GC can be done concurrently, on different compartments,
-and that all inter-browsing context access control checks---as specified, for
-instance, by the SOP---can be enforced by the wrappers.
+Importantly, wrappers ensure that an object from one compartment can
+never reference another object from a different compartment directly.
+%
+This has the benefit that all inter-browsing context access control
+checks---as specified by the SOP---can be enforced by the wrappers.
 %
 Naturally, this is possible because each compartment has a security
-principal, i.e., the origin, which is used in making this policy
-decision, in addition to those described in
-Section~\ref{sec:background} (e.g., SOP, CSP and CORS when using XHR).
+principal that is used in making this policy decision; among other,
+the principal contains the origin and CSP policy of the compartment.
 
 Our implementation relies on compartments and their properties in
 several ways.
 %
-First, we associate label, clearance, and privilege with every 
-compartment.
+For instance, since compartments are our units of isolation, we
+associate a label, clearance, and privilege with compartments.
 %
-Once confinement-mode is enabled, we ``recompute'' all the
-cross-compartment wrappers: this ensures that all subsequent
-cross-compartment access is mediated by confinement, i.e., it uses
-labels, and not the SOP. %, i.e., the principal.
+In the case of browsing contexts we also associate a DOM access label
+with the compartment.
 %
-We modified the function that recomputes wrappers to use \sys{}'s
-wrappers when confinement-mode is enabled.
-%
-This 81-line patch, in addition to adding a new field (pointing to a \sys{}
-object that contains a label, privileges, etc.) to the compartment
-object is our most intrusive patch---the other \sys{} components can be
-maintained independently.
+As shown in Figure~\ref{fig:api}, the \js|SWAPI| object exposes these
+properties to JavaScript.
+% 
+Moreover these labels and privilege, in addition to the compartment
+principal and CSP, are used when making security decisions.
 
-In Blink the notion of a compartment roughly corresponds to an
+\paragraph{Cross-compartment communication}
+%
+As shown in Figure~\ref{fig:comm} we rely on compartment wrappers to
+confine cross-compartment (which includes cross-iframe) communication.
+%
+Once confinement-mode is enabled---by using any of the APIs of
+Figure~\ref{fig:api}---we ``recompute'' all the cross-compartment
+wrappers to ensure that all subsequent cross-compartment access is
+mediated by confinement, i.e., it uses labels, and not the SOP.
+%
+To this end, we implemented a new wrapper policy and modified the
+function that recomputes wrappers to use \sys{}'s wrappers when
+confinement-mode is enabled.
+%
+When the cross-compartment communication is \js|postMessage| we simply
+ensure that the receiver's label subsumes that of the sender (taking
+the sender's privileges into consideration); otherwise the message is
+dropped.
+%
+When the communication is a DOM property access we additionally check
+that the sender's label subsumes that of the receiver, i.e., the labels of
+the compartments are equivalent when considering the sender's
+privileges, and that the receiver's DOM-access label and the sender's
+label are equivalent (again taking the sender's label into
+consideration).
+
+In Blink, the notion of a compartment roughly corresponds to an
 execution context.
 %
-Hence the current label, clearance and privileges are similarly
-attached to the context object. \todo{pm}{confirm}
+Hence the current label, clearance and privileges are attached to
+context objects.
 %
 Blink differs from Gecko in the way it implements access control checks for
 DOM elements. 
 %
-Specifically, rather than rely on wrappers, Blink implements the SOP security
-checks in the binding code for a limited subset of DOM elements that may allow
-cross-origin access.
+Specifically, rather than rely on wrappers, Blink implements the SOP
+security checks in the binding code for a limited subset of DOM
+elements that may allow cross-origin access.
 %
 This ensures that the performance penalty of wrappers between pages of the same
 origin does not exist.
 %
-Unfortunately, it also requires modifications to the binding code to
-enforce confinement for labeled DOM workers (by extending the security
-checks to all DOM objects), which imposes the overhead of a branch
-condition (that checks if confinement-mode is enabled).
-\todo{pm}{thoughts on how this will change with the new architecture of process/iframe?}
+Since \sys{} allows for policies that are more fine grained than
+same-origin, we modified the binding code by extending the security
+checks to all DOM objects and adding label checks; this modification
+imposes a penalty of a branch condition (that checks if
+confinement-mode is enabled).
 
  
+\paragraph{External communication}
 %
-In order to enforce confinement, we use the CSP mechanism already present 
-in the browser. 
-%We use CSP policies, already present in browsers, to enforce
-%confinement. 
-By doing so, \sys{} does not require specific hooks or extra machinery. 
-CSP policies are very expressive; in fact, they are
-information flow control policies~\cite{yang:2013:towards}. This allows us
-to precisely control how a page loads content, perform XHR, etc.
-To enforce CSP, Gecko associates a CSP policy object with a principal.
-%We use the compartment principal, and its associated CSP policy to
-%restrict network access.
+As shown in Figure~\ref{fig:comm} we confine external communication,
+via XHR, content loading, and navigation using CSP.
 %
-We set a custom CSP policy whenever the label is
-explicitly set with \js|SWAPI.label|.
+CSP provides developers with a
+means for white-listing the origins from which their application is
+allowed to load resources~\cite{csp}.
 %
-For example, if the compartment label is
-\js|Label("https://bank.ch").and("https://amazon.com")| and privilege
-is simply \https{mint.biz}, we set the all the CSP directives to
-\js|'none'| (e.g., \js|default-src 'none'|) in addition to the
-\js|sandbox| flag that disallows
+Although CSP was originally limited to address XSS
+attacks~\cite{kerschbaum2007simple}, in practice, the mechanism has
+been used to (partially) restrict the origins to whom data can be
+exfiltrated.
+%
+While CSP alone is insufficient for providing flexible
+confinement,\footnote{
+This is shortcoming is primarily due to two reasons. First,
+JavaScript code cannot (yet) modify the page CSP.
+And, second, CSP does not (yet) provide a directive for restricting 
+in-browser communication, e.g., with \js|postMessage|.
+}
+it sufficiently addresses our external communication concern by
+precisely controlling from where a page loads content, performs XHR, etc.
+%
+To this end, we set a custom CSP policy whenever the compartment label
+changes, e.g., with \js|SWAPI.label|.
+%
+For instance, if the effective compartment label is
+\js|Label("https://bank.ch").and("https://amazon.com")|, all the
+underlying CSP directive are set to \verb|'none'| (e.g.,
+\verb|default-src 'none'|) as to disallow all network communication;
+we additionally use the \verb|'sandbox'| directive to disallow
 navigation~\cite{csp1.1,whatwg-html,html5}.
 %
 
-When the effective compartment label, i.e., label considering
-privileges, is a conjunctive label (or a singleton whose origin is not
-the initially set origin), we change the compartment principal to a
-fresh, unique (null-) principal. 
+\paragraph{Storage access}
+As shown in Figure~\ref{fig:comm}, we additionally rely on the HTML5
+iframe \verb|sandbox| flag (which is the same as the CSP
+\verb|'sandbox'| directive) to restrict access to (and thus leaks
+through) storage, such as cookies~\cite{html5}.
 %
-This ensures that the document is no longer of same origin as that
-at the start of the load and can thus no longer access its storage.
+Specifically, when the effective compartment label is a conjunctive
+label (or a singleton whose origin is not the initially set origin),
+we change the compartment principal to a fresh, unique (null-)
+principal by setting the \verb|sandbox| flag.
 %
-Since these fresh principals always differ, the lifetime of the data does not
-span multiple requests.
+This effectively amounts to changing the origin of the browsing
+context, and thus ensures that the document can no longer access its
+original storage.
 %
-Thus, we also set the HTML5 \js|iframe sandbox| flag~\cite{html5},
-to revoke access to persistent storage.
-
-
-When privileges are set (either granted or revoked), the CSP policy is
-adapted to reflect that change and allows the corresponding flows of
-information. However, a compartment that has been associated with
-fresh principal (e.g., when the effective label of a compartment is a
-conjunction) cannot subsequently access storage even when it later
-gets the privilege of a ``normal'' origin. While conservative, we
-believe this approach is reasonable: it is not clear what it means for
-a cookie to be labeled with a conjunction of two principals.
-
+Like~\cite{Akhawe2013}, this is a conservative approach.
 %
-
-Finally, we note that rather than executing labeled workers in a
-separate OS-thread, as is the case for existing workers (whose goals
-%% To have consistency with other part of the text which use this format
-are different from ours), our \js|LWorker| constructor simply creates a new
-compartment. This design decision provides 
-%
-%In addition to 
-faster parent-worker calls (e.g.,
-\js|postMessage|, or \js|onmessage| dispatch), which are effectively function
-calls for which we add confinement checks. 
-%
-More importantly, it allows \sys{} to provide lighter-weight workers
-that can also access the DOM.
-%
-Though an alternative reasonable approach is to allow code to execute
-labeled workers without DOM access in a separate thread, like existing
-workers.
- 
-Like the Add-on SDK content-script extensions~\cite{addon-sdk}, we
-rely on Gecko's wrappers---which implement the object-capability
-\emph{membrane}
-pattern~\cite{miller2003paradigm,miller2006robust}---to ensure that
-each DOM access from a worker abides by confinement.
-%
-In our case, we conservatively treat each DOM access, including a
-\js|get|, from a worker as a read-write effect.
-%
-Since Blink does not have membranes, we extended the IDL binding code
-to perform label checks on \emph{all} DOM elements.
-%
-The added code compares labels of an object's compartment and the compartment
-from which the access originates.
-%
-We must mediate all DOM elements because compartment labels are dynamic, and a
-label change may require revocation of DOM access for all DOM objects that the
-labeled DOM worker currently processes.
-
+We leave the implementation of labeled storage (and API for it) to
+future work.
 
 
 % Local Variables:

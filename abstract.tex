@@ -1,26 +1,42 @@
 \begin{abstract}
 
-Modern web applications comprise a conglomeration of JavaScript from
-multiple authors:  third-party libraries included by a site's
-developer, site-specific scripts by the site developer herself, and
-third-party extensions installed in the browser by the user.  Recent
-years have seen the continual discovery of practical attacks on web
-users' privacy---from the leaking of sensitive data within pages by
-malicious third-party library code, to similar leaks by malicious
-browser extensions, to more subtle leaks, such as those via image
-resources. Fundamentally, these privacy violations occur because
-today's web browsers lack sufficient mechanisms for {\em confining
-  untrusted code.}  We present \sys, a simple but powerful approach to
+% ezyang: I guess maybe we should give a teensy bit of background
+% here, but not an entire paragraph's worth.
+    %
+%Modern web applications comprise a conglomeration of JavaScript from
+%multiple authors:  third-party libraries included by a site's
+%developer, site-specific scripts by the site developer herself, and
+%third-party extensions installed in the browser by the user.  Recent
+%years have seen the continual discovery of practical attacks on web
+%users' privacy---from the leaking of sensitive data within pages by
+%malicious third-party library code, to similar leaks by malicious
+%browser extensions, to more subtle leaks, such as those via image
+%resources. Fundamentally, these privacy violations occur because
+%today's web browsers lack sufficient mechanisms for {\em confining
+%  untrusted code.}
+
+Modern web applications are assembled from JavaScript libraries from a
+variety of different sources.  All of these scripts have full access to
+all of a user's private data, meaning that an application must place
+full trust on every library it uses.  The ability to confine JavaScript
+in a web browser would permit applications to reduce their trust on
+libraries, while at the same time enable mash-up web applications that
+could not previously be implemented without compromising user data
+confidentiality.
+%
+We present \sys, a fast, fully backwards-compatible approach to
 robust confinement of JavaScript in modern web browsers.
-\sys\ prevents malicious third-party libraries from violating users'
-privacy.  It provides safety to Mashup web applications that
-previously posed an inherent risk to user data confidentiality.
-\sys's flexible confinement mechanisms furthermore obviate much of the
-need for privilege in browser extensions, permitting many of today's
-extensions to be realized instead as untrusted web pages.  \sys\ has
-been implemented in both Firefox and Chromium; measurements of both
-browsers demonstrate a virtually imperceptible increase in page-load
-latency.
+%
+Through a series of case-studies, we show how a label-based mandatory
+access control system can be used to make existing web applications more
+secure, enable the development of other applications that could not be
+previously implemented, and even obviate much of the need for privilege
+in browser extensions, permitting many of today's extensions to be
+realized instead as untrusted web pages.
+%
+\sys\ has been implemented in both Firefox and Chromium; measurements of
+both browsers demonstrate a virtually imperceptible increase in
+page-load latency.
 
 %% - privacy vulnerabilities, lack of flexibility in mashups
 %% - SOP, CORS, CSP: a patchwork of ad hoc mechanisms

@@ -8,7 +8,8 @@
 \usepackage{graphicx, url}
 \usepackage{enumerate}
 \usepackage[square,comma,numbers,sort&compress]{natbib}
-\usepackage{booktabs}
+\usepackage{footnote,booktabs}
+\usepackage{caption,subcaption}
 
 \newcommand{\sys}{SWAPI}
 \newcommand{\xhr}{\js|XMLHttpRequest|}
@@ -70,11 +71,13 @@
 
 \lstnewenvironment{webidl}
     {\lstset{
+        keywords={interface, object, static, readonly, attribute, or},
          extendedchars=true,
          basicstyle=\ttfamily,
          showstringspaces=false,
          showspaces=false,
          tabsize=2,
+         frame=leftline,
          breaklines=true,
          showtabs=false,
     }}
@@ -162,6 +165,7 @@ Protecting Users by Confining JavaScript with \sys
 %\input{background}
 %\input{goals}
 \input{system}
+\input{apps}
 \input{implementation}
 \input{eval}
 %\input{discussion}
