@@ -2,23 +2,19 @@ Trying to think of a FAQ:
     1. Is your design backwards compatible?
     2. Why is it so fast?
     3. What about covert channels?
-    4. Why this particular system, and not X, Y or Z (previously seen in the literature)?
-    5. Why is this design practical?
+    4. How does this interact with CSP, etc.?
     6. I don't think developers can actually program an IFC system; I think requiring requiring the user to manipulate these policies is unreasonable.
     7. Why does your design work? How do I know it's OK?
+       We shoudl cite ifc-inside paper (anonymous) saying that we have
+       a formal model and security proofs
     8. What's new?
 
-switch back to USENIX style rather than freaky IEEE proc
-
 we definitely need to state explicitly (possibly even in the intro?)
-that our design doesn't break legacy pages/scripts (true, yes?), and
+that our design doesn't break legacy pages/scripts (true, yes?ds: yes), and
 explicitly explain why this is the case in the design section.
 
 can Deian or EZ please convert the handwritten app figures into
 computer-drawn (i.e., straight lines, typeset text) ones? Thanks!
-
-need to update ezyang-adblock.pdf to incorporate numbers (to match
-other figures)!
 
 overall, "tab" depiction in figures won't be understood as "implying
 DOM" by OSDI reviewers; need to draw DOM explicitly within an origin's

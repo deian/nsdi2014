@@ -195,7 +195,7 @@ Other (e.g., iframe height)& DOM interposition
 }
 \caption{Confining code from exfiltrating data using existing browser
 mechanisms.}
-\label{fig:comm}
+\label{tab:comm}
 \end{table}
  
 Gecko's isolation model relies on JavaScript compartments, i.e.,
@@ -240,7 +240,7 @@ principal and CSP, are used when making security decisions.
 
 \paragraph{Cross-compartment communication}
 %
-As shown in Figure~\ref{fig:comm} we rely on compartment wrappers to
+As shown in Table~\ref{tab:comm} we rely on compartment wrappers to
 confine cross-compartment (which includes cross-iframe) communication.
 %
 Once confinement-mode is enabled---by using any of the APIs of
@@ -289,7 +289,7 @@ confinement-mode is enabled).
  
 \paragraph{External communication}
 %
-As shown in Figure~\ref{fig:comm} we confine external communication,
+As shown in Table~\ref{tab:comm} we confine external communication,
 via XHR, content loading, and navigation using CSP.
 %
 CSP provides developers with a
@@ -323,7 +323,7 @@ navigation~\cite{csp1.1,whatwg-html,html5}.
 %
 
 \paragraph{Storage access}
-As shown in Figure~\ref{fig:comm}, we additionally rely on the HTML5
+As shown in Table~\ref{tab:comm}, we additionally rely on the HTML5
 iframe \verb|sandbox| flag (which is the same as the CSP
 \verb|'sandbox'| directive) to restrict access to (and thus leaks
 through) storage, such as cookies~\cite{html5}.
