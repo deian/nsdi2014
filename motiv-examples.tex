@@ -208,28 +208,60 @@ the provider offer a privacy-preserving editor app that does {\em not}
 reveal the user's document data to the provider's server?  One
 promising approach might be to outsource encryption of documents to a
 distinct web-based service at a different origin than that which hosts
-the editor app. The user would configure her account in the editor app
-to invoke the JavaScript-based cryptography library she trusts to work
-robustly. In this design, one origin serves the JavaScript code for
-the editor app (say, \js|google.com|) and a different origin serves
-the JavaScript code for the cryptography library (say,
-\js|eff.org|). Note that these two origins may be {\em mutually
-  distrusting.}  \js|google.com|'s script must pass the document's
-cleartext to a script from \js|eff.org| for encryption, and would like
-to confine the execution of the encryption script so that it cannot
-exfiltrate the document to any origin {\em other} than
-\js|google.com|. And \js|eff.org|'s cryptography library doesn't trust
-\js|google.com| with the cleartext document---it would like to confine
-\js|google.com|'s editor script to prevent exfiltration of the
-cleartext document to \js|google.com| (or to any other origin). This
-simple use case highlights the need for {\em symmetric confinement:}
-when two mutually distrusting scripts from different origins
-communicate, {\em each must each be able to confine the other's
-  further use of data it has sent to the other.}
+the editor app. The editor app would allow the user to select a
+JavaScript library she trusts to perform cryptography robustly. In
+this design, one origin serves the JavaScript code for the editor app
+(say, \js|google.com|) and a different origin serves the JavaScript
+code for the cryptography library (say, \js|eff.org|). Note that these
+two origins may be {\em mutually distrusting.}  \js|google.com|'s
+script must pass the document's cleartext to a script from
+\js|eff.org| for encryption, and would like to confine the execution
+of the encryption script so that it cannot exfiltrate the document to
+any origin {\em other} than \js|google.com|. And \js|eff.org|'s
+cryptography library doesn't trust \js|google.com| with the cleartext
+document---it would like to confine \js|google.com|'s editor script to
+prevent exfiltration of the cleartext document to \js|google.com| (or
+to any other origin). This simple use case highlights the need for
+{\em symmetric confinement:} when two mutually distrusting scripts
+from different origins communicate, {\em each must be able to confine
+  the other's further use of data it provides the other.}
 
 %% brings up the requirement of *symmetric* confinement: two mutually
 %% distrusting origins each confine the other.
 
 \subsection{Third-Party Mashup}
 
+Some of the most useful web applications are {\em mashups,} which
+integrate and compute over data hosted by multiple origins. For
+example, consider an application that reconciles a user's Amazon
+purchases (the data for which are hosted by \js|amazon.com|) against a
+user's bank statement (the data for which are hosted by
+\js|chase.com|). The user may well deem both these categories of data
+sensitive, and furthermore, will not want data from Amazon to be
+exposed to her bank or vice-versa, nor to any other remote
+party. Today, if one of the two providers implements the mashup, its
+application code must bypass the SOP to allow sharing of data across
+origin boundaries, e.g., by communicating between iframes with
+\js|postMessage|. This approach forfeits robust confinement: one
+origin sends sensitive data to the other, after which the receiving
+origin may exfiltrate that sensitive data at will. Alternatively, a
+third-party developer may wish to implement and offer this mashup
+application. But users of such a {\em third-party mashup} give up
+their privacy, as again today's browser enforces no policy that
+confines the sensitive data the mashup's code observes within the
+browser. To enable third-party mashups that do not sacrifice the
+user's privacy, we note again the need for an untrusted script to be
+able to issue requests to multiple remote origins (e.g., Amazon and
+the bank), but to lose the privilege to communicate over the network
+once it has read the responses from those origins.\footnote{The
+  desired semantics are clear but slightly subtle: a third-party
+  script should lose the ability to communicate with any origin {\em
+    other than} that from which it {\em first} reads sensitive data,
+  and lose the ability to communicate with {\em any} origin once it
+  reads sensitive data from any {\em additional} origin. We explain
+  these semantics in detail in Section~\ref{sec:system}.} Here, too,
+MAC-based confinement meets this need.
+
 \subsection{Untrusted Third-Party Library}
+
+\subsection{Browser Extension: Ad Block}

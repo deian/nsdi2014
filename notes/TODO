@@ -1,3 +1,65 @@
+New results
+    - Integrity for extensions
+    - DOM access label
+        What about privilege escalation? (label A, priv A /\ B; any DOM
+        worker with priv A can exercise priv B)
+        This is just what Script Police did (like the manifest)
+        extensions --> pages; if there is a bug in a page, allowing injected content, then anything bad can happen
+        Encrypted Google Docs: is an "extension"; encrypted gmail
+        Middle way: we should say, today all there is is giving up user privacy or using an extension; our proposal is a different plan that gets you the functionality which doesn't give up privacy. Yes it is true that we're not allowing unrestricted modification of existing functionality.  For extensions like encrypted gdocs, where the functionality is like adding encryption, we show a way to do them as regular web pages. (footnote: with an extension, you can force pages to... but that's not our use case)
+    - UI for **clearance** / integrity modification (for extensions and
+      mash-ups)
+        asshole reviewer: what you're describing is defense in depth, and defense in depth sucks (it is admitting "I don't know what to do about this problem").  The user is in charge about deciding if they're worried about X.  If you don't like covert channels you can deny yourself functionality.  Alternately, it makes people think they should be more scared of covert channels then they are.
+        Deian: but you're STILL not giving Mint the PASSWORD!!
+    - New tab for encryption verification
+
+    - Incompatibility with existing CSRF protection. Includes integrity
+      component.  Backwards compatibility story is worse.  HTTP headers, we
+      need a clear signal moment.
+
+    - What's the default policy for clearance?  A certain
+      kind of systems reviewer will say, "You guys wrote a paper about richer
+      functionality in a safe way, but then you told me shut your system off
+      by default because users might not trust it."  (Encrypted Google Docs needs
+      to be fixed properly). The path of greatest probability of success is
+      to not fully take on this problem.  One approachs is to say if there
+      are covert channels, relaxing SOP is dangerous (full stop).  Do we talk about
+      clearance?  If we talk about clearance as a robust way of dealing with this,
+      we need to carefully consider how the clearance is setup for each app.
+      I don't want to get reamed by someone who figures out there's a risk we
+      haven't dealt with.  We could say in abstract, say clearance is useful
+      for some applications, such as the third party mashup; relax SOP, covert
+      channels, this is dangerous. Clearance seems generally useful, however
+      it comes at the cost of limiting flexibility.
+
+        I think we can remove clearance from the system description.
+        Lock it down; for 3rd party mashup, if there are covert channels,
+        we make them worse, it is no worse than giving the password to Mint.com.
+        Additional point which is CSRF and clearance.
+
+    - The current description implies XHR with label raise works; we
+      need to make it only labeled XHR.  "Any app that doesn't use labeled XHR is OK."
+      That's very mechanistic.  In this scheme, you need to remember what the
+      "original origin" was.  Maybe the argument is, "Well, for third-party
+      mashup we are playing it risky, but everything else we are STRICTLY
+      MORE SECURE".  And we made the world better, because Mint isn't getting
+      your password.  Brad: the disconnect is how did you as the user decide
+      that you felt good about saying yes.  Perhaps everyone can agree that
+      a raging covert channel is better than giving Mint.com your password.
+
+    - Strengthen/weaken SOP is someting motiv-example.tex should bring
+      back.
+
+    - I need en.cr to encrypt properly; isn't that weird?  We should
+      pitch it as the company wants to use Google Docs.  Why doesn't
+      Google Docs trust the encryptor?  Well, Google believes in its
+      own "don't be evil", and doesn't want the data to go elsewhere.
+      The encryptor is also the document user, they don't want Google
+      to see their data.
+
+    - For jQuery, for a text editor, it sends text to its own origin.
+      Pidgin way is to describe the TCB as a firewall.
+
 Trying to think of a FAQ:
     1. Is your design backwards compatible?
     2. Why is it so fast?
@@ -9,6 +71,8 @@ Trying to think of a FAQ:
        a formal model and security proofs
     8. What's new?
 
+[DONE] switch back to USENIX style rather than freaky IEEE proc
+
 we definitely need to state explicitly (possibly even in the intro?)
 that our design doesn't break legacy pages/scripts (true, yes?ds: yes), and
 explicitly explain why this is the case in the design section.
@@ -19,6 +83,13 @@ computer-drawn (i.e., straight lines, typeset text) ones? Thanks!
 overall, "tab" depiction in figures won't be understood as "implying
 DOM" by OSDI reviewers; need to draw DOM explicitly within an origin's
 frame (e.g., as a rectangle within the frame)
+
+related work: i think that some of the fine grained ifc systems can be
+used to more easily deal with phishing attacks... (maybe)
+
+in the untrusted library scenario: it's important to not only raise
+the current label, but also lower the clearance to ensure that the tcb
+code in the worker can always access the DOM.
 
 one more pretty relevant piece of related work:
 

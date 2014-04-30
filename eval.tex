@@ -1,16 +1,31 @@
 \section{Evaluation}
 \label{sec:eval}
 
-In this section we evaluate the performance of \sys{}.
+When adding new browser features, even security-centric ones, the
+question of how performance or functionality is affected can become a
+roadblock to adoption.
 %
-We first evaluate the end-to-end performance of the
-applications described in Section~\ref{sec:app}, relative to
-implementations that simply trade off security for the features the
-apps provide.
+In the case of \sys{}, this question is two-fold.
+%
+First, are existing websites affected by our modifications?
+%
+Since our system relies on a page to enable confinement mode by using
+our API, the functionality of existing websites is not
+affected---hence we are solely concerned with how \sys{} affects the
+performance of existing apps.
+%
+Second, is the performance of an end-to-end application that uses
+\sys{} acceptable, for instance, when compared to a comparable, but
+insecure app?
+%
+In this section we answer these questions.
+%
+Specifically, we first evaluate the end-to-end performance of the
+applications described in Section~\ref{sec:apps}, relative to
+implementations that simply trade off security for features.
 %
 Then, we measure the performance impact of \sys{} on existing browser
-features and the additional overhead when confinement-mode is actually
-enabled.
+features with and without confinement-mode enabled.
 %
 All our measurements were conducted on a 4-core i7-2620M machine
 running GNU/Linux 3.13, with 16GB of RAM.
@@ -20,15 +35,17 @@ running GNU/Linux 3.13, with 16GB of RAM.
 \subsection{Macro benchmarks}
 \label{sec:eval:macro}
 
-We implemented all the applications described in
-Section~\ref{sec:system}.
+Below we measure the performance (usually page load time) of some of
+the applications on our modified browsers.
 %
-Below we measure the performance of some of these applications on our
-modified Firefox browser.
+To underhand whether the performance as noticed by the user is
+reasonable, we modified the applications by removing any security
+related checks and measured their performance on unmodified, vanilla
+browsers.
 %
-For comparison, we modified the applications by removing any security
-related checks and measured their performance an unmodified, vanilla
-version of Firefox.
+In fairness, we remark that these applications are compartmentalized
+to address the different trust relationships; an alternative
+(insecure) implementation may produce better results.
 
 \paragraph{Password-strength checker}
 %% Vanilla: just run script in worker
@@ -36,7 +53,7 @@ version of Firefox.
 %% Chome: With \sys{} it take 80.5ms, Vanilla:  71.5
 %
 We implemented the password-strength checker of
-Section~\ref{sec:system:worker}, using the checker script
+\Red{Section~\ref{sec:motiv:checker}}, using the checker script
 from~\cite{checker1}.
 %
 Our end-to-end evaluation measures the average duration it takes to
@@ -44,42 +61,37 @@ create a new labeled worker (with a fresh principal), fetch (with XHR)
 the 8KB checker script, and perform the actual strength
 checking on a password 16-characters in length.
 %
-We averaged the duration of 10 runs, without caching the script.
 %
-In Firefox the amount of time it takes to perform the strength
-checking is 59.5ms.
+In Firefox the average (over 10 runs) amount of time it takes to
+perform the strength checking is \Red{59.5ms}.
 %
 This figure, though predominantly dominated by network delay, is
-roughly 3\% faster than the strength checker running running in a
+roughly \Red{3\%} faster than the strength checker running running in a
 ``normal'' worker on a vanilla, unmodified, browser (which
 also caches the worker script).
 %
 We attribute our speedup to the fact that creating and communicating
 with labeled workers is faster than existing workers (see
-micro-benchmarks, below), and believe that caching the checker script
-would lead to additional speedup gains.
+micro-benchmarks, below).
+%
+\Red{In Chrome....}
 
 
-\paragraph{Encrypted web-based editor}
+\paragraph{Encrypted document editor}
 %% Vanilla: removed the sandbox stuff.
 %% Firefox: With \sys{} it take 114.8, Vanilla: 100.2
 %% Chome: With \sys{} it take 248.1, Vanilla; 257.8
 
-We implemented a simple document editor with an encryption layer as
-described in Section~\ref{sec:system:iframe}.
-%
-This application is similar to---though slightly simpler than---the
-password manager; we do not report any measurements for the
-password manager.
+We implemented a simple document editor as described in
+Section~\ref{sec:apps}.
 %
 Our benchmark measures the end-to-end time it takes to load the
-application, carry out the protocol described in
-Section~\ref{sec:system:iframe}  and ``encrypt'' a 4KB document with
-the ``NULL-cipher''.
+application, and ``encrypt'' a new 4KB document using
+the \Red{SJCL AES-128 library~\cite{sjcl}}.
 %
-We measured the \sys{} application to take 114.8ms on the modified
-version of Firefox, while a simplified, insecure version of the app,
-running on vanilla Firefox took 100ms.
+We measured the \sys{} application to take \Red{114.8ms} on the modified
+version of Firefox; the simplified, insecure version of the app,
+running on vanilla Firefox took \Red{100ms}.
 %
 We note that our figure accounts for the amount of time it takes to
 load the document editor page, which itself loads the encryption layer
@@ -90,6 +102,8 @@ performed by \sys{} and security layer added on top of the insecurity
 application---in the vanilla case, we removed the label operations and
 authentication layer (used to ensure that the label of the innermost
 iframe is sufficiently high).
+%
+\Red{Similarly, in Chromium...}
 
 
 \paragraph{Third-party mashup}
@@ -100,58 +114,57 @@ iframe is sufficiently high).
 
 We implemented a very simple third-party mashup application in which
 the integrator makes an XHR request to two unaffiliated origins, each
-of which produces a response containing a (27 byte) JSON object with a
-numerical property.
+of which produces a response containing a (\Red{27 byte}) JSON Blob
+object with a numerical property.
 %
 The integrator parses the responses into JSON objects, adds the
 numbers, and appends a \js|div| element, containing the sum, to the
 document body.
 %
 The corresponding vanilla application is identical, but uses the
-normal XHR object and requires the origins to set CORS headers permit
-the JSON responses to be inspected by any origin.
+normal XHR object; in this case, the unaffiliated origins set CORS
+headers that permit responses to be inspected by any origin.
 %
-We measured the latency of the application to be 10.7ms in both cases.
+In Firefox, we measured the latency of the application to be
+\Red{10.7ms in both cases}.
 %
 Of course, the \sys{} application has the advantage of treating the
 received content as sensitive (and thus required setting proper CSP
-and iframe sandbox flags) as opposed to the CORS-based approach that
-would allow the integrator to arbitrarily leak the sum.
+and iframe sandbox flags) when compared to the CORS-based approach
+that would allow the integrator to arbitrarily leak the sum.
 
-\paragraph{Untrusted libraries/extensions}
+\paragraph{Untrusted third-party libray}
 %% Vanilla: incorporate script directly, no sandboxes.
 %% As page confine:
 %% Firefox: With \sys{} it take 164.8ms, Vanilla:  160.2ms
 %% As extension
 %% Firefox: With \sys{} it take 224.4ms
 
-Finally, we measure the load time of a banking page that incorporates
-the untrusted Phone2Links library using two different design patterns.
+We measure the load time of a banking app that incorporates jQuery and
+a library that traverses the DOM to replace phone numbers with links.
 %
-In the first case, the bank trusted code is placed in a labeled DOM
-worker, with access to the page document and privilege, following the
-pattern of Section~\ref{sec:system:script}; in the second case, the
-untrusted code is treated as an extension and placed in an
-unprivileged labeled DOM worker, by our extension loader, following
-the pattern of Section~\ref{sec:system:extension}.
+The latter library uses XHR in attempt to leak the page content.
 %
-In both cases the bank page contains an iframe with the sensitive
-(labeled) bank statement, both of which load jQuery and
-Phone2Links.
+The bank page is compartmentalized into a public outer component and
+a sensitive iframe containing the user's statement;
+in both compartments, the bank trusted code (which load the libraries)
+is placed in a labeled DOM worker, with access to the page document
+and privilege, treating the rest of the code as untrusted.
 %
-The latter library additionally uses XHR in attempt to leak the page
-content.
+We measured the total load time of the page.
+%
+In Firefox, the load time was \Red{164.8ms}, \Red{4.6ms} longer than
+an insecure version of the application running on vanilla Firefox.
+%
+We remark that this slowdown is negligible considering that the
+application contains mixed-sensitivity content (the main banking page
+is public, while the bank statement iframe is labeled with the origin
+of the page), which \sys{} prevents from being leaked; in the vanilla
+case, the untrusted library trivially leaks the bank statement with
+XHR.
 
-We measured the total load time of the page. In the first case, the
-duration was 164.8ms, which is 4.6ms longer than an insecure version
-of the application running on vanilla Firefox.
-%
-We remark that this slowdown is negligible considering that
-the application contains mixed-sensitivity content (the main banking
-page is public, while the bank statement iframe is labeled with the
-origin of the page), which \sys{} prevents the malicious library from
-leaking; in the vanilla case, the Phone2Links library trivially leaks
-the bank statement.
+\Red{
+\paragraph{Ad Block}
 
 When incorporating Phone2Links as an extension, the measured page load
 time was 224.4ms.
@@ -175,6 +188,7 @@ extension.\footnote{
   Traditional extensions are typically faster than those using the
   AddOn-SDK.
 }
+}
 
 
 
@@ -193,10 +207,11 @@ extension.\footnote{
 
 \begin{table}
 \centering
+\resizebox{1.0\columnwidth}{!}{
 \begin{tabular}{l |c|c|c|c|c|c }
 \toprule
                    & \multicolumn{3}{c}{\textbf{Firefox}}
-                   & \multicolumn{3}{c}{\textbf{Chrome}} \\
+                   & \multicolumn{3}{c}{\textbf{Chromium}} \\
                    & \rot{vanilla}   &
                      \rot{unlabeled} &
                      \rot{labeled}   &
@@ -211,13 +226,13 @@ New iframe         &   13.27  &  13.3   & 13.97   &   50.63 &   48.73 &  51.77
 New worker         &  20.53  &   21.24 &  1.62   &  18.94  &  18.87  & 3.27
 \\\midrule%--------------------------------------------------------------------
 % cost of labeled postMessage                                        
-Iframe ping-pong   &  0.086  &  0.084  &  0.092  &  0.042  &  0.042  &  0.042
+Iframe comm.       &  0.086  &  0.084  &  0.092  &  0.042  &  0.042  &  0.042
 \\\hline%----------------------------------------------------------------------
 % cost of performing XHR                                             
-XHR ping-pong      &  3.33   &   3.48  &  3.49   &  7.0    &  7.4    & 7.2
+XHR comm           &  3.33   &   3.48  &  3.49   &  7.0    &  7.4    & 7.2
 \\\hline%----------------------------------------------------------------------
 % cost of worker ping-pong                                           
-Worker ping-pong   &  0.059  &   0.055 &  0.037  &  0.071  &  0.070  & 0.030
+Worker comm.       &  0.059  &   0.055 &  0.037  &  0.071  &  0.070  & 0.030
 \\\midrule%--------------------------------------------------------------------
 % cost of setting current label                                      
 Set label          &  --     &  \multicolumn{2}{c|}{0.0014} &   --   
@@ -228,15 +243,13 @@ Get label          &  --     &  \multicolumn{2}{c|}{0.0003} &   --
                              &  \multicolumn{2}{c }{0.0008}
 \\\hline%-------------------------------------------------------------------------------------------------
 % cost of comparing labels                                                                        
-Label subsumes     &  --     &  \multicolumn{2}{c|}{0.0012} &   --   
+Label check        &  --     &  \multicolumn{2}{c|}{0.0012} &   --   
                              &  \multicolumn{2}{c }{0.0004}
 \\\bottomrule
 \end{tabular}
-\caption{\label{microbench} Micro-benchmarks, in milliseconds (ms).
-%%Vanilla denotes stock browser measurements, our modified browsers with
-%%confinement-mode turned off and on are respectively
-%%are denoted by unlabeled and labeled.
 }
+\caption{Micro-benchmarks, in milliseconds (ms).}
+\label{microbench} 
 \end{table}
 
 Table~\ref{microbench} shows our micro-benchmarks for the stock
@@ -245,22 +258,23 @@ off (unlabeled), and confinement-mode enabled (labeled).
 %
 We measure the cost of creating various compartments (workers and
 iframes), sending messages between various end-points
-(compartments and network hosts), and common label operations.
+(compartments and servers), and common label operations.
 
-The performance impact of creating an iframe or worker is
-within 3.5\% and 2.5\% of the vanilla implementations on Firefox and
+The performance impact of creating an iframe or worker is within
+\Red{3.5\% and 2.5\%} of the vanilla implementations on Firefox and
 Chromium, respectively.
 %
-In absolute terms, \sys{} adds, on average, less than 1ms
-latency.
+In absolute terms, \sys{} adds, on average, less than \Red{1ms} latency.
 %
-As also shown in the table, the \sys{} labeled workers provide
-programmers with a lighter weight concurrency
-primitive: creating a labeled worker is roughly 12 and 6 times faster
-than a corresponding unlabeled ``normal'' worker.
+As also shown in the table, the \sys{} light-weight labeled workers
+provide programmers with a lighter weight concurrency primitive:
+creating a labeled worker is roughly \Red{12 and 6 times} faster than
+a corresponding unlabeled ``normal'' worker; creating and
+communicating with a regular worker with confinement-mode (labeled
+case) does not incur a noticeable difference to the unlabeled case.
 
 %
-The iframe, worker and XHR ping-pong measurements evaluate the cost of
+The iframe, worker and XHR communication measurements evaluate the cost of
 sending and receiving a message (\js|PING| and \js|PONG|,
 respectively) across iframes, workers, and the network.
 %
@@ -268,16 +282,31 @@ In all cases, the performance impact of \sys{} is negligible when
 compared to an unmodified, vanilla browser.
 %
 In the case of XHR, the performance impact on the
-(local-network test) is less than 5.5\% for both Firefox and Chromium,
-a less than 0.5ms delay.
+(local-network test) is less than \Red{5.5\% for both Firefox and Chromium,
+a less than 0.5ms delay.}
 %
-In most of the other cases the sub 0.1ms differences can be
+In most of the other cases the sub \Red{0.1ms} differences can be
 attributed to noise.
 %
-The only interesting case is that of communication with
-labeled-workers; as with creating labeled workers, communication with
-a labeled workers is roughly 2 times faster than a corresponding
-vanilla worker.
+For Firefox, we also measured the performance of using a
+\verb|"labeled-blob"| response type with just \verb|"blob"| to be
+\Red{XX\% slower}; this however, is on par with setting a CORS header
+for the vanilla case (\Red{XXX\% slower/faster}).
+%
+(Our Chromium implementation does not yet have support for XHR with
+labeled blobs; instead labeled workers are used to wrap the XHR
+constructor, so the cost using labeled XHR requires an additional
+cross-compartment call.)
+%
+The only other interesting case is that of communication with
+light-weight labeled workers; as with creating labeled workers,
+communication with a labeled workers is roughly \Red{2 times} faster
+than a corresponding vanilla worker.
+
+\Red{
+ DOM in chrome
+ DOM in worker
+}
 
 Finally, getting the current label, setting the current label and
 performing a label comparison (subsumes) are all on the order of a
@@ -295,9 +324,9 @@ measured a 5\% performance degradation.
 This measurement serves as a reasonable point for real application,
 which are likely to only contain a handful of principals.
 %
-While the 5\% slowdown (for a rare operation) is mostly negligible, we
-note there is much room for speeding up label comparisons since our
-label implementation has not yet been optimized.
+While label checks are cheap for end-to-end application performance,
+there is much room for speeding up label comparisons---our label
+implementation has not yet been optimized.
 
 %%Comparing the 
 %%Similarly, the performance impact of labels is under  5\%  in almost
