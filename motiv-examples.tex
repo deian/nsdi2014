@@ -6,7 +6,7 @@ written by different authors.\footnote{Throughout we refer to ``web
   ``JavaScript code'' and ``script'' interchangeably.} Ideally, the
 browser should robustly protect the user's sensitive data from
 unauthorized disclosure, yet afford page developers the greatest
-possible flexibility to construct rich, featureful applications that
+possible flexibility to construct \Red{rich, }featureful applications that
 reuse functionality implemented in scripts provided by (potentially
 distrusted) third parties. To make concrete the diversity of potential
 trust relationships between scripts' authors and diverse ways page
@@ -15,8 +15,8 @@ several example web applications, none of which can be implemented
 with strong privacy for the user in today's web browsers. These
 examples illustrate key requirements for the design of a flexible
 browser confinement mechanism. Before describing these examples,
-however, we offer a brief refresher on the privacy policy enforced by
-status quo web browsers.
+however, we offer a brief refresher on the privacy polices in place
+prior to our work.
 % and a sketch of the labeling mechanism that
 %forms the core of our system, \sys{}.
 
@@ -92,7 +92,7 @@ of an \js|img| element to this URL.
 % The popularization of JSON-P and other ad-hoc cross-origin
 % communication methods, (notably, those relying on \js|window.name| and
 % \js|window.location|~\cite{thidpartyjs}), has lead to the introduction
-The HTML5 \js|postMessage| API~\cite{webmessaging}.
+The HTML5 \js|postMessage| API~\cite{webmessaging}
 allows code in different browsing contexts to exchange
 messages, as shown in Figure~\ref{fig:primer-browser-arch}.
 %
