@@ -2,20 +2,18 @@
 \label{sec:related}
 
 % BFlow
-The closest related work is BFlow~\cite{Yip:2009:PBS}.
+The closest related work to our system is BFlow~\cite{Yip:2009:PBS}.
 %
 Like \sys{}, BFlow allows websites to enforce confinement policies
-that are stricter than the SOP.
+that are stricter than the SOP\@.
 %
-BFlow can, for example, be used to confine third-party code such as
-the password strength checker by placing the untrusted code in a
-tainted \emph{protection zone}, which is a group of iframes that share
-a common label.
+BFlow can, for example, be used to confine third-party code by placing
+the untrusted code in a tainted \emph{protection zone}, which is a group
+of iframes that share a common label.
 %
-However, unlike \sys{}, BFlow is not amendable to a mutually
-distrusting scenario and thus certain applications, such as the
-encrypted document editor and password manager, cannot be implemented
-without giving up trust.
+However, unlike \sys{}, BFlow cannot be used to mediate between mutually
+distrustful applications: for example, the encrypted document editor
+cannot be directly implemented.
 %
 This is because BFlow solely provides hierarchical confinement---a
 sub-frame cannot impose any restrictions on its parent---and its
@@ -26,16 +24,16 @@ reliance on top-level \emph{trusted zones} that can always
 \emph{completely} declassify the data in their corresponding page.}
 %
 This also prevents BFlow from being amendable to building
-applications, such as our third-party mashup, that rely on a policy
-more flexible than the SOP.
+applications, such as our third-party mashup, that rely on security policies
+more flexible than the SOP\@.
 %
 In fairness, BFlow did not consider applications with mutually
 distrusting parties---their goal was to confine untrusted third-party
-scripts, and indeed succeed at doing so.
+scripts, and they indeed succeed at doing so.
 %
-Moreover, while \sys{} propagates labels using HTTP headers and is
+While \sys{} propagates labels using HTTP headers and is
 amendable to confining one user's code from another on the same
-website, unlike BFlow, we do not provide a server that implements this
+website, unlike BFlow, we did not develop a server that implements this
 functionality; developers can use BFlow's server or systems such as
 Hails~\cite{giffin:2012:hails} and Aeolus~\cite{cheng:aeolus} to
 ensure that labels are propagated appropriately in an end-to-end
@@ -73,10 +71,8 @@ Unfortunately, their confinement is fundamentally limited to to
 password strength checker service for which the source is not
 available (e.g., if provided by an iframe).
 %
-Moreover, DCS also only enforces hierarchical confinement---an iframe
-cannot impose restrictions on its parent---which is crucial to
-building new applications such as the encrypted editor or password
-manager.
+Like BFlow, DCS only enforces hierarchical confinement---an iframe
+cannot impose restrictions on its parent.
 %
 In fairness, this asymmetry is due to their more modest goal of
 confining untrusted libraries.
@@ -91,13 +87,12 @@ kinds of policies that a page can impose on an iframe is limited
 (e.g., DCS cannot impose restrictions on redirects).
 %
 \sys{} does not have this limitation since the iframe itself imposes
-the policy (albeit as a result of wishing to receive sensitive data
-from the parent).
+the policy (it voluntarily raises its label).
 %
 This design choice of using declarative policies further allows us to
 relax the SOP and build applications such as the third-party mashup.
 %
-However, we recognize this as a limitations of \sys{} and leave the
+\Red{What is the limitation} However, we recognize this as a limitation of \sys{} and leave the
 investigation of expressiveness labels to future work.
 
 %% Recently, and different from other sandboxes approaches, the
@@ -119,34 +114,31 @@ investigation of expressiveness labels to future work.
 JSFlow~\cite{JSFlow} is a fine-grained IFC system for JavaScript,
 implemented in JavaScript.
 %
-By associates labels with individual objects, JSFlow can be used to
-confine untrusted libraries, such as jQuery, that are intertwined with
-the page page, which may need to communicate over the network.
+By associating labels with individual objects, JSFlow can be used to
+confine untrusted libraries, such as jQuery, which are intertwined with
+trusted code on a page.
 %
-On the other hand, \sys{} is coarse-grained and, like BFlow, generally
+\sys{}, on the other hand, is coarse-grained and, like BFlow, generally
 requires the application to be compartmentalized (e.g., by placing the
 page code that needs to communicate with the network in a lightweight
 DOM worker).
 %
-While the fine-grained interpreted approach has many benefits, there
+While the fine-grained approach has many benefits, there
 are also several drawbacks.
 %
 First, JSFlow cannot be used to confine style sheets that execute code
 or build applications that rely on policies more flexible than SOP,
-such as the third-party mashup, cannot be implemented in JSFlow.
+such as the third-party mashup.
 %
 %%Second, developers need to understand a new semantics for the core
 %%JavaScript language~\cite{Hedin:2012}, in contrast to a new DOM-leve
 %%API.
 %
 Second, library APIs, including the JavaScript built-in APIs, must be
-individually modeled.
+individually modeled; though their coverage of the DOM is very commendable.
 %
 This incurs a huge performance cost (by two orders of magnitude)
 and restricts the APIs available to developers.
-%
-(Although their effort in handling parts of the DOM is very
-commendable.)
 %
 Nevertheless, we find JSFlow mostly complimentary and envision
 application where some \sys{} compartments enforce fine-grained IFC by
@@ -168,19 +160,19 @@ leveraging JSFlow.
 
 % With our
 FlowFox~\cite{DeGroef:2012} is an IFC system that uses secure-multi
-execution (SME)~\cite{Devriese:2010} to executes a program multiple
+execution (SME)~\cite{Devriese:2010} to execute a program multiple
 times, once per each label; SME ensures that no leaks from a sensitive
 context can leak into a less-senstive context by construction.
 %
-Similar to JFlow, FlowFox can confine programs wherein data is labeled
-at a fine-grained level.
+Similar to JFlow, FlowFox can confine programs
+with fine-grained labeling of data.
 %
 Different from JSFlow and \sys{}, FlowFox's SME approach is not
 amendable to scenarios of mutual distrust where declassification plays
 a key role (e.g., the encrypted editor, password manager, or
 third-party mashup).
 %
-Instead, FlowFox associates labels with user interaction and meta data
+An interesting application of FlowFox is how it labels with user interaction and metadata
 (history, screen size, etc.) to address common privacy attacks such as
 history sniffing and behavior tracking.
 %
@@ -201,12 +193,12 @@ policies imposed by developers before sharing the data.
 % ConDOM 
 \todo{ar}{revise as the above}
 ConDOM~\cite{ConDOM} implements fine-grained label tracking system
-that spans both the JavaScript engine and DOM.
+that spans both the JavaScript engine and DOM\@.
 %
 To handle implicit flows, authors use a
-control flow stack (neglecting exceptions), and inject labels at the HTML parser
-for dynamically generated code. Instead, \sys{} allows to handle any type of
-branches or dynamic code by just using browsing contexts.
+control flow stack (neglecting exceptions) and inject labels at the HTML parser
+for dynamically generated code. In contrast, \sys{} handles any type of
+branches or dynamic code by labeling the browsing context itself. \todo{ezy}{this doesn't seem very convincing\ldots}
 
 
 %Sandboxing/language subsets
@@ -216,9 +208,9 @@ WebJail~\cite{VanAcker:2011}, TreeHouse~\cite{Ingram:2012},
 JSand~\cite{Agten:2012:JCC}, SafeScript~\cite{SafeScript}, Defensive
 JavaScript~\cite{djs}). 
 %
-While some of these systems (e.g., TreeHouse) have inspired our design, the
-underlying high-level ideas behind these systems are to mediate security
-critical operations, restrict access to the DOM, and restrict communication APIS.
+While our design has been inspired by some of these systems (e.g., TreeHouse), the
+usual goals of these systems are to mediate security
+critical operations, restrict access to the DOM, and restrict communication APIs\@.
 %
 In contrast to the mandatory nature of confinement, however, most restrictions
 are imposed in a discretionary fashion and are thus not suitable to the
@@ -238,7 +230,7 @@ complement to confinement when building robust secure applications.
 scripts~\cite{Carlini:2012}, although provided as DOM objects to
 website developers.
 %
-However, different from real extension systems, we do not not consider
+However, as opposed to real extension systems, we do not not consider
 privileged APIs, nor do we intend to extend the API made available to
 workers in such a way.
 %

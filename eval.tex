@@ -1,37 +1,51 @@
 \section{Evaluation}
 \label{sec:eval}
 
-In this section we evaluate the performance of \sys{}.
+When adding new browser features, even security-centric ones, the
+question of how performance or functionality is affected can become a
+roadblock to adoption.
 %
-We first evaluate the end-to-end performance of the \sys{}
-applications described in Section~\ref{sec:system}, relative to
-implementations that simply trade off security for the features the
-apps provide.
+In the case of \sys{}, this question is two-fold.
+%
+First, are existing websites affected by our modifications?
+%
+Since our system relies on a page to enable confinement mode by using
+our API, the functionality of existing websites is not
+affected---hence we are solely concerned with how \sys{} affects the
+performance of existing apps.
+%
+Second, is the performance of an end-to-end application that uses
+\sys{} acceptable, for instance, when compared to a comparable, but
+insecure app?
+%
+In this section we answer these questions.
+%
+Specifically, we first evaluate the end-to-end performance of the
+applications described in Section~\ref{sec:apps}, relative to
+implementations that simply trade off security for features.
 %
 Then, we measure the performance impact of \sys{} on existing browser
-features and the additional overhead when confinement-mode is actually
-enabled.
+features with and without confinement-mode enabled.
 %
 All our measurements were conducted on a 4-core i7-2620M machine
-running GNU/Linux 3.11, with 16GB of RAM.
-%
-Our patches are applied to Firefox versions 26, and Chromium version
-31.
+running GNU/Linux 3.13, with 16GB of RAM.
 %
 
 
 \subsection{Macro benchmarks}
 \label{sec:eval:macro}
 
-We implemented all the applications described in
-Section~\ref{sec:system}.
+Below we measure the performance (usually page load time) of some of
+the applications on our modified browsers.
 %
-Below we measure the performance of some of these applications on our
-modified Firefox browser.
+To undertand whether the perfrormance as notced by the user is
+reasonable, we modified the applications by removing any security
+related checks and measured their performance on unmodified, vanilla
+browsers.
 %
-For comparison, we modified the applications by removing any security
-related checks and measured their performance an unmodified, vanilla
-version of Firefox.
+In fairness, we remark that these applications are compartmentalized
+to address the different trust relationships; an alternative
+(insecure) implementation may produce better results.
 
 \paragraph{Password-strength checker}
 %% Vanilla: just run script in worker
@@ -47,20 +61,20 @@ create a new labeled worker (with a fresh principal), fetch (with XHR)
 the 8KB checker script, and perform the actual strength
 checking on a password 16-characters in length.
 %
-We averaged the duration of 10 runs, without caching the script.
 %
-In Firefox the amount of time it takes to perform the strength
-checking is 59.5ms.
+In Firefox the average (over 10 runs) amount of time it takes to
+perform the strength checking is \Red{59.5ms}.
 %
 This figure, though predominantly dominated by network delay, is
-roughly 3\% faster than the strength checker running running in a
+roughly \Red{3\%} faster than the strength checker running running in a
 ``normal'' worker on a vanilla, unmodified, browser (which
 also caches the worker script).
 %
 We attribute our speedup to the fact that creating and communicating
 with labeled workers is faster than existing workers (see
-micro-benchmarks, below), and believe that caching the checker script
-would lead to additional speedup gains.
+micro-benchmarks, below).
+%
+\Red{In Chrome....}
 
 
 \paragraph{Encrypted web-based editor}
@@ -68,21 +82,16 @@ would lead to additional speedup gains.
 %% Firefox: With \sys{} it take 114.8, Vanilla: 100.2
 %% Chome: With \sys{} it take 248.1, Vanilla; 257.8
 
-We implemented a simple document editor with an encryption layer as
-described in Section~\ref{sec:system:iframe}.
-%
-This application is similar to---though slightly simpler than---the
-password manager; we do not report any measurements for the
-password manager.
+We implemented a simple document editor as described in
+Section~\ref{sec:apps}.
 %
 Our benchmark measures the end-to-end time it takes to load the
-application, carry out the protocol described in
-Section~\ref{sec:system:iframe}  and ``encrypt'' a 4KB document with
-the ``NULL-cipher''.
+application, and ``encrypt'' a new 4KB document using
+the \Red{SJCL AES-128 library~\cite{sjc}}.
 %
-We measured the \sys{} application to take 114.8ms on the modified
-version of Firefox, while a simplified, insecure version of the app,
-running on vanilla Firefox took 100ms.
+We measured the \sys{} application to take \Red{114.8ms} on the modified
+version of Firefox; the simplified, insecure version of the app,
+running on vanilla Firefox took \Red{100ms}.
 %
 We note that our figure accounts for the amount of time it takes to
 load the document editor page, which itself loads the encryption layer
@@ -93,6 +102,8 @@ performed by \sys{} and security layer added on top of the insecurity
 application---in the vanilla case, we removed the label operations and
 authentication layer (used to ensure that the label of the innermost
 iframe is sufficiently high).
+%
+\Red{Similarly, in Chromium...}
 
 
 \paragraph{Third-party mashup}
@@ -103,23 +114,26 @@ iframe is sufficiently high).
 
 We implemented a very simple third-party mashup application in which
 the integrator makes an XHR request to two unaffiliated origins, each
-of which produces a response containing a (27 byte) JSON object with a
-numerical property.
+of which produces a response containing a (\Red{27 byte}) JSON Blob
+object with a numerical property.
 %
 The integrator parses the responses into JSON objects, adds the
 numbers, and appends a \js|div| element, containing the sum, to the
 document body.
 %
 The corresponding vanilla application is identical, but uses the
-normal XHR object and requires the origins to set CORS headers permit
-the JSON responses to be inspected by any origin.
+normal XHR object; in this case, the unaffiliated origins set CORS
+headers that permit responses to be inspected by any origin.
 %
-We measured the latency of the application to be 10.7ms in both cases.
+In Firefox, we measured the latency of the application to be
+\Red{10.7ms in both cases}.
 %
 Of course, the \sys{} application has the advantage of treating the
 received content as sensitive (and thus required setting proper CSP
-and iframe sandbox flags) as opposed to the CORS-based approach that
-would allow the integrator to arbitrarily leak the sum.
+and iframe sandbox flags) when compared to the CORS-based approach
+that would allow the integrator to arbitrarily leak the sum.
+
+\Red{DS: HERE}
 
 \paragraph{Untrusted libraries/extensions}
 %% Vanilla: incorporate script directly, no sandboxes.

@@ -1,4 +1,5 @@
 \section{Applications}
+\label{sec:apps}
 
 In the previous sections, we described the goals of various applications
 and motivated why it was difficult to accomodate them in the standard
@@ -22,18 +23,18 @@ distrusting components.
 under \sys{}.}
 \end{figure}
 
-In Figure~\ref{fig:editor}, the architecture for \emph{saving a
-document} in an encrypted editor editor is shown.  The editor has three
-components: a component which has your Google Documents credentials and
-communicates with the server, the editor proper, and the component which
-performs encryption.  We give the following security guarantee: if the
-\https{en.cr} is honest, then we guarantee that the clear text of your document
-is never leaked to any origin.  If only \https{gdoc.com} is honest, then
-\https{gdoc.com} may be able to recover your cleartext (e.g. the encryptor
-used the null cipher), but the encryptor should not able to exfiltrate the
-cleartext to anyone else.\footnote{We assume that the user can securely
-transmit input to the iframe of their choice---in the face of phishing,
-this may not necessarily hold, but we defer this problem for now.}
+In Figure~\ref{fig:editor}, the architecture for an encrypted document
+editor is shown.  The editor has three components: a component which has
+your Google Documents credentials and communicates with the server, the
+editor proper, and the component which performs encryption.  We give the
+following security guarantee: if the \https{en.cr} is honest, then we
+guarantee that the clear text of your document is never leaked to any
+origin.  If only \https{gdoc.com} is honest, then \https{gdoc.com} may
+be able to recover your cleartext (e.g. the encryptor used the null
+cipher), but the encryptor should not able to exfiltrate the cleartext
+to anyone else.\footnote{We assume that the user can securely transmit
+input to the iframe of their choice---in the face of phishing, this may
+not necessarily hold, but we defer this problem for now.}
 
 How does this architecture work when you open an encrypted document?  Initially, only the
 first Google Documents window is open, and it downloads (1) the encrypted
@@ -63,3 +64,54 @@ without it, it would not be possible to display the decrypted text.  However, wh
 a new document is being created, the encryptor iframe must be placed
 in a separate pop-up window, so that the user can verify that encryption
 has been enabled.
+
+We also built a password manager, which operates on very similar
+principles to the encrypted document editor. \Red{space limitations}
+
+\subsection{Third-Party Mashup}
+\label{sec:apps-mashup}
+
+\Red{Recap the key idea}
+
+In Figure~\Red{figure}, the architecture for a \Red{personal finances
+mash-up website} is shown.  As opposed to the encrypted document editor,
+the architecture for this mash-up is very simple: we just download
+information from a few websites, and then do some computation on them.
+
+It's instructive to consider a version of this mash-up which does not
+work.  Suppose that we use regular XHR in order to retrieve data from
+\https{bank.ch} and \https{amazon.com}.  Ordinarily, we cannot read
+the results of XHR, since \https{bank.ch} does not flow to \https{mint.biz}.
+We might change our label to be \https{bank.ch} (exercising the \https{mint.biz}
+privilege), but now we can't contact \https{amazon.com}.
+
+Labeled XHR (Section~\ref{sec:labeled-blobs}) provides a solution to
+this conundrum.  First, we make labeled XHRs to both web sites (1),
+maintaining our current label but receiving labeled blobs.  Once all of
+the information is received, we raise our current label (2--3) and
+unlabel the blobs, in the process restricting our communication to the
+web at large.
+
+\subsection{Untrusted Third-Party Library}
+
+\Red{Recap the key idea}
+
+In Figure~\Red{figure}, the architecture for a web page using an
+untrusted JavaScript library is shown.  Our goal is to establish a
+separate DOM worker which has the \https{a.com} privilege, while the
+main browsing context runs jQuery without privileges or the ability to
+talk to the network.  Initially, we start in the main browsing context
+with the \https{a.com} privilege.  We generate a fresh privilege/origin
+pair, and spawn a DOM worker (1), delegating both privileges to it.  The
+main context drops both privileges (2), while both compartments raise
+their label to ``\https{a.com} and fresh-privilege'' (3).  Finally, the
+trusted worker downloads jQuery (4) and passes the script contents to
+the main context, which loads the library (5).  At the time the library
+is loaded, the main context becomes untrusted, but this is no matter, as
+it is fully confined at this point.  As the trusted DOM worker has both
+privileges, it can freely modify the DOM of the main context, as well as
+communicate with the wider web.
+
+\subsection{Browser Extension: Ad Block}
+
+\Red{NB: need to talk about integrity here}
