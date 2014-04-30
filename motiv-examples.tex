@@ -168,17 +168,17 @@ Figure~\ref{fig:checker} shows how such a design might look. In this
 and subsequent examples, rectangular frames denote browser contexts,
 arrows denote communication (either between a context and the network,
 or IPC-style between contexts), and events during execution are
-numbered sequentially in time. Contexts may be {\em labeled} with the
+numbered sequentially in time. Contexts may be \emph{labeled} (Section~\ref{sec:labels}) with the
 origins to whose sensitive data they have been exposed. A context that
 has not yet observed sensitive data is denoted \js|public|, and a page
-that contains sensitive data can {\em raise} the label of its own
+that contains sensitive data can \emph{raise} the label of its own
 browsing context to its own origin. Here, a top-level page at
 \js|fb.com| encapsulates a password-checker script from a third-party
 origin within an iframe browsing context. Each browsing context has a
 distinct current label. First, in step (1), the checker script is free
 to download updated regular expressions from an arbitrary remote
 origin. In step (2), the top-level page sends the user's password to
-the checker script's iframe using XHR; the browser {\em labels} the
+the checker script's iframe using XHR\@; the browser \emph{labels} the
 sent data with the origin of the page that sent it (in this case,
 \js|fb.com|). When the browser delivers the password to the checker
 script's context, it raises the label of the context to reflect that
