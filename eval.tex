@@ -288,6 +288,11 @@ a less than 0.5ms delay.}
 In most of the other cases the sub \Red{0.1ms} differences can be
 attributed to noise.
 %
+We also measured the performance of using a \verb|"labeled-blob"|
+response type with just \verb|"blob"| to be \Red{XX\% slower}; this
+however, is on par with setting a CORS header for the vanilla case
+(\Red{XXX\% slower/faster}).
+%
 The only interesting case is that of communication with light-weight
 labeled workers; as with creating labeled workers, communication with
 a labeled workers is roughly \Red{2 times} faster than a corresponding
