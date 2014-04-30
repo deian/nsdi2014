@@ -43,7 +43,8 @@ usually occur in the context of iframes, we also introduce a new type
 of Web Worker called a DOM Worker which shares a DOM with its parent.
 These workers run synchronously with the parent (rather than in parallel)
 and are solely used for confinement: one can think of them as iframes
-without DOMs of their own.}
+without DOMs of their own. \Red{XXX We're going to move this out of the
+footnote and give it a proper explanation, integrity and DOM access label}}
 
 The security policy of a container consists of three components:
 
@@ -149,6 +150,8 @@ This leads to a common interpretation of labels as ``taint;'' as
 a compartment receives data from more sources, it accumulates more
 conjuncts on account of raising its label to read the received data.
 
+\Red{talk about UI stuff}
+
 \subsubsection{Labeled blobs}
 \label{sec:labeled-blobs}
 
@@ -235,6 +238,8 @@ Importantly, any code can allocate a origin-privilege pair: this
 makes isolation an egalitarian security mechanism: an untrusted library
 can use this mechanism to isolate a sub-library that it itself
 may not trust~\cite{Zeldovich:2006}.
+
+\Red{Integrity for DOM access}
 
 \subsection{Clearance}
 \label{sec:clearance}
