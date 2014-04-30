@@ -198,6 +198,37 @@ sender may be sending data derived from sensitive data owned by
 
 \subsection{Encrypted Document Editor}
 
+Today's web applications, such as in-browser document editors backed
+by cloud-based storage (e.g., Google Docs), typically require the user
+to trust the app developer/cloud-based storage provider (often the
+same principal under the SOP) with the data in her documents. That is,
+the provider's server observes the user's data in cleartext. How might
+the provider offer a privacy-preserving editor app that does {\em not}
+reveal the user's document data to the provider's server?  One
+promising approach might be to outsource encryption of documents to a
+distinct web-based service at a different origin than that which hosts
+the editor app. The user would configure her account in the editor app
+to invoke the JavaScript-based cryptography library she trusts to work
+robustly. In this design, one origin serves the JavaScript code for
+the editor app (say, \js|google.com|) and a different origin serves
+the JavaScript code for the cryptography library (say,
+\js|eff.org|). Note that these two origins may be {\em mutually
+  distrusting.}  \js|google.com|'s script must pass the document's
+cleartext to a script from \js|eff.org| for encryption, and would like
+to confine the execution of the encryption script so that it cannot
+exfiltrate the document to any origin {\em other} than
+\js|google.com|. And \js|eff.org|'s cryptography library doesn't trust
+\js|google.com| with the cleartext document---it would like to confine
+\js|google.com|'s editor script to prevent exfiltration of the
+cleartext document to \js|google.com| (or to any other origin). This
+simple use case highlights the need for {\em symmetric confinement:}
+when two mutually distrusting scripts from different origins
+communicate, each must each be able to confine the other's further use
+of data it has sent to the other.
+
+%% brings up the requirement of *symmetric* confinement: two mutually
+%% distrusting origins each confine the other.
+
 \subsection{Third-Party Mashup}
 
-\subsection{Ad Blocker}
+\subsection{Untrusted Third-Party Library}
