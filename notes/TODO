@@ -29,6 +29,13 @@ overall, "tab" depiction in figures won't be understood as "implying
 DOM" by OSDI reviewers; need to draw DOM explicitly within an origin's
 frame (e.g., as a rectangle within the frame)
 
+related work: i think that some of the fine grained ifc systems can be
+used to more easily deal with phishing attacks... (maybe)
+
+in the untrusted library scenario: it's important to not only raise
+the current label, but also lower the clearance to ensure that the tcb
+code in the worker can always access the DOM.
+
 one more pretty relevant piece of related work:
 
 Embassies: Radically Refactoring the Web (Howell et al., NSDI 2013)
