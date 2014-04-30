@@ -13,12 +13,7 @@ checker}, which demonstrates many of the key design points of \sys{}.
 %   text presents a page’s content to the user, and JavaScript
 %   code accesses content within the page through the Docu-
 %   ment Object Model (DOM) [34]. Browsing contexts may
-%   be nested (e.g., by using iframes). They also may read
-%   and write persistent storage (e.g., cookies) and issue net-
-%   work requests (either implicitly in page content that ref-
-%   erences a URL retrieved over the network, or explicitly
-%   in JavaScript, through invoking the XMLHttpRequest
-%   (XHR) constructor).
+%   be nested (e.g., by using iframes). 
 
 % rectangular frames denote
 % browser contexts
@@ -34,25 +29,30 @@ As mentioned previously, the basic unit of confinement in \sys{}---a
 compartment---corresponds to a JavaScript execution context, e.g.\@ a
 browser tab, an iframe on a page, or even a Web Worker~\cite{workers}.
 %
-Each compartment and web site is associated with security policy which
+Our password checker was partitioned into two compartments: the main
+page and an untrusted worker which ran the actual password checker code
+(though an iframe could easily have been used in place of the worker).
+%
+Each compartment and web site is associated with a security policy which
 dictates what kind of messages and requests are permitted to flow with
 other compartments and web sites.
-%
-These messages might constitute one-way {\tt postMessage}s, or they might
-be two-way manipulation of a shared DOM\@.\footnote{While shared DOMs
+%They also may read
+%   and write persistent storage (e.g., cookies) and issue net-
+%   work requests (either implicitly in page content that ref-
+%   erences a URL retrieved over the network, or explicitly
+%   in JavaScript, through invoking the XMLHttpRequest
+%   (XHR) constructor).
+\sys{}'s job is to enforce this policy on all forms of communication, from
+{\tt postMessage}s to mutation of a shared DOM\@.\footnote{While shared DOMs
 usually occur in the context of iframes, we also introduce a new type
 of Web Worker called a DOM Worker which shares a DOM with its parent.
 These workers run synchronously with the parent (rather than in parallel)
-and are solely used for confinement.}
+and are solely used for confinement: one can think of them as iframes
+without DOMs of their own.}
 %
-Compartments can create new compartments (e.g.\ a page can start a Web
-Worker); \sys{} extends the relevant APIs to also accept the security
-policy which should be applied to the new compartment.
-
-This model of a compartment is already prevalent on the web; however,
-our security policies are different from the traditional Same-Origin
-Policy, which only restricts compartments from reading data from
-arbitrary web sites.
+Compartments can create new compartments: \sys{} extends the relevant
+APIs to also accept the security policy which should be applied to the
+new compartment (with some restrictions).
 %
 We describe the structure of our security policies in the next section.
 
@@ -85,12 +85,21 @@ origins.%
   the discussion for simplicity.
 }
 %
-When a compartment wishes to send a message to another compartment or
+When a compartment wishes to send a (unidirectional) message to another compartment or
 web site, we check if the target label $l'$ logically implies the source
-label $l$ ($l' \rightarrow l$): intuitively, this require that the security of the destination be
-\emph{as strong as} original security policy.
+label $l$ ($l' \rightarrow l$): intuitively, this require that the security of the destination be \emph{as strong as} original security policy.\footnote{If the communication is bidirectional, e.g.\ mutation of a shared DOM, then both the target and source must imply each other.}
 %
-We call this a \emph{label check}.
+Thus, when the implication holds, we also say that the target label
+\emph{subsumes} the source label.
+%
+As a simple example, in the password checker, the labeled password
+cannot be read by a publically labeled worker (corresponding to the
+logical formula ``true''), because ``true'' does not imply
+``\https{fb.us}''.
+%
+However, once the worker raises its label to ``\https{fb.us}'', the
+logical implication holds trivially.
+
 %Reworded version: Intuitively, an entity is allowed to receive data that is at most as
 %sensitive as its label, i.e., the entity's label always \js|subsumes|
 %the label of the data it can receive, preserving the latter's privacy.
@@ -108,6 +117,8 @@ Informally, a conjunction states what origins contributed sensitive data
 to the compartment, while a disjunction states what origins are allowed
 to read the data.
 %
+% EZY: Unfortunately, I can't use the password checker here because
+% the labels are too simple
 For example, a worker that processes your bank statement and your shopping
 history might have the label ``\https{bank.ch} and \https{amazon.com}''.
 %
@@ -120,53 +131,26 @@ Conversely, a compartment labeled ``\https{bank.ch} or \https{amazon.com}''
 could send data to either website; however, it could not receive any
 messages from either origin.
 
-By default, the label of a compartment is simply the origin of the
-source website, unless the creator of the compartment explicitly
-specified a label for the compartment.
+When a compartment is created, it is either explicitly given a label
+(which must subsume the parent's label) or implicitly inherits the label
+of its parent.\footnote{Perceptive readers may now be wondering how
+the password checker arranged to create a publically labeled worker
+when its label was \https{fb.us}.  An explanation will have to wait
+until Section~\ref{sec:privileges}, where we talk about privileges.}
 %
-A compartment can freely \emph{raise} its label, i.e.\ change its label
-to any label it logically implies, but not vice versa.
+If there was no parent, then this compartment was a web page served
+by the web site, in which case we look for a {\tt Document-label} header
+specifying the initial label or default to the origin of the web site.
+%
+A compartment can also freely \emph{raise} its label, i.e.\ change its label
+to any label which subsumes it, but not vice versa.
 %
 This leads to a common interpretation of labels as ``taint;'' as
 a compartment receives data from more sources, it accumulates more
 conjuncts on account of raising its label to read the received data.
-%
-If this sounds restrictive, it is: in Section~\Red{priv} we discuss how
-an origin can exercise authority to relax this restriction.
-
-\subsection{Labeled blobs}
-
-A \emph{labeled blob} is an arbitrary piece of data with a label
-associated with it.
-%
-A programmer can use labeled blobs to express security policy at
-a more fine-grained level than per-compartment.
-%
-Labeled blobs can be passed around as an opaque object (in which case one merely
-checks the security policy of the compartments involved).
-%
-However, when a piece of code wishes to inspect the contents of the
-labeled blob, a label check between the label of the blob and the
-current compartment occurs.
-
-Labeled blobs can be explicitly created by the programmer, and then
-passed around by container-to-container message passing.
-%
-However, a compartment can also make a request to a website using
-\emph{labeled XHR} and received a labeled blob, without raising their
-label read the data.
-%
-This effectively allows a developer to defer reading the result of
-a request: this is useful if the compartment merely plans on passing
-the labeled blob to another compartment, or if it needs to query
-multiple websites without raising its label (otherwise, upon reading
-its first response, it would raise its label and be unable to
-make any further requests.)
-
-\Red{I dunno, maybe some comments about how this pattern shows up
-in some web APIs, e.g.\ service workers}
 
 \subsection{Privileges}
+\label{sec:privileges}
 
 % Description of privileges
 A compartment is associated with a label representing its \emph{privilege}.
@@ -213,6 +197,41 @@ Importantly, any code can allocate a origin-privilege pair: this
 makes isolation an egalitarian security mechanism: an untrusted library
 can use this mechanism to isolate a sub-library that it itself
 may not trust~\cite{Zeldovich:2006}.
+
+\subsection{Labeled blobs}
+\label{sec:labeled-blobs}
+
+A \emph{labeled blob} is an arbitrary piece of data with a label
+associated with it.
+%
+A programmer can use labeled blobs to express security policy at
+a more fine-grained level than per-compartment.
+%
+Labeled blobs can be passed around as an opaque object (in which case one merely
+checks the security policy of the compartments involved).
+%
+However, when a piece of code wishes to inspect the contents of the
+labeled blob, a label check between the label of the blob and the
+current compartment occurs.
+
+Labeled blobs can be explicitly created by the programmer, and then
+passed around by container-to-container message passing.
+%
+However, a compartment can also make a request to a website using
+\emph{labeled XHR} and received a labeled blob, without raising their
+label read the data.
+%
+This effectively allows a developer to defer reading the result of
+a request: this is useful if the compartment merely plans on passing
+the labeled blob to another compartment, or if it needs to query
+multiple websites without raising its label (otherwise, upon reading
+its first response, it would raise its label and be unable to
+make any further requests.)
+
+\Red{I dunno, maybe some comments about how this pattern shows up
+in some web APIs, e.g.\ service workers}
+
+% maybe footnote about integrity
 
 \subsection{Clearance}
 
