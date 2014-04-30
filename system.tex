@@ -6,7 +6,7 @@ In this section, we describe the \sys{} system.
 Throughout, we'll refer to our running example, the \emph{password
 checker}, which demonstrates many of the key design points of \sys{}.
 
-\subsection{Compartments and origins}
+\subsection{Compartments}
 
 %   Browsing contexts. As shown in Figure 1, a web page
 %   consists of content and JavaScript code. A browsing con-
@@ -33,15 +33,10 @@ Our password checker was partitioned into two compartments: the main
 page and an untrusted worker which ran the actual password checker code
 (though an iframe could easily have been used in place of the worker).
 %
-Each compartment and web site is associated with a security policy which
-dictates what kind of messages and requests are permitted to flow with
-other compartments and web sites.
-%They also may read
-%   and write persistent storage (e.g., cookies) and issue net-
-%   work requests (either implicitly in page content that ref-
-%   erences a URL retrieved over the network, or explicitly
-%   in JavaScript, through invoking the XMLHttpRequest
-%   (XHR) constructor).
+Each compartment and web site is associated with a security policy,
+which, broadly construed, dictates what kind of messages and requests
+are permitted to flow with other compartments and web sites.
+%
 \sys{}'s job is to enforce this policy on all forms of communication, from
 {\tt postMessage}s to mutation of a shared DOM\@.\footnote{While shared DOMs
 usually occur in the context of iframes, we also introduce a new type
@@ -49,22 +44,28 @@ of Web Worker called a DOM Worker which shares a DOM with its parent.
 These workers run synchronously with the parent (rather than in parallel)
 and are solely used for confinement: one can think of them as iframes
 without DOMs of their own.}
-%
-Compartments can create new compartments: \sys{} extends the relevant
-APIs to also accept the security policy which should be applied to the
-new compartment (with some restrictions).
-%
-We describe the structure of our security policies in the next section.
+
+The security policy of a container consists of three components:
+
+\begin{itemize}
+    \item A current label (Section~\ref{sec:labels}), which indicates the
+        sensitivity of the data in the container,
+    \item A set of privileges (Section~\ref{sec:privileges}), which
+        dicates what authority the compartment's code has to
+        \emph{relax} policy requirements, and
+    \item A clearance (Section~\ref{sec:clearance}), which imposes a
+        limit on the sensitivity of the data in the container.
+\end{itemize}
+
+We describe each of these components in turn in the following sections.
 
 \subsection{Labels}
 \label{sec:labels}
 
-A \emph{label} is used to encode security policies in our system.
-%
-Conceptually, a label protects all data associated with a compartment or
+A \emph{label} protects all data associated with a compartment or
 web site, specifying what origins can read the data.
 %
-Individual pieces of data can also be labeled, see Section~\Red{labeled}.
+Individual pieces of data can also be labeled (Section~\ref{sec:labeled-blobs}).
 %
 The particular labels that are used in \sys{} are \emph{DC labels},
 presented in~\cite{stefan:2011:dclabels}.
@@ -74,7 +75,7 @@ Breeze~\cite{Breeze13}, because they have a simple and clear
 semantics, yet are as expressive as the labels used by other practical
 confinement systems~\cite{GenLabels}.
 %
-In this section, we give a brief description of DC labels; an interesting
+In this section, we give a brief description of DC labels; an interested
 reader should see~\cite{stefan:2011:dclabels} for more details.
 
 A privacy label (henceforth just label) is a boolean formula over
@@ -85,17 +86,15 @@ origins.%
   the discussion for simplicity.
 }
 %
-When a compartment wishes to send a (unidirectional) message to another compartment or
+When a compartment wishes to send a message to another compartment or
 web site, we check if the target label $l'$ logically implies the source
-label $l$ ($l' \rightarrow l$): intuitively, this require that the security of the destination be \emph{as strong as} original security policy.\footnote{If the communication is bidirectional, e.g.\ mutation of a shared DOM, then both the target and source must imply each other.}
+label $l$.
 %
-Thus, when the implication holds, we also say that the target label
-\emph{subsumes} the source label.
+Intuitively, this requires that the security of the destination be as strong as original security policy, i.e.\ that the target label \emph{subsumes} the source label.\footnote{If the communication is bidirectional, e.g.\ mutation of a shared DOM, then both the target and source must imply each other.}
 %
-As a simple example, in the password checker, the labeled password
-cannot be read by a publically labeled worker (corresponding to the
-logical formula ``true''), because ``true'' does not imply
-``\https{fb.us}''.
+In the password checker, the labeled password (2) cannot be read by a
+publically labeled worker (corresponding to the logical formula
+``true''), because ``true'' does not imply ``\https{fb.us}''.
 %
 However, once the worker raises its label to ``\https{fb.us}'', the
 logical implication holds trivially.
@@ -113,37 +112,38 @@ as a set of origins?
 As it turns out, both conjunctions (``and'')
 and disjunctions (``or'') are useful for specifying security policies.
 %
-Informally, a conjunction states what origins contributed sensitive data
-to the compartment, while a disjunction states what origins are allowed
+Informally, a conjunction describes what origins contributed sensitive data
+to the compartment, while a disjunction describes what origins are allowed
 to read the data.
 %
 % EZY: Unfortunately, I can't use the password checker here because
 % the labels are too simple
-For example, a worker that processes your bank statement and your shopping
-history might have the label ``\https{bank.ch} and \https{amazon.com}''.
-%
-While it can read messages from either origin, it cannot send data to
+A compartment with the label ``\https{bank.ch} and \https{amazon.com}''
+may contain sensitive data from both sites, so it cannot send data to
 \https{bank.ch}, as doing so might leak private information from
-\https{amazon.com} (and vice versa).\footnote{Note that even initiating a
-GET request constitutes sending data to an origin.}
+\https{amazon.com} (and vice versa).
 %
 Conversely, a compartment labeled ``\https{bank.ch} or \https{amazon.com}''
 could send data to either website; however, it could not receive any
-messages from either origin.
+messages from either origin---it might have originally been public data
+whose sensitivity was raised so that no other site could read it.
 
-When a compartment is created, it is either explicitly given a label
-(which must subsume the parent's label) or implicitly inherits the label
-of its parent.\footnote{Perceptive readers may now be wondering how
+How is the current label initially determined?
+%
+\sys{} extends the API of iframes and workers so that when they are
+created, a particular current label can be assigned to it (which
+must subsume the parent's label).  Otherwise, new containers implicitly
+inherit the label of its parent.\footnote{Perceptive readers may now be wondering how
 the password checker arranged to create a publically labeled worker
-when its label was \https{fb.us}.  An explanation will have to wait
-until Section~\ref{sec:privileges}, where we talk about privileges.}
+when its label was \https{fb.us}.  In fact, doing so is not possible
+to do so without privileges (Section~\ref{sec:privileges}).}
 %
-If there was no parent, then this compartment was a web page served
-by the web site, in which case we look for a {\tt Document-label} header
-specifying the initial label or default to the origin of the web site.
+For web pages proper, we look for a {\tt Document-label} header to
+specify the initial label, defaulting to the origin of the web site when
+this header is not present.
 %
-A compartment can also freely \emph{raise} its label, i.e.\ change its label
-to any label which subsumes it, but not vice versa.
+After creation, a compartment can freely \emph{raise} its label, i.e.\
+change its label to any label which subsumes it, but not vice versa.
 %
 This leads to a common interpretation of labels as ``taint;'' as
 a compartment receives data from more sources, it accumulates more
@@ -153,18 +153,21 @@ conjuncts on account of raising its label to read the received data.
 \label{sec:privileges}
 
 % Description of privileges
-A compartment is associated with a label representing its \emph{privilege}.
+\emph{Privileges} confer the authority to relax policy requirements with
+respect to the origins in the label.
 %
-Privileges confer the authority to relax policy requirements
-with respect to the origins in the label.
+A compartment is associated with a \Red{label} representing its \emph{privilege}.
 %
 This is useful when you have some trusted code which should be
-able to lower the current label or send a message with a lower label, so
+able to \Red{lower the current label} or send a message with a lower label, so
 the recipient does not need to raise its label in order to read it.
 %
 Privileges are exercised implicitly: a compartment with a privilege $p$
 adjusts a label checks from $l$ to $l'$ by requiring that $l' \land p
 \rightarrow l$.
+%
+In the password checker, only the original browsing context has the
+privilege for \https{fb.us}; 
 
 % Basic usage patterns of privileges
 Privileges offer another dimension of separation for compartments: two
@@ -234,6 +237,7 @@ in some web APIs, e.g.\ service workers}
 % maybe footnote about integrity
 
 \subsection{Clearance}
+\label{sec:clearance}
 
 In an ideal confinement system, code can read arbitrary data at the
 cost of raising the context label (and thus giving up write
