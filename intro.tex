@@ -55,7 +55,6 @@ API~\cite{html5}.
 And of course, the well-known Same-Origin Policy prevents JavaScript
 hosted by one principal from reading content hosted by another.
 
-\Red{This paragraph tries to explain what restrictions are imposed}
 Unfortunately, efforts to advance one of these two goals still often hamper achieving
 the other. Application developers (and users) are thus often left with
 only unpalatable choices (though in practice, the desire for
@@ -78,8 +77,7 @@ it that data in the first place, but applications like password
 managers or a personal finance organizers (like {\tt mint.com}) require
 sensitive data to implement their functionality.
 
-\Red{This section tries to explain what flexibilities are allowed. I think
-it is too long and could be trimmed down}
+\todo{ezyang}{I think section is too long and could be trimmed down}
 Modern browsers also incorporate mechanisms that explicitly support
 the prioritization of flexibility over privacy. For example, an
 application developer may choose to include JavaScript from another
@@ -89,7 +87,7 @@ granting the script unfettered access to the enclosing page's origin's
 content. Or a web server's operator may use Cross-Origin Resource
 Sharing to
 explicitly enumerate other origins permitted to read content from that
-server (\Red{bypassing the SOP for those other origins}).
+server (bypassing the SOP for those other origins).
 This approach still limits flexibility, though, in that it requires a
 server's operator to know {\em a priori} which mashups are hosted by
 which other origins, and worse, potentially allows a service provider
