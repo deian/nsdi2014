@@ -42,8 +42,8 @@ The second is {\em privacy:\/} there should be strong guarantees that a
 user's privacy cannot be violated when a web application processes her
 sensitive data.
 %
-These goals are hardly new: Wang {\em et al.} articulated similar goals
-and proposed new browser primitives to improve isolation within mashups:
+These goals are hardly new: \Red{Wang {\em et al.} articulated similar goals
+and proposed new browser primitives to improve isolation within mashups (Brad mentioned something about this giving too much deference to mashup-os. I don't know how to fix ezyang)}:
 sandboxes that allow pages not to share their data with JavaScript code
 they include and discretionary access control (DAC) for inter-frame
 communication~\cite{mashupos}.
@@ -55,23 +55,31 @@ API~\cite{html5}.
 And of course, the well-known Same-Origin Policy prevents JavaScript
 hosted by one principal from reading content hosted by another.
 
-Unfortunately, in the status quo web browser security architecture,
-efforts to advance one of these two goals still often hamper achieving
+\Red{This paragraph tries to explain what restrictions are imposed}
+Unfortunately, efforts to advance one of these two goals still often hamper achieving
 the other. Application developers (and users) are thus often left with
 only unpalatable choices (though in practice, the desire for
-functionality often dominates the concern for privacy, to users'
-peril). The browser may enhance privacy by applying discretionary
-access control when an untrusted script wishes to read
-potentially sensitive data. The various isolation mechanisms a modern
-browser applies (e.g., the SOP and Content Security Policies (CSP)) are flavors of DAC. But
-the brittle ``all-or-nothing'' character of DAC thwarts the building
-of many useful mashups. Broadly speaking, DAC can either deny or grant
-untrusted JavaScript access to the sensitive data. In the former case,
-that untrusted JavaScript might {\em need} the sensitive data to
-implement the functionality of the application. In the latter case,
-DAC exercises no control over what the untrusted code does with the
+functionality often dominates the concern for privacy).
+%
+At the moment, browsers only enforce privacy by applying discretionary
+access control when an untrusted script wishes to read potentially
 sensitive data.
+%
+These various isolation mechanisms (e.g., the SOP and Content Security Policies (CSP)) tend
+to be ``all-or-nothing'', thwarting the implementation
+of many useful mashups.
+%
+DAC can only deny or grant
+untrusted JavaScript access to the sensitive data; it cannot
+dictate what happens to the data afterwards.
+%
+The only way to avoid trusting a service with secret data is to never give
+it that data in the first place, but applications like password
+managers or a personal finance organizers (like {\tt mint.com}) require
+sensitive data to implement their functionality.
 
+\Red{This section tries to explain what flexibilities are allowed. I think
+it is too long and could be trimmed down}
 Modern browsers also incorporate mechanisms that explicitly support
 the prioritization of flexibility over privacy. For example, an
 application developer may choose to include JavaScript from another
@@ -98,21 +106,22 @@ receive.
 
 To achieve both flexibility and privacy, what is needed is a means to
 allow untrusted code to compute over sensitive data and display
-results to  the user, while {\em confining} the untrusted code so that
-it may not exfiltrate the sensitive data (in the web browser,
-typically by writing the sensitive data to an untrusted remote
-origin). To offer the greatest flexibility to web application
-developers, the means of confinement should further be {\em first
-  class,} in that any container (e.g., a frame) should be able
-to prevent untrusted code incorporated in a sub-container from
-exfiltrating sensitive data passed into the sub-container, with
-arbitrarily deep nesting, e.g., so that a page may include a
-library it does not trust, and that library may in turn include
-another library {\em it} does not trust. And finally, also in the
-interest of flexibility, the means of confinement should be {\em
-  symmetric,} in that it should allow each principal on either side of
-a trust boundary to pass sensitive data to the other, while preventing
-the other principal from exfiltrating it.  
+results to the user, while \emph{confining} the untrusted code so that
+it may not exfiltrate the sensitive data (e.g., by sending it to an untrusted remote
+origin).
+%
+To offer the greatest flexibility to web application developers, the
+means of confinement should further be \emph{first class,} in that any
+container (e.g., a frame) should be able to prevent untrusted code
+incorporated in a sub-container from exfiltrating sensitive data passed
+into the sub-container, with arbitrarily deep nesting, e.g., so that a
+page may include a library it does not trust, and that library may in
+turn include another library \emph{it} does not trust.
+%
+And finally, also in the interest of flexibility, the means of
+confinement should be \emph{symmetric,} in that it should allow each
+principal on either side of a trust boundary to pass sensitive data to
+the other, while preventing the other principal from exfiltrating it.  
 %
 This property, for instance, ensures that the parent of a
 sub-container cannot arbitrarily exfiltrate data it receives from the
