@@ -62,10 +62,10 @@ We describe each of these components in turn in the following sections.
 \subsection{Labels}
 \label{sec:labels}
 
-A \emph{label} protects all data associated with a compartment or
+The \emph{current label} protects all data associated with a compartment or
 web site, specifying what origins can read the data.
 %
-Individual pieces of data can also be labeled (Section~\ref{sec:labeled-blobs}).
+Individual pieces of data can also be labeled (see Section~\ref{sec:labeled-blobs}).
 %
 The particular labels that are used in \sys{} are \emph{DC labels},
 presented in~\cite{stefan:2011:dclabels}.
@@ -149,48 +149,83 @@ This leads to a common interpretation of labels as ``taint;'' as
 a compartment receives data from more sources, it accumulates more
 conjuncts on account of raising its label to read the received data.
 
+\subsubsection{Labeled blobs}
+\label{sec:labeled-blobs}
+
+A \emph{labeled blob} is a piece of data with a label
+associated with it.
+%
+The contents of a labeled blob are opaque: in order to
+inspect these contents, we must check that the label of the environment
+subsumes the label of the blob.
+%
+In the password checker, the password passed to the untrusted worker
+is explicitly labeled with ``\https{fb.us}'', to ensure that the worker
+taints itself once the password is read.\footnote{This is important
+when privileges are in use; see the next section.}
+
+Labeled blobs can be explicitly created by the programmer and then
+passed around by container-to-container message passing.
+%
+Labeled blobs can also be created from requests to websites using
+\emph{labeled XHR}: instead of immediately raising the label upon
+receiving the result, a labeled blob is returned instead.
+%
+This allows a developer to defer reading the result of a request. This
+is useful if the compartment is simply passing the labeled blob to
+another compartment, or querying multiple websites of different origins
+before reading the results all at once.
+
+% maybe footnote about integrity
+
 \subsection{Privileges}
 \label{sec:privileges}
 
 % Description of privileges
-\emph{Privileges} confer the authority to relax policy requirements with
-respect to the origins in the label.
+A \emph{privilege} is an object, representing an origin, which confers
+the authority to relax policy requirements with respect to this origin.
 %
-A compartment is associated with a \Red{label} representing its \emph{privilege}.
-%
-This is useful when you have some trusted code which should be
-able to \Red{lower the current label} or send a message with a lower label, so
-the recipient does not need to raise its label in order to read it.
-%
-Privileges are exercised implicitly: a compartment with a privilege $p$
-adjusts a label checks from $l$ to $l'$ by requiring that $l' \land p
-\rightarrow l$.
-%
-In the password checker, only the original browsing context has the
-privilege for \https{fb.us}; 
+While privileges can be used in a variety of ways, their basic mechanism
+is quite simple:  whenever a compartment with a privilege $p$ performs a
+label check, instead of checking that $l'$ implies $l$, we check that
+$l'$ and $p$ implies $l$.
 
-% Basic usage patterns of privileges
-Privileges offer another dimension of separation for compartments: two
-compartments might have the same label, but a trusted compartment might
-have a privilege while an untrusted compartment does not.
-%
-The trusted compartment then has the ability to declassify data (making
-it public or sending it to a cross-origin website) or create data
-that is disjunctively labeled.
-%
-That is, with the privilege \https{amazon.com}, I can create data with
-the label ``\https{amazon.com} or \https{bank.ch}'': this
-data can be sent to either web site but not to any other site.
+There are two primary use-cases for privileges:
+
+\begin{itemize}
+    \item A privilege can be used to \emph{declassify} private
+        information without raising the current label.  For example, we
+        could downgrade ``\https{amazon.com}'' labeled data to
+        ``public''; we could even downgrade it to ``\https{amazon.com}
+        or \https{bank.ch}'' (recall that this data can be read only
+        either origin, but no others).
+
+    \item A privilege can be used to lower the current label of
+        a compartment (or a compartment that is being created).
+        This is how privileges are used
+        in the password checker: the untrusted worker was created
+        with a current label of ``public'' by exercising the
+        \https{fb.us} privilege in the main web site.  Conceptually, we
+        are declassifying \emph{all} of the data associated with the
+        compartment.
+\end{itemize}
+
+In \sys{}, privileges are \emph{implicitly} exercised: if a compartment
+has a privilege, it will always attempt to use it.  To force a label
+check without the privilege, a privileged compartment can wrap the
+data in question as a labeled blob.  In the password checker, the main
+page must do precisely this, as it has the \https{fb.us} privilege and
+thus sending the password directly would be equivalent to publishing it.
+\Red{I am a bit afraid this is hard to understand.}
 
 % Initial privileges and privilege creation
 By default, a browsing context has the privilege corresponding to the
 page origin; this context can drop the privilege if it is not
 needed or spawn other containers sans privilege to run untrusted code.
 %
-While privileges for existing origins cannot be created (that would be
-forgery), a privilege can be created for a fresh origin, i.e.\ an origin
-which does not correspond any actual web site, but which is guaranteed
-to be unique.
+While privileges for existing origins cannot be created, a privilege can
+be created for a fresh origin, i.e.\ an origin which does not correspond
+any actual web site, but which is guaranteed to be unique.
 %
 A fresh origin is often used to run code under full isolation, since any
 compartment labeled with the fresh origin cannot communicate with any
@@ -201,44 +236,13 @@ makes isolation an egalitarian security mechanism: an untrusted library
 can use this mechanism to isolate a sub-library that it itself
 may not trust~\cite{Zeldovich:2006}.
 
-\subsection{Labeled blobs}
-\label{sec:labeled-blobs}
-
-A \emph{labeled blob} is an arbitrary piece of data with a label
-associated with it.
-%
-A programmer can use labeled blobs to express security policy at
-a more fine-grained level than per-compartment.
-%
-Labeled blobs can be passed around as an opaque object (in which case one merely
-checks the security policy of the compartments involved).
-%
-However, when a piece of code wishes to inspect the contents of the
-labeled blob, a label check between the label of the blob and the
-current compartment occurs.
-
-Labeled blobs can be explicitly created by the programmer, and then
-passed around by container-to-container message passing.
-%
-However, a compartment can also make a request to a website using
-\emph{labeled XHR} and received a labeled blob, without raising their
-label read the data.
-%
-This effectively allows a developer to defer reading the result of
-a request: this is useful if the compartment merely plans on passing
-the labeled blob to another compartment, or if it needs to query
-multiple websites without raising its label (otherwise, upon reading
-its first response, it would raise its label and be unable to
-make any further requests.)
-
-\Red{I dunno, maybe some comments about how this pattern shows up
-in some web APIs, e.g.\ service workers}
-
-% maybe footnote about integrity
-
 \subsection{Clearance}
 \label{sec:clearance}
 
+\emph{Clearance} is a label which imposes a limit on the kind of data a compartment can have,
+i.e., it is an upper-bound on compartment label, and thus the kind of
+data a piece of code executing in the compartment can access.
+%
 In an ideal confinement system, code can read arbitrary data at the
 cost of raising the context label (and thus giving up write
 capabilities).
@@ -247,12 +251,9 @@ Unfortunately, practical systems typically have covert channels which
 may be exploited to leak sensitive data.
 %
 Hence, as in HiStar~\cite{Zeldovich:2006}, Hails~\cite{giffin:2012:hails}, and
-Breeze~\cite{Breeze13} we associate a \emph{clearance}---which is
-simply a label---with every compartment.
-%
-Clearance imposes a limit on the kind of data a compartment can have,
-i.e., it is an upper-bound on compartment label, and thus the kind of
-data a piece of code executing in the compartment can access.
+Breeze~\cite{Breeze13} we associate a \emph{clearance} with every
+compartment: the compartment is not allowed to raise its label higher
+than the clearance.
 
 \Red{Clearance choice by user? We need to know what the default
     clearance is.  The attack model is kind of funny: we want to argue
