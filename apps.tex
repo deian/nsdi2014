@@ -18,7 +18,7 @@ sent.  The key to implementing this application will be judicious use of
 distrusting components.
 
 \begin{figure}
-\centerline{\includegraphics[width=\columnwidth]{editor2-byhand}}
+\centerline{\includegraphics[width=\columnwidth]{editor}}
 \caption{\label{fig:editor} Encrypted document editor architecture
 under \sys{}.}
 \end{figure}
@@ -77,8 +77,12 @@ similar principles to the encrypted document editor.
 \subsection{Third-Party Mashup}
 \label{sec:apps-mashup}
 
+\begin{figure}
+\centerline{\includegraphics[width=\columnwidth]{mashup}}
+\caption{\label{fig:mashup} Third-party mashup under \sys{}.}
+\end{figure}
 The key feature that enables us to build third-party mashups is
-labeled XHR\@.  In Figure~\Red{figure}, the architecture for an
+labeled XHR\@.  In Figure~\ref{fig:mashup}, the architecture for an
 application which reconciles a user's Amazon purchases
 and bank statement is shown.  As opposed to the encrypted document editor,
 the architecture for this mash-up is very simple: we just download
