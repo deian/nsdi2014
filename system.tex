@@ -1,27 +1,8 @@
 \section{The \sys{} confinement system}
 \label{sec:system}
 
-In this section, we describe the \sys{} system. \todo{ezyang}{Probably want to give a roadmap for the section}
-
-\subsection{Compartments}
-
-%   Browsing contexts. As shown in Figure 1, a web page
-%   consists of content and JavaScript code. A browsing con-
-%   text presents a page’s content to the user, and JavaScript
-%   code accesses content within the page through the Docu-
-%   ment Object Model (DOM) [34]. Browsing contexts may
-%   be nested (e.g., by using iframes). 
-
-% rectangular frames denote
-% browser contexts
-
-% Contexts may be labeled with the ori-
-%gins to whose sensitive data they have been exposed. A
-%context that has not yet observed sensitive data is de-
-%noted public , and a page that contains sensitive data
-%can raise the label of its own browsing context to its own
-%origin.
-
+In this section, we describe the \sys{} system.
+%
 As mentioned previously, the basic unit of confinement in \sys{}---a
 compartment---corresponds to a JavaScript execution context, e.g.\@ a
 browser tab, an iframe on a page, or even a Web Worker~\cite{workers}.
@@ -52,15 +33,16 @@ The security policy of a container consists of two components:
 
 \begin{itemize}
     \item A current label (Section~\ref{sec:labels}), which indicates the
-        sensitivity of the data in the container,
+        sensitivity of the data in the container, and
     \item A set of privileges (Section~\ref{sec:privileges}), which
         dicates what authority the compartment's code has to
-        \emph{relax} policy requirements, and
+        \emph{relax} policy requirements.
 %   \item A clearance (Section~\ref{sec:clearance}), which imposes a
 %       limit on the sensitivity of the data in the container.
 \end{itemize}
 
-We describe each of these components in turn in the following sections.
+We describe each of these components in turn in the following sections,
+and then we describe how these policies apply to XMLHttpRequest in more detail (Section~\ref{sec:labeled-xhr}).
 
 \subsection{Labels}
 \label{sec:labels}
@@ -253,7 +235,7 @@ which explicitly specify the transmitted label header (and disallow
 JavaScript from manually setting this header).
 
 Since normal XHR always checks the same-origin policy, it would be
-useful to provide \emph{labeled XHR} which relaxes this requirement.
+useful to provide \emph{labeled XHR} which relaxes this requirement.\footnote{As a small note, we still enforce other browser security policies such as CSP.}
 %
 Intuitively, a safe way to relax the same-origin policy is to allow
 cross-origin code to read the result of a response, as long as it
