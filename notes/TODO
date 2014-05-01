@@ -1,22 +1,16 @@
-New results
-    - Integrity for extensions
-    - DOM access label
-        What about privilege escalation? (label A, priv A /\ B; any DOM
-        worker with priv A can exercise priv B)
-        This is just what Script Police did (like the manifest)
-        extensions --> pages; if there is a bug in a page, allowing injected content, then anything bad can happen
-        Encrypted Google Docs: is an "extension"; encrypted gmail
-        Middle way: we should say, today all there is is giving up user privacy or using an extension; our proposal is a different plan that gets you the functionality which doesn't give up privacy. Yes it is true that we're not allowing unrestricted modification of existing functionality.  For extensions like encrypted gdocs, where the functionality is like adding encryption, we show a way to do them as regular web pages. (footnote: with an extension, you can force pages to... but that's not our use case)
-    - UI for **clearance** / integrity modification (for extensions and
-      mash-ups)
-        asshole reviewer: what you're describing is defense in depth, and defense in depth sucks (it is admitting "I don't know what to do about this problem").  The user is in charge about deciding if they're worried about X.  If you don't like covert channels you can deny yourself functionality.  Alternately, it makes people think they should be more scared of covert channels then they are.
-        Deian: but you're STILL not giving Mint the PASSWORD!!
-    - New tab for encryption verification
+Encrypted Google Docs: is an "extension", much like encrypted gmail.
+    The middle way is to say, today all there is is giving up user
+    privacy or using an extension; our proposal is a different plan
+    that gets you the functionality which doesn't give up privacy.
+    Yes it is true that we're not allowing unrestricted modification
+    of existing functionality.  For extensions like encrypted gdocs,
+    where the functionality is like adding encryption, we show a way
+    to do them as regular web pages. (footnote: with an extension,
+    you can force pages to... but that's not our use case)
 
-    - Incompatibility with existing CSRF protection. Includes integrity
-      component.  Backwards compatibility story is worse.  HTTP headers, we
-      need a clear signal moment.
-
+UI for **clearance** modification (for extensions and mash-ups)
+    asshole reviewer: what you're describing is defense in depth, and defense in depth sucks (it is admitting "I don't know what to do about this problem").  The user is in charge about deciding if they're worried about X.  If you don't like covert channels you can deny yourself functionality.  Alternately, it makes people think they should be more scared of covert channels then they are.
+    Deian: but you're STILL not giving Mint the PASSWORD!!
     - What's the default policy for clearance?  A certain
       kind of systems reviewer will say, "You guys wrote a paper about richer
       functionality in a safe way, but then you told me shut your system off
@@ -37,28 +31,33 @@ New results
         we make them worse, it is no worse than giving the password to Mint.com.
         Additional point which is CSRF and clearance.
 
-    - The current description implies XHR with label raise works; we
-      need to make it only labeled XHR.  "Any app that doesn't use labeled XHR is OK."
-      That's very mechanistic.  In this scheme, you need to remember what the
-      "original origin" was.  Maybe the argument is, "Well, for third-party
-      mashup we are playing it risky, but everything else we are STRICTLY
-      MORE SECURE".  And we made the world better, because Mint isn't getting
-      your password.  Brad: the disconnect is how did you as the user decide
-      that you felt good about saying yes.  Perhaps everyone can agree that
-      a raging covert channel is better than giving Mint.com your password.
+Incompatibility with existing CSRF protection. Includes integrity
+component.  Backwards compatibility story is worse.  We can allow
+more flexible policy if HTTP headers indicate the site knows about SWAPI;
+otherwise, we need to disallow outbound requests after reads.
 
-    - Strengthen/weaken SOP is someting motiv-example.tex should bring
-      back.
+The current description implies XHR with label raise works; we
+need to make it only labeled XHR.  "Any app that doesn't use labeled XHR is OK."
+That's very mechanistic.  In this scheme, you need to remember what the
+"original origin" was.  Maybe the argument is, "Well, for third-party
+mashup we are playing it risky, but everything else we are STRICTLY
+MORE SECURE".  And we made the world better, because Mint isn't getting
+your password.  Brad: the disconnect is how did you as the user decide
+that you felt good about saying yes.  Perhaps everyone can agree that
+a raging covert channel is better than giving Mint.com your password.
 
-    - I need en.cr to encrypt properly; isn't that weird?  We should
-      pitch it as the company wants to use Google Docs.  Why doesn't
-      Google Docs trust the encryptor?  Well, Google believes in its
-      own "don't be evil", and doesn't want the data to go elsewhere.
-      The encryptor is also the document user, they don't want Google
-      to see their data.
+Strengthen/weaken SOP is someting motiv-example.tex should bring
+back.
 
-    - For jQuery, for a text editor, it sends text to its own origin.
-      Pidgin way is to describe the TCB as a firewall.
+I need en.cr to encrypt properly; isn't that weird?  We should
+pitch it as the company wants to use Google Docs.  Why doesn't
+Google Docs trust the encryptor?  Well, Google believes in its
+own "don't be evil", and doesn't want the data to go elsewhere.
+The encryptor is also the document user, they don't want Google
+to see their data. (ezyang.com:
+
+For jQuery, for a text editor, it sends text to its own origin.
+Pidgin way is to describe the TCB as a firewall.
 
 Trying to think of a FAQ:
     1. Is your design backwards compatible?
@@ -99,3 +98,18 @@ servers within the browser. Pretty different than what we're doing in
 design, but not unrelated in end-to-end goal. Also a *very* impressive
 piece of work (won best paper).
 
+THINGS WE ARE NOT GOING TO DO
+-----------------------------
+
+- DOM integrity for extensions: we AXED this, the proposal is very similar
+  to Chrome's manifests as well what Script Police did.  It's an interesting
+  problem, but it ends up boiling down to being a DAC, as when you give an
+  extension the integrity privilege, it is not difficult to imagine (1)
+  code injection attacks, (2) bugs in the page where injected DOM structures
+  can induce bad things from happening, (3) phishing, etc. When giving the
+  integrity basically results in free reign, you have a DAC, and this is not
+  a good situation to be in (you don't need a complicated MAC in that case.)
+  Another plus; axing this means we get to avoid talking about integrity entirely.
+  (One other note: our proposed semantics could result in privilege escalation
+  when a compartment with a DOM has extra privileges.)  We also don't have
+  to talk about the DOM access label.

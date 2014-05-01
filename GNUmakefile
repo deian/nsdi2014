@@ -36,7 +36,7 @@ IMAGEDIST := $(filter-out $(IMAGEGEN), $(IMAGES)) \
 		$(wildcard figs/*.odp) $(wildcard figs/*.ppt)
 
 ifeq ($(PDF),pdf)
-LATEX     = pdflatex
+LATEX     = pdflatex -synctex=1
 #\nonstopmode\\input
 else
 LATEX     = latex

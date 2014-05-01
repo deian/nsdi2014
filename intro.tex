@@ -36,14 +36,14 @@ credentials and personal information of the constituent services.
 %
 The first goal is {\em flexibility:\/} developers should be able to
 flexibly compose services, content, and JavaScript code from multiple
-parties into rich, featureful web applications.
+parties into \Red{rich, }featureful web applications.
 %
 The second is {\em privacy:\/} there should be strong guarantees that a
 user's privacy cannot be violated when a web application processes her
 sensitive data.
 %
 These goals are hardly new: \Red{Wang {\em et al.} articulated similar goals
-and proposed new browser primitives to improve isolation within mashups (Brad mentioned something about this giving too much deference to mashup-os. I don't know how to fix ezyang)}:
+and proposed new browser primitives to improve isolation within mashups (Brad mentioned something about this giving too much deference to mashup-os. I don't know how to fix ezyang):}
 sandboxes that allow pages not to share their data with JavaScript code
 they include and discretionary access control (DAC) for inter-frame
 communication~\cite{mashupos}.
@@ -55,7 +55,6 @@ API~\cite{html5}.
 And of course, the well-known Same-Origin Policy prevents JavaScript
 hosted by one principal from reading content hosted by another.
 
-\Red{This paragraph tries to explain what restrictions are imposed}
 Unfortunately, efforts to advance one of these two goals still often hamper achieving
 the other. Application developers (and users) are thus often left with
 only unpalatable choices (though in practice, the desire for
@@ -73,13 +72,12 @@ DAC can only deny or grant
 untrusted JavaScript access to the sensitive data; it cannot
 dictate what happens to the data afterwards.
 %
-The only way to avoid trusting a service with secret data is to never give
+The only way to avoid trusting a service with secret data is never to give
 it that data in the first place, but applications like password
-managers or a personal finance organizers (like {\tt mint.com}) require
+managers or a personal finance organizers (e.g., {\tt mint.com}) require
 sensitive data to implement their functionality.
 
-\Red{This section tries to explain what flexibilities are allowed. I think
-it is too long and could be trimmed down}
+\todo{ezyang}{I think section is too long and could be trimmed down}
 Modern browsers also incorporate mechanisms that explicitly support
 the prioritization of flexibility over privacy. For example, an
 application developer may choose to include JavaScript from another
@@ -89,7 +87,7 @@ granting the script unfettered access to the enclosing page's origin's
 content. Or a web server's operator may use Cross-Origin Resource
 Sharing to
 explicitly enumerate other origins permitted to read content from that
-server (\Red{bypassing the SOP for those other origins}).
+server (bypassing the SOP for those other origins).
 This approach still limits flexibility, though, in that it requires a
 server's operator to know {\em a priori} which mashups are hosted by
 which other origins, and worse, potentially allows a service provider
@@ -139,9 +137,10 @@ first-class, symmetric fashion.  To illustrate the value of these
 properties, we present five case-study applications---a password
 strength-checker, a password manager, a banking application that uses
 the (untrusted) jQuery library, a ``phone numbers-to-links'' browser
-extension, and a third-party mashup, none of which can be implemented
-in a way that ensures privacy in today's web browsers.  We then build
-them atop \sys. Our contributions include:
+extension, and a third-party mashup, none of which can be realized
+without the browser modifications described in this paper.  We then
+present implementations of these applications atop \sys. Our
+contributions include:
 
 \begin{CompactItemize}
 \item We characterize five case-study web applications

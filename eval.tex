@@ -163,35 +163,6 @@ of the page), which \sys{} prevents from being leaked; in the vanilla
 case, the untrusted library trivially leaks the bank statement with
 XHR.
 
-\Red{
-\paragraph{Ad Block}
-
-When incorporating Phone2Links as an extension, the measured page load
-time was 224.4ms.
-%
-Since there is not obvious approach to integrating untrusted
-extensions with existing browsers, we do not compare against a vanilla
-implementation.
-%
-Rather, we compare against the version of the application with
-Phone2Links integrated as a library: the extension approach is
-roughly 1.4 times slower, a slowdown we attribute to the fact that the
-extension is loaded by our loader, which is, in turn, an AddOn-SDK
-extension loaded by Firefox.
-%
-Finally, we remark that while the load time is not small, it also does
-not impose a huge performance penalty on the vanilla page.
-%
-Moreover, this figure can be improved upon by optimizing our
-extension loader, for instance, by implementing it as a traditional
-extension.\footnote{
-  Traditional extensions are typically faster than those using the
-  AddOn-SDK.
-}
-}
-
-
-
 %% Vanilla: incorporate script directly, no sandboxes.
 %% 
 %% As page confine:
