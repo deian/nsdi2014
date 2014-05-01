@@ -105,11 +105,17 @@ web at large.
 \subsection{Untrusted Third-Party Library}
 \label{sec:apps-third-party}
 
+\begin{figure}
+\centerline{\includegraphics[width=\columnwidth]{jquery}}
+\caption{\label{fig:mashup} Privilege separation and library
+confinement in \sys{}.}
+\end{figure}
+
 The key feature that lets us confine untrusted third-party libraries
 like jQuery is the ability to place trusted code in another context,
 which can access the main page but not vice-versa.
 
-In Figure~\Red{figure}, the architecture for a web page using an
+In Figure~\ref{fig:jquery}, the architecture for a web page using an
 untrusted JavaScript library is shown.  Our goal is to establish a
 separate DOM worker which has the \https{a.com} privilege, while the
 main browsing context runs jQuery without privileges or the ability to
