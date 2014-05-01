@@ -13,7 +13,9 @@ First, \sys{} adds a new unit of confinement, a \emph{lightweight
 worker} (LWorker), which can be thought of either as a Web Worker
 without parallelism or an iframe without a DOM\@.
 %
-LWorkers are generally useful for implementing privilege separated applications.
+LWorkers are generally useful for implementing privilege separated applications;
+when they are used to access DOMs of other containers (something that
+cannot be done with traditional Web Workers) we call them ``DOM workers.''
 %
 Second, \sys{} associates each compartment and web site with a security policy,
 which specifies the kind of messages and requests which are permitted to
@@ -82,8 +84,10 @@ A privacy label (henceforth just label) is a boolean formula over
 origins.%
 %
 \footnote{
-  Our system also handles \emph{integrity}, but we largely omit it
-  from the discussion for simplicity.
+  Our system also handles \emph{integrity}, but for simplicity we
+  omit it from the main text, commenting on it in footnotes when
+  appropriate.  Integrity is dual to secrecy, i.e., the logical
+  implication is run the other direction.
 }
 %
 When a compartment wishes to send a message to another compartment or
@@ -91,6 +95,8 @@ web site, we check if the target label $l'$ logically implies the source
 label $l$.
 %
 Intuitively, this requires that the security of the destination be as strong as original security policy, i.e.\ that the target label \emph{subsumes} the source label.\footnote{If the communication is bidirectional, e.g.\ mutation of a shared DOM, then both the target and source must imply each other.}
+%
+We also refer to the target label as \emph{higher} (as in ``higher security'') than the source label.
 %
 For example, to read the contents of a labeled blob, we must check that
 the label of the compartment subsumes the label of the blob.
@@ -147,15 +153,15 @@ specifies the initial label, defaulting to public (i.e.\ no extra
 restrictions) when this header is not present.
 %
 The DOM label of a compartment is more stringent: it is set such that
-only compartments with the privilege for the origin can write to
+only compartments with the privilege (Section~\ref{sec:privileges}) for the origin can write to
 it.\footnote{This is done by setting the integrity label to the origin.}
-%
+
 After creation, a compartment can freely \emph{raise} its label, i.e.\
 change its label to any label which subsumes it, but not vice versa.
 %
 This leads to a common interpretation of labels as ``taint;'' as
 a compartment receives data from more sources, it accumulates more
-conjuncts on account of raising its label to read the received data.
+origins on account of raising its label to read the received data.
 
 \subsection{Privileges}
 \label{sec:privileges}
@@ -163,6 +169,8 @@ conjuncts on account of raising its label to read the received data.
 % Description of privileges
 A \emph{privilege} is an object, representing an origin, which confers
 the authority to relax policy requirements with respect to this origin.
+%
+A compartment is associated with a set of privileges.
 %
 While privileges can be used in a variety of ways, their basic mechanism
 is quite simple:  whenever a compartment with a privilege $p$ performs a
@@ -188,8 +196,10 @@ There are three primary use-cases for privileges:
         are declassifying \emph{all} of the data associated with the
         compartment.
 
-    \item A privilege usually must be exercised to edit the DOM
-        of another compartment.
+    \item A privilege must be exercised to edit the DOM
+        of another compartment.\footnote{This is because the current
+        integrity label of a compartment generally public, which
+        without the privilege is insufficient to permit writes.}
 \end{itemize}
 
 In \sys{}, privileges are \emph{implicitly} exercised: if a compartment
@@ -246,9 +256,11 @@ to see if the label of the compartment subsumes the label of the response
 
 If the server is IFC enabled, it may be interested in the current label
 of the compartment which initiated the request, to determine the
-sensitivity (and integrity) of the request.
+sensitivity\footnote{\ldots and integrity. In fact, mostly integrity.} of the request.
 %
 Thus, the XHR request is also labeled with a {\tt Document-label} header.
+%
+(These headers are also applied to loaded content and form submissions.)
 %
 We extended the send function of XHR to also accept labeled blobs,
 which explicitly specify the transmitted label header (and disallow
@@ -263,7 +275,7 @@ commits to performing no further communication.
 %
 This must include communication to the \emph{same} origin, since these requests
 carry the risk of self-exfiltration~\cite{selfex} and cross-site request
-forgery.
+forgery~\Red{cite}.
 %
 To fulfill this requirement, labeled XHR returns its result as a labeled
 blob, protected with a server-specified label that defaults to a \emph{fresh}
