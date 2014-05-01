@@ -32,9 +32,7 @@ guarantee that the clear text of your document is never leaked to any
 origin.  If only \https{gdoc.com} is honest, then \https{gdoc.com} may
 be able to recover your cleartext (e.g.\ the encryptor used the null
 cipher), but the encryptor should not able to exfiltrate the cleartext
-to anyone else.\footnote{We assume that the user can securely transmit
-input to the iframe of their choice---in the face of phishing, this may
-not necessarily hold, but we defer this problem for now.}
+to anyone else.
 
 What occurs when you open Google Documents to edit an encrypted
 document?
@@ -69,7 +67,8 @@ verify that Google Documents appropriately loaded the encryptor, since
 without it, it would not be possible to display the decrypted text.  However, when
 a new document is being created, the encryptor iframe must be placed
 in a separate pop-up window, so that the user can verify that encryption
-has been enabled.
+has been enabled.\footnote{This architecture might be desirable in any case
+to prevent phishing.}
 
 Due to space limitations, we don't discuss the architecture of the
 password manager we built in detail; however, it operates on very
