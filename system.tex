@@ -25,6 +25,12 @@ In this section, we describe the \sys{} system. \todo{ezyang}{Probably want to g
 As mentioned previously, the basic unit of confinement in \sys{}---a
 compartment---corresponds to a JavaScript execution context, e.g.\@ a
 browser tab, an iframe on a page, or even a Web Worker~\cite{workers}.
+\footnote{We also introduce a new type
+of Web Worker called a DOM Worker which shares a DOM with its parent.
+These workers run synchronously with the parent (rather than in parallel)
+and are solely used for confinement: think of them as iframes
+without DOMs of their own.  See Section~\ref{sec:apps-third-party} for
+one useful use-case for this feature.}
 %
 \sys{} associates each compartment and web site with a security policy,
 which specifies the kind of messages and requests which are permitted to
@@ -40,15 +46,7 @@ these APIs (most notably labeled XHR, see Section~\Red{ref}) which don't
 respect same-origin policy and consequently allow more
 use-cases.\footnote{Relaxing the same-origin policy in a way that's
 secure and maintains backwards-compatibility is subtle, and we directly
-address this issue in Section~\ref{sec:bc}}
-
-%   \footnote{Ordinarily, DOMs
-%   are usually only shared between iframes; we also introduce a new type
-%   of Web Worker called a DOM Worker which shares a DOM with its parent.
-%   These workers run synchronously with the parent (rather than in parallel)
-%   and are solely used for confinement: one can think of them as iframes
-%   without DOMs of their own.  See Section~\ref{sec:apps-third-party} for
-%   one useful use-case for this feature.}
+address this issue in Section~\ref{sec:labeled-xhr}}
 
 The security policy of a container consists of two components:
 
@@ -90,8 +88,7 @@ origins.%
 \footnote{
   Our system also handles \emph{integrity}, but it is omitted from
   the discussion for simplicity, as most web applications operate at the
-  public level of integrity, except in the case of cross-site request
-  forgery checks (Section~\ref{sec:bc}).
+  public level of integrity.
 }
 %
 When a compartment wishes to send a message to another compartment or
