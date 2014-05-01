@@ -205,20 +205,20 @@ XHR comm           &  3.59   &   3.62   &  3.72   &  7.0    &  7.4    & 7.2 %100
 \\\hline%----------------------------------------------------------------------
 % cost of worker ping-pong                                           
 Worker comm.       &  0.2    &   0.24  &  0.033  &  0.071  &  0.070  & 0.030 % 90 messages ping-pong
-\\\midrule%--------------------------------------------------------------------
-% cost of setting current label                                      
-Set label          &  --     &  \multicolumn{2}{c|}{0.0016} &   --   
-                             &  \multicolumn{2}{c }{0.0018}
-%10 iframes doing 10,000 ops
-\\\hline%-------------------------------------------------------------------------------------------------
-% cost of setting current label                                                                   
-Get label          &  --     &  \multicolumn{2}{c|}{0.0001} &   --   
-                             &  \multicolumn{2}{c }{0.0008}
-\\\hline%-------------------------------------------------------------------------------------------------
-% cost of comparing labels                                                                        
-Label check        &  --     &  \multicolumn{2}{c|}{0.0011} &   --   
-                             &  \multicolumn{2}{c }{0.0004}
-%10 iframes doing 10,000 subsumes of random labels with 4 principals
+%%\\\midrule%--------------------------------------------------------------------
+%%% cost of setting current label                                      
+%%Set label          &  --     &  \multicolumn{2}{c|}{0.0016} &   --   
+%%                             &  \multicolumn{2}{c }{0.0018}
+%%%10 iframes doing 10,000 ops
+%%\\\hline%-------------------------------------------------------------------------------------------------
+%%% cost of setting current label                                                                   
+%%Get label          &  --     &  \multicolumn{2}{c|}{0.0001} &   --   
+%%                             &  \multicolumn{2}{c }{0.0008}
+%%\\\hline%-------------------------------------------------------------------------------------------------
+%%% cost of comparing labels                                                                        
+%%Label check        &  --     &  \multicolumn{2}{c|}{0.0011} &   --   
+%%                             &  \multicolumn{2}{c }{0.0004}
+%%%10 iframes doing 10,000 subsumes of random labels with 4 principals
 \\\bottomrule
 \end{tabular}
 }
@@ -231,8 +231,8 @@ browsers (vanilla), our modified browsers with confinement-mode turned
 off (unlabeled), and confinement-mode enabled (labeled).
 %
 We measure the cost of creating various compartments (workers and
-iframes), sending messages between various end-points
-(compartments and servers), and common label operations.
+iframes) and sending messages between various end-points
+(compartments and servers).
 
 %
 The average (of 10 runs creating 10) performance impact of creating an
@@ -279,24 +279,31 @@ share an (OS thread and) event-loop with their parent.
 This, however, has the limitation of exhausting the call stack at 90
 messages in our measurements.
 
-As shown in the table, we measured the cost of getting the current
-label, setting the current label and performing a label comparison
-(subsumes) over the span of 10,000 operations.
-%
-The first two measurements, as in the case of sending labeled
-messages, use a single label: the public label.  Since the subsumes
-algorithm varies according to the labels, our measurements use
-randomly generated labels, with up to 5 origins.
-%
-When considering labels with more principals, we expect the
-performance impact of labels to naturally be higher; we used 5 origins
-since we expect real apps to only contain a handful of principals.
-%
-The cost of all these ``core'' label operations are within
-1 microsecond.
+%%As shown in the table, we measured the cost of getting the current
+%%label, setting the current label and performing a label comparison
+%%(subsumes) over the span of 10,000 operations.
+%%%
+%%The first two measurements, as in the case of sending labeled
+%%messages, use a single label: the public label.  Since the subsumes
+%%algorithm varies according to the labels, our measurements use
+%%randomly generated labels, with up to 5 origins.
+%%%
+%%When considering labels with more principals, we expect the
+%%performance impact of labels to naturally be higher; we used 5 origins
+%%since we expect real apps to only contain a handful of principals.
+%%%
+%%The cost of all these ``core'' label operations are within
+%%1 microsecond.
 
-Finally, we executed the Dromaeo benchmark suite~\cite{dromaeo} on
-both Firefox and Chromium.
+We measured the cost of setting/getting the current label and the
+average cost of a label check.
+%
+For a random label with a handful of origins these operations are on
+the order of 1 microsecond; in most cases it is the re computation of
+cross-compartment wrappers that ends up costing \Red{XXXms}.
+ 
+More interestingly,  we executed the Dromaeo benchmark
+suite~\cite{dromaeo} on both Firefox and Chromium.
 %
 This benchmark evaluates the performance of core functionality,
 such as querying, traversing, and manipulating the DOM.
