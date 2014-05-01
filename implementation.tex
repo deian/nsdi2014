@@ -62,7 +62,7 @@ interface LWorker :
   \label{fig:api}
 \end{figure}
 
-We implemented \sys{} for the Firefox 31.0a1 and Chromium 31\Red{XXX}
+We implemented \sys{} for the Firefox 31.0a1 and Chromium 31.0.1612.0
 browsers.
 %
 Because of our coarse-grained approach,
@@ -70,10 +70,10 @@ we were able to implement \sys{} as a new DOM API for the Gecko and
 Blink layout engines, without modifying the JavaScript engines.
 %
 The core parts of this API are shown in Figure~\ref{fig:api}; our full
-specification consists of \Red{264} lines of WebIDL~\cite{webidl}.
+specification consists of 281 lines of WebIDL~\cite{webidl}.
 %
-The underlying Gecko and Blink implementations are roughly \Red{3.4K}
-and \Red{2.6K} lines (including comments and white space) of C++, respectively.
+The underlying Gecko and Blink implementations are roughly 3.8K and
+2.6K lines (including comments and white space) of C++, respectively.
 %
 Below, we describe the these implementations; we focus on the Firefox
 implementation and only describe the Chromium implementation where the

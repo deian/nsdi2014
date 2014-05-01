@@ -1,0 +1,25 @@
+vanilla:
+
+attributes 2684.75runs/s
+modification 321.08runs/s
+query 41313.40runs/s
+traversal 637.91runs/s
+
+ifc:
+attributes 2560.43runs/s
+modification 338.28runs/s
+query 43123.85runs/s
+traversal 623.79runs/s
+
+chrome-difc:
+1068.01runs/s
+495.19runs/s
+24825.98runs
+547.19runs/s
+
+chrome-vanilla:
+1042.87runs/s
+496.04runs/s
+24690.96runs
+535.16runs
+

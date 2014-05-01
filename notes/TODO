@@ -31,33 +31,8 @@ UI for **clearance** modification (for extensions and mash-ups)
         we make them worse, it is no worse than giving the password to Mint.com.
         Additional point which is CSRF and clearance.
 
-Incompatibility with existing CSRF protection. Includes integrity
-component.  Backwards compatibility story is worse.  We can allow
-more flexible policy if HTTP headers indicate the site knows about SWAPI;
-otherwise, we need to disallow outbound requests after reads.
-
-The current description implies XHR with label raise works; we
-need to make it only labeled XHR.  "Any app that doesn't use labeled XHR is OK."
-That's very mechanistic.  In this scheme, you need to remember what the
-"original origin" was.  Maybe the argument is, "Well, for third-party
-mashup we are playing it risky, but everything else we are STRICTLY
-MORE SECURE".  And we made the world better, because Mint isn't getting
-your password.  Brad: the disconnect is how did you as the user decide
-that you felt good about saying yes.  Perhaps everyone can agree that
-a raging covert channel is better than giving Mint.com your password.
-
 Strengthen/weaken SOP is someting motiv-example.tex should bring
 back.
-
-I need en.cr to encrypt properly; isn't that weird?  We should
-pitch it as the company wants to use Google Docs.  Why doesn't
-Google Docs trust the encryptor?  Well, Google believes in its
-own "don't be evil", and doesn't want the data to go elsewhere.
-The encryptor is also the document user, they don't want Google
-to see their data. (ezyang.com:
-
-For jQuery, for a text editor, it sends text to its own origin.
-Pidgin way is to describe the TCB as a firewall.
 
 Trying to think of a FAQ:
     1. Is your design backwards compatible?
