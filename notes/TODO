@@ -67,6 +67,7 @@ code in the worker can always access the DOM.
 
 one more pretty relevant piece of related work:
 
+(DONE:Ale!)
 Embassies: Radically Refactoring the Web (Howell et al., NSDI 2013)
 Broadly speaking, takes on confining malicious code supplied by web
 servers within the browser. Pretty different than what we're doing in
