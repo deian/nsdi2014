@@ -128,7 +128,7 @@ are also several drawbacks.
 %
 First, JSFlow cannot be used to confine style sheets that execute code
 or build applications that rely on policies more flexible than SOP,
-such as third-party mashups \Red{reading cross-origin data by XHR requests.}
+such as third-party mashups reading cross-origin data by XHR requests.
 %
 %%Second, developers need to understand a new semantics for the core
 %%JavaScript language~\cite{Hedin:2012}, in contrast to a new DOM-leve
@@ -143,6 +143,11 @@ and restricts the APIs available to developers.
 Nevertheless, we find JSFlow mostly complimentary and envision
 application where some \sys{} compartments enforce fine-grained IFC by
 leveraging JSFlow.
+
+ConDOM~\cite{ConDOM} is another fine-grained IFC system for the browser. Similar to
+JSFlow, ConDOM extends objects with labels, which then get propagated through
+the JavaScript built-in API. ConDOM suffer from similar shortcomings as 
+the ones described for JSFlow. 
 
 
 %% Hedin and Sabelfeld~\cite{Hedin:2012} formally describe a sound language-based
@@ -172,9 +177,9 @@ amendable to scenarios where declassification plays
 a key role (e.g., the encrypted editor, password manager, or
 third-party mashup). 
 %
-\Red{Although SME has been recently extended to consider
+Although SME has been recently extended to consider
   declassification~\cite{Rafnsson:2013}, it is unclear how this theoretical
-result translates into FlowFox, and more importantly, how it affects its applicability.}
+result translates into FlowFox, and more importantly, how it affects its applicability.
 %
 An interesting application of FlowFox is how it labels user interaction and metadata
 (history, screen size, etc.) to address common privacy attacks such as
