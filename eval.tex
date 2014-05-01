@@ -29,7 +29,8 @@ Then, we measure the performance impact of \sys{} on existing browser
 features with and without confinement-mode enabled.
 %
 All our measurements were conducted on a 4-core i7-2620M machine
-running GNU/Linux 3.13, with 16GB of RAM.
+running GNU/Linux 3.13, with 16GB of RAM; we used the NodeJS web
+server for all our applications.
 %
 
 
@@ -90,23 +91,35 @@ Section~\ref{sec:apps}.
 %
 Our benchmark measures the end-to-end time it takes to load the
 application, and ``encrypt'' a new 4KB document using
-the \Red{SJCL AES-128 library~\cite{sjcl}}.
+the SJCL AES-128 library~\cite{sjcl}.
 %
-We measured the \sys{} application to take \Red{114.8ms} on the modified
+We measured the \sys{} application to take 116ms on the modified
 version of Firefox; the simplified, insecure version of the app,
-running on vanilla Firefox took \Red{100ms}.
+running on vanilla Firefox took 100ms.
 %
 We note that our figure accounts for the amount of time it takes to
 load the document editor page, which itself loads the encryption layer
 as an iframe, which further loads the actual editor.
 %
-We attribute the (small) 14.8ms slowdown to both the label checks
-performed by \sys{} and security layer added on top of the insecurity
-application---in the vanilla case, we removed the label operations and
-authentication layer (used to ensure that the label of the innermost
-iframe is sufficiently high).
+We attribute the (small) 17ms slowdown to security layer added on top
+of the insecurity application---in the vanilla case, we removed the
+label operations and authentication layer (used to ensure that the
+label of the innermost iframe is sufficiently high).
 %
-\Red{Similarly, in Chromium...}
+Close investigation shows that the raising of the current label is the
+most expensive operation, since it requires changing the CSP,
+underlying document origin, and most importantly: recomputing the
+cross-compartment wrappers (to ensure that DOM access is restricted
+according to confinement).
+%
+In Chromium, the performance of the \sys{} and insecure applications
+were comparable; the measured load time was within 1ms of 244ms.
+%
+Unlike Firefox, the DOM access checks are prevalent and thus the
+slowdown is not as high due to label changes.
+%
+As explained below, these DOM checks do not have a very significant
+performance impact.
 
 
 \paragraph{Third-party mashup}
@@ -117,7 +130,7 @@ iframe is sufficiently high).
 
 We implemented a very simple third-party mashup application in which
 the integrator makes an XHR request to two unaffiliated origins, each
-of which produces a response containing a (\Red{27 byte}) JSON Blob
+of which produces a response containing a (27 byte) JSON Blob
 object with a numerical property.
 %
 The integrator parses the responses into JSON objects, adds the
@@ -128,15 +141,22 @@ The corresponding vanilla application is identical, but uses the
 normal XHR object; in this case, the unaffiliated origins set CORS
 headers that permit responses to be inspected by any origin.
 %
-In Firefox, we measured the latency of the application to be
-\Red{10.7ms in both cases}.
+In Firefox, we measured the latency of the application to be 41ms when
+using labeled XHR and 35ms when using CORS headers; the slowdown,
+albeit small, is primarily due to the raising of the current label
+(two times) to incorporate sensitive data within the context.
+%
+In Chromium, the latency of the \sys{} was measured to be 55ms, 
+which is 2ms slower than the vanilla application; we attribute this
+slowdown to creating and communicating with the light-weight worker
+that wraps the XHR object.
 %
 Of course, the \sys{} application has the advantage of treating the
 received content as sensitive (and thus required setting proper CSP
 and iframe sandbox flags) when compared to the CORS-based approach
 that would allow the integrator to arbitrarily leak the sum.
 
-\paragraph{Untrusted third-party libray}
+\paragraph{Untrusted third-party library}
 %% Vanilla: incorporate script directly, no sandboxes.
 %% As page confine:
 %% Firefox: With \sys{} it take 164.8ms, Vanilla:  160.2ms
@@ -154,8 +174,13 @@ and privilege, treating the rest of the code as untrusted.
 %
 We measured the total load time of the page.
 %
-In Firefox, the load time was \Red{164.8ms}, \Red{4.6ms} longer than
-an insecure version of the application running on vanilla Firefox.
+Since our current Chromium implementation does not yes support
+light-weight workers with DOM access, we only report numbers for
+Firefox.
+%
+The load time for this application was 164.8ms, 4.6ms longer than an
+insecure version of the application running on vanilla Firefox.
+%
 %
 We remark that this slowdown is negligible considering that the
 application contains mixed-sensitivity content (the main banking page
@@ -299,11 +324,25 @@ We measured the cost of setting/getting the current label and the
 average cost of a label check.
 %
 For a random label with a handful of origins these operations are on
-the order of 1 microsecond; in most cases it is the re computation of
-cross-compartment wrappers that ends up costing \Red{XXXms}.
+the order of 1 microsecond; in most cases it is the recomputing of
+cross-compartment wrappers that ends up costing up to 13ms (e.g., when
+the label is raised from public to a third-party origin).
+%
+For many real applications we expect the raising of the current label
+to be limited.
+%
+Moreover, there is much room for optimization.
+%
+Specifically, our current implementation always changes the underlying
+CSP, resets the document origin, etc., on a label raise;
+%
+an optimization that only performs these underlying, expensive
+operations when necessary (e.g., if the compartment is completely
+confined we do not need to recompute wrappers) while still being safe
+is a clear next step.
  
-More interestingly,  we executed the Dromaeo benchmark
-suite~\cite{dromaeo} on both Firefox and Chromium.
+We also executed the Dromaeo benchmark suite~\cite{dromaeo} on both
+Firefox and Chromium.
 %
 This benchmark evaluates the performance of core functionality,
 such as querying, traversing, and manipulating the DOM.
