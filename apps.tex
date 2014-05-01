@@ -70,7 +70,7 @@ in a separate pop-up window, so that the user can verify that encryption
 has been enabled.\footnote{This architecture might be desirable in any case
 to prevent phishing.}
 
-Due to space limitations, we don't discuss the architecture of the
+Due to space limitations, we do not discuss the architecture of the
 password manager we built in detail; however, it operates on very
 similar principles to the encrypted document editor.
 
@@ -93,7 +93,7 @@ work.  Suppose that we use regular XHR in order to retrieve data from
 \https{chase.com} and \https{amazon.com}.  Ordinarily, we cannot read
 the results of XHR, since \https{chase.com} does not flow to \https{mint.biz}.
 We might change our label to be \https{chase.com} (exercising the \https{mint.biz}
-privilege), but now we can't contact \https{amazon.com}.
+privilege), but now we cannot contact \https{amazon.com}.
 
 Labeled XHR (Section~\ref{sec:labeled-xhr}) provides a solution to
 this conundrum.  First, we make labeled XHRs to both web sites (1),
@@ -113,7 +113,7 @@ confinement in \sys{}.}
 
 The key feature that lets us confine untrusted third-party libraries
 like jQuery is the ability to place trusted code in another context,
-which can access the main page but not vice-versa.
+which can access the main page but \todo{ar}{what do you mean by vice-versa?} not vice-versa.
 
 In Figure~\ref{fig:jquery}, the architecture for a web page using an
 untrusted JavaScript library is shown.  Our goal is to establish a
@@ -132,3 +132,5 @@ privileges, it can freely modify the DOM of the main context, as well as
 communicate with the wider web.  We can think of this DOM worker as a
 \emph{firewall} between the page proper (with the untrusted library)
 and the rest of the world.
+\todo{ar}{If JQuery needs to use the network, then it need to ask for that to 
+the worker, right?}
