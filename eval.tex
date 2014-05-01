@@ -64,16 +64,16 @@ the 8KB checker script, and perform the actual strength
 checking on a password 16-characters in length.
 %
 %
-In Firefox the average (over 10 runs) amount of time it takes to
+In Firefox, the average (over 10 runs) amount of time it takes to
 perform the strength checking is 18ms.
 %
-This figure, is roughly 4ms faster than the strength checker running
+This figure, is roughly 4ms faster than the strength checker 
 running in a ``normal'' worker on a vanilla, unmodified, browser.
 %
 We attribute this speedup---although small, it also encompasses
 security checks---to the fact that creating and communicating with
 light-weight workers is cheaper than ``normal'' workers (see
-Section~\ref{sec:eval:micro}.
+Section~\ref{sec:eval:micro}).
 %
 Similarly, the Chromium implementation (which solely uses the
 compartment labels) is 5ms faster than the vanilla version (measured
