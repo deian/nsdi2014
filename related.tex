@@ -66,7 +66,7 @@ channels of certain iframes.
 This, in turn, can be used used to confine code such as the password
 strength checker.
 %
-Unfortunately, their confinement is fundamentally limited to to
+Unfortunately, their confinement is fundamentally limited to 
 \verb|data:| URI iframes, and, as a result, DCS cannot confine a
 password strength checker service for which the source is not
 available (e.g., if provided by an iframe).
@@ -128,7 +128,7 @@ are also several drawbacks.
 %
 First, JSFlow cannot be used to confine style sheets that execute code
 or build applications that rely on policies more flexible than SOP,
-such as the third-party mashup.
+such as third-party mashups \Red{reading cross-origin data by XHR requests.}
 %
 %%Second, developers need to understand a new semantics for the core
 %%JavaScript language~\cite{Hedin:2012}, in contrast to a new DOM-leve
@@ -164,15 +164,19 @@ execution (SME)~\cite{Devriese:2010} to execute a program multiple
 times, once per each label; SME ensures that no leaks from a sensitive
 context can leak into a less-senstive context by construction.
 %
-Similar to JFlow, FlowFox can confine programs
+Similar to JSFlow, FlowFox can confine programs
 with fine-grained labeling of data.
 %
 Different from JSFlow and \sys{}, FlowFox's SME approach is not
-amendable to scenarios of mutual distrust where declassification plays
+amendable to scenarios where declassification plays
 a key role (e.g., the encrypted editor, password manager, or
-third-party mashup).
+third-party mashup). 
 %
-An interesting application of FlowFox is how it labels with user interaction and metadata
+\Red{Although SME has been recently extended to consider
+  declassification~\cite{Rafnsson:2013}, it is unclear how this theoretical
+result translates into FlowFox, and more importantly, how it affects its applicability.}
+%
+An interesting application of FlowFox is how it labels user interaction and metadata
 (history, screen size, etc.) to address common privacy attacks such as
 history sniffing and behavior tracking.
 %
