@@ -221,12 +221,12 @@ editor app. The editor app could allow the user to specify a JavaScript
 ``plugin'' library she trusts to perform cryptography robustly. In this design,
 one origin serves the JavaScript code for the editor app (say,
 \js|google.com|) and a different origin serves the JavaScript code for
-the cryptography library (say, \js|fbi.gov|). Note that these two
+the cryptography library (say, \js|nsa.gov|). Note that these two
 origins may be {\em mutually distrusting.}  \js|google.com|'s script
-must pass the document's cleartext to a script from \js|fbi.gov| for
+must pass the document's cleartext to a script from \js|nsa.gov| for
 encryption, and would like to confine the execution of the encryption
 script so that it cannot exfiltrate the document to any origin {\em
-  other} than \js|google.com|. And \js|fbi.gov|'s cryptography library
+  other} than \js|google.com|. And \js|nsa.gov|'s cryptography library
 doesn't trust \js|google.com| with the cleartext document---it would
 like to confine \js|google.com|'s editor script to prevent
 exfiltration of the cleartext document to \js|google.com| (or to any
