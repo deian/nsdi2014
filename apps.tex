@@ -25,8 +25,8 @@ under \sys{}.}
 
 In Figure~\ref{fig:editor}, the architecture for an encrypted document
 editor is shown.  The editor has three components: a component which has
-your Google Documents credentials and communicates with the server, the
-editor proper, and the component which performs encryption.  We give the
+your Google Documents credentials and communicates with the server (\https{gdoc.com}), the
+editor proper (also \https{gdoc.com}), and the component which performs encryption (\https{nsa.gov}).  We give the
 following security guarantee: if the \https{nsa.gov} is honest, then we
 guarantee that the clear text of your document is never leaked to any
 origin.  If only \https{gdoc.com} is honest, then \https{gdoc.com} may
@@ -36,22 +36,28 @@ to anyone else.\footnote{We assume that the user can securely transmit
 input to the iframe of their choice---in the face of phishing, this may
 not necessarily hold, but we defer this problem for now.}
 
-How does this architecture work when you open an encrypted document?  Initially, only the
-first Google Documents window is open, and it downloads (1) the encrypted
-document from Google's servers.  When it realizes encryption is needed,
-it opens an iframe to \https{nsa.gov}, exercising its privilege to keep
-its initial label as \https{nsa.gov} so it can (2) talk to the \https{nsa.gov}
-server and download the private key which will be used to decrypt the
-document.  (3) Next, it sends the encrypted document as a labeled blob,
-with the label ``\https{gdoc.com}''; the iframe raises (4) its label in
-order to be able to read and decrypt the document.  Finally, the iframe
-passes on the decrypted document (5) to a new iframe which implements the
-editor proper, appropriately labeled to ensure that the iframe must raise
-its label to ``\https{gdoc.com} and \https{nsa.gov}'' to read the decryption.
+What occurs when you open Google Documents to edit an encrypted
+document?
+%
+Initially, \https{gdoc.com} downloads (1) the encrypted document from
+Google's servers.
+%
+Seeing that the document is encrypted, it opens an iframe to
+\https{nsa.gov}, exercising its privilege to keep its initial label as
+\https{nsa.gov} so it can talk to the \https{nsa.gov} server and
+download the private key (2) which will be used to decrypt the document.
+%
+Next, it sends the encrypted document as a labeled blob, with the label
+``\https{gdoc.com}'' (3); the iframe raises its label (4) so it can read
+and decrypt the document.
+%
+Finally, the iframe passes on the decrypted document (labeled as
+``\https{gdoc.com} and \https{nsa.gov}'') to a new iframe (5) which
+implements the editor proper.
 
 To save the document, we run this flow in reverse: the editor sends a
 decrypted document to the encryptor (5), which encrypts it with the
-private key.  Then, critically, the encryptor exercises its privileges
+private key.  Next, the critical step occurs: the encryptor exercises its privileges
 to send a labeled blob of the encrypted document which is \emph{only}
 labeled \https{gdoc.com} (3).  Since the encryptor is the only compartment
 with the \https{nsa.gov} privilege, all documents must pass through it for
@@ -65,8 +71,9 @@ a new document is being created, the encryptor iframe must be placed
 in a separate pop-up window, so that the user can verify that encryption
 has been enabled.
 
-We also built a password manager, which operates on very similar
-principles to the encrypted document editor. \Red{space limitations}
+Due to space limitations, we don't discuss the architecture of the
+password manager we built in detail; however, it operates on very
+similar principles to the encrypted document editor.
 
 \subsection{Third-Party Mashup}
 \label{sec:apps-mashup}
