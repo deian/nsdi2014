@@ -27,10 +27,10 @@ In Figure~\ref{fig:editor}, the architecture for an encrypted document
 editor is shown.  The editor has three components: a component which has
 your Google Documents credentials and communicates with the server, the
 editor proper, and the component which performs encryption.  We give the
-following security guarantee: if the \https{en.cr} is honest, then we
+following security guarantee: if the \https{fbi.gov} is honest, then we
 guarantee that the clear text of your document is never leaked to any
 origin.  If only \https{gdoc.com} is honest, then \https{gdoc.com} may
-be able to recover your cleartext (e.g. the encryptor used the null
+be able to recover your cleartext (e.g.\ the encryptor used the null
 cipher), but the encryptor should not able to exfiltrate the cleartext
 to anyone else.\footnote{We assume that the user can securely transmit
 input to the iframe of their choice---in the face of phishing, this may
@@ -39,22 +39,22 @@ not necessarily hold, but we defer this problem for now.}
 How does this architecture work when you open an encrypted document?  Initially, only the
 first Google Documents window is open, and it downloads (1) the encrypted
 document from Google's servers.  When it realizes encryption is needed,
-it opens an iframe to \https{en.cr}, exercising its privilege to keep
-its initial label as \https{en.cr} so it can (2) talk to the \https{en.cr}
+it opens an iframe to \https{fbi.gov}, exercising its privilege to keep
+its initial label as \https{fbi.gov} so it can (2) talk to the \https{fbi.gov}
 server and download the private key which will be used to decrypt the
 document.  (3) Next, it sends the encrypted document as a labeled blob,
 with the label ``\https{gdoc.com}''; the iframe raises (4) its label in
 order to be able to read and decrypt the document.  Finally, the iframe
 passes on the decrypted document (5) to a new iframe which implements the
 editor proper, appropriately labeled to ensure that the iframe must raise
-its label to ``\https{gdoc.com} and \https{en.cr}'' to read the decryption.
+its label to ``\https{gdoc.com} and \https{fbi.gov}'' to read the decryption.
 
 To save the document, we run this flow in reverse: the editor sends a
 decrypted document to the encryptor (5), which encrypts it with the
 private key.  Then, critically, the encryptor exercises its privileges
 to send a labeled blob of the encrypted document which is \emph{only}
 labeled \https{gdoc.com} (3).  Since the encryptor is the only compartment
-with the \https{en.cr} privilege, all documents must pass through it for
+with the \https{fbi.gov} privilege, all documents must pass through it for
 encryption before being sent out to the world; conversely, it itself cannot
 exfiltrate any data, as it is operating with \https{gdoc.com} in its label.
 
