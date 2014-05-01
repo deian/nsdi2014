@@ -6,7 +6,7 @@ developers can reuse components of existing web applications.
 %
 While component reuse in the venerable desktop software model typically
 takes the form of libraries, the reusable components in web applications
-aren't limited to just JavaScript library code---they include
+are not limited to just JavaScript library code---they include
 network-accessible content and services.
 %
 This reuse is ubiquitous\@: jQuery, a widely used JavaScript
@@ -125,13 +125,14 @@ This property, for instance, ensures that the parent of a
 sub-container cannot arbitrarily exfiltrate data it receives from the
 sub-container.
 %
-No existing combination of browser security mechanisms offers these
+No existing combination of today's browser security mechanisms offers these
 properties.
 
 In this paper, we present \sys{} (the Secure Web API), a simple,
 label-based mandatory access control (MAC) system for web browsers
 that delivers both flexibility for web application developers and
-robust privacy for users. \sys{} allows untrusted JavaScript to
+%robust 
+privacy for users. \sys{} allows untrusted JavaScript to
 process sensitive data, and confines the untrusted JavaScript in
 first-class, symmetric fashion.  To illustrate the value of these
 properties, we present four case-study applications---a password
@@ -144,7 +145,8 @@ contributions include:
 \begin{CompactItemize}
 \item We characterize four case-study web applications
   (Section~\ref{sec:goals}) for which today's browser security
-  architecture cannot provide strong privacy.
+  architecture cannot provide privacy.
+%strong 
 \item We describe the design of the \sys{} label-based MAC system
   for web browsers (Section~\ref{sec:system}), which meets the
   requirements of the five case-study web applications.
