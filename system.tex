@@ -60,8 +60,8 @@ The security policy of a container consists of three components:
 \subsection{Labels}
 \label{sec:labels}
 
-The \emph{current label} protects all data associated with a compartment or
-web site, specifying what origins can read the data.
+\Red{Every compartment} has a \emph{current label} which protects all data associated with the compartment or
+web site, and specifies what origins can read the data.
 %
 An additional \emph{DOM label} specifically protects the DOM associated
 with a compartment, if it has one.
@@ -77,8 +77,8 @@ Breeze~\cite{Breeze13}, because they have a simple
 semantics while being as expressive as the labels used by other practical
 confinement systems~\cite{GenLabels}.
 %
-In this section, we briefly describe DC labels; an interested
-reader should see~\cite{stefan:2011:dclabels} for more details.
+In this section, we briefly describe DC labels. %; an interested
+%reader should see~\cite{stefan:2011:dclabels} for more details.
 
 A privacy label (henceforth just label) is a boolean formula over
 origins.%
@@ -148,6 +148,7 @@ the password checker arranged to create a publically labeled worker
 when its label was \https{fb.us}.  In fact, doing so is not possible
 to do so without privileges (Section~\ref{sec:privileges}).}
 %
+\todo{ar}{proper?}
 For web pages proper, we look for a {\tt Document-label} header which
 specifies the initial label, defaulting to public (i.e.\ no extra
 restrictions) when this header is not present.
@@ -175,7 +176,7 @@ A compartment is associated with a set of privileges.
 While privileges can be used in a variety of ways, their basic mechanism
 is quite simple:  whenever a compartment with a privilege $p$ performs a
 label check, instead of checking that $l'$ implies $l$, we check that
-$l'$ and $p$ implies $l$.
+$l'$ and $p$ implies $l$~\cite{stefan:2011:dclabels}.
 
 There are three primary use-cases for privileges:
 
@@ -183,7 +184,8 @@ There are three primary use-cases for privileges:
     \item A privilege can be used to \emph{declassify} private
         information without raising the current label.  For example, we
         could downgrade ``\https{amazon.com}'' labeled data to
-        ``public''; we could even downgrade it to ``\https{amazon.com}
+        ``public'' \todo{ar}{The next line could be removed} 
+        ; we could even downgrade it to ``\https{amazon.com}
         or \https{bank.ch}'' (recall that this data can be read only
         either origin, but no others).
 
@@ -203,7 +205,9 @@ There are three primary use-cases for privileges:
 \end{itemize}
 
 In \sys{}, privileges are \emph{implicitly} exercised: if a compartment
-has a privilege, it will always attempt to use it.  To force a label
+has a privilege, it will always attempt to use it.  
+\todo{ar}{Does it mean that when creating labeled blob privileges are not applied?}
+To force a label
 check without the privilege, a privileged compartment can wrap the
 data in question as a labeled blob.  In the password checker, the main
 page must do precisely this, as it has the \https{fb.us} privilege.
@@ -223,7 +227,8 @@ A fresh origin is often used to run code under full isolation, since any
 compartment labeled with the fresh origin cannot communicate with any
 other compartment without exercising the corresponding privilege.
 %
-Importantly, any code can allocate a origin-privilege pair: this
+Importantly, any code can allocate a \todo{ar}{a pair of privileges? not clear
+  the ``type'' of the privilege} origin-privilege pair: this
 makes isolation an egalitarian security mechanism: an untrusted library
 can use this mechanism to isolate a sub-library that it itself
 may not trust~\cite{Zeldovich:2006}.
