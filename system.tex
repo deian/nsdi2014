@@ -233,8 +233,8 @@ policies on one particular API function: XMLHttpRequest (XHR).
 XHR is an interesting because: (1) the added \sys{} policy checks are
 representative of those of other web browser APIs, (2) the API
 interacts with servers, so it is important to explain how HTTP headers are
-handled, and (3) \sys{} provides a variant of this API called
-\emph{labeled XHR} which relaxes the same-origin policy.
+handled, and (3) the variant of this API called \emph{labeled XHR} is
+the only component of \sys{} which relaxes the same-origin policy.
 
 A traditional XHR request is composed of two parts: a write to an
 external origin (sending the request), and then a read from the external
@@ -257,7 +257,8 @@ We extended the send function of XHR to also accept labeled blobs,
 which explicitly specify the transmitted label header (and disallow
 JavaScript from manually setting this header).
 
-Finally, we consider the design of \emph{labeled XHR}.
+Since normal XHR always checks the same-origin policy, it would be
+useful to provide \emph{labeled XHR} which relaxes this requirement.
 %
 Intuitively, a safe way to relax the same-origin policy is to allow
 cross-origin code to read the result of a response, as long as it
@@ -267,9 +268,9 @@ This must include communication to the \emph{same} origin, since these requests
 carry the risk of self-exfiltration~\Red{cite} and cross-site request
 forgery.
 %
-Thus, labeled XHR returns its result as a labeled blob, protected
-with a server-specified label that defaults to a fresh origin
-(Section~\ref{sec:privileges}).
+To fulfill this requirement, labeled XHR returns its result as a labeled
+blob, protected with a server-specified label that defaults to a \emph{fresh}
+origin (Section~\ref{sec:privileges}).
 %
 A server that is protected against self-exfiltration and cross-site
 request forgery using end-to-end labels can relax this requirement by
@@ -278,7 +279,42 @@ only labeling a result with its own origin.
 \subsection{Backwards compatibility}
 \label{sec:bc}
 
-\Red{see TODO for notes}
+With any new browser feature like \sys{}, one must be prepared for the
+vast majority of clients and servers to have the feature unimplemented.
+Thus, a critical question for \sys{} is whether or not it securely
+interoperates with browsers and servers which are not \sys{}-aware.
+We consider each of these cases in turn.
+
+\paragraph{Unsupported clients}  Like most new web features, if
+a browser does not support the feature, the web site will not
+work.  While this is fine for applications like the encrypted
+document editor or third-party mashup, which are simply unimplementable
+in the current web architecture, this is less than ideal for applications
+like the password checker or users of jQuery, which may only be interested
+in using \sys{} for defense-in-depth.
+
+For cases like this, we implemented a simple wrapper library for \sys{}
+which can fall back to the basic APIs without any extra policy checks
+when a browser does not support \sys{}.  Without \sys{}, the confinement
+of the application is no worse than if the user had developed it the usual
+way.
+
+%   As a side note, a \sys{}-enabled server can easily check if a client
+%   is \sys{}-enabled by looking for a {\tt Document-label} in requests.\footnote{In particular, it should reject pre-flight requests for {\tt Document-label}, which indicated some code on a non-\sys{}-enabled client attempted to forge a request label.}
+
+\paragraph{Unsupported servers}  \sys{}'s features which impose further
+restrictions on the same-origin policy can be used without any
+cooperation from the server.  The most important case are features
+of \sys{} which relax the same-origin policy.  Previous systems which
+allowed this relaxation, such as Cross-Origin Resource Sharing (CORS)
+require opt-in from the server in question.  However, an important
+application of \sys{} is to be able to use web sites in ways that were
+not originally anticipated by the site owner.  We apply a very stringent
+restriction to labeled XHR\@; labeling these responses with a fresh origin
+is critical as it prevents arbitrary JavaScript from trivially bypassing
+cross-site request forgery protection of web sites.
+
+\Red{Clearance}
 
 %   \subsection{Clearance}
 %   \label{sec:clearance}
