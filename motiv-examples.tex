@@ -115,28 +115,30 @@ status quo, a developer should only send sensitive data using
 % complete trust.
 
 %\paragraph{Labels}
+
+\subsection{Motivating Examples}
+
 Having reviewed the building blocks of security policies in status-quo
 web browsers, we now turn to examples of web applications for which
 strong privacy is not achievable in the status quo. These examples
 illuminate key design requirements for the \sys{} browser confinement
 system, as well as the overall intuition behind its design.
 
-\subsection{Password Checker}
-
-Given users' propensity for choosing poor (i.e., easily guessable)
-passwords, many web sites today incorporate functionality to check the
-strength of a password selected by a user and offer the user feedback
-(e.g., ``too weak; choose another,'' ``strong,'' etc.). Suppose a
-developer at Facebook (at origin \js|fb.com|) wishes to re-use
-password-checking functionality provided in a JavaScript library by a
-third party, say, from origin \js|sketchy.ru|. If the developer at
-\js|fb.com| simply includes the third party's code in a \js|<script>|
-tag referencing a resource at \js|sketchy.ru|, then the referenced
-script will have unfettered access to both the user's password
-(provided by the Facebook page, which the library {\em must} see to do
-its job) and to write to the network via XHR. This simple state of
-affairs is emblematic of the ease with which na\"{\i}ve web developers can
-introduce leaks of sensitive data in applications.
+\paragraph{Password Checker} Given users' propensity for choosing poor
+(i.e., easily guessable) passwords, many web sites today incorporate
+functionality to check the strength of a password selected by a user
+and offer the user feedback (e.g., ``too weak; choose another,''
+``strong,'' etc.). Suppose a developer at Facebook (at origin
+\js|fb.com|) wishes to re-use password-checking functionality provided
+in a JavaScript library by a third party, say, from origin
+\js|sketchy.ru|. If the developer at \js|fb.com| simply includes the
+third party's code in a \js|<script>| tag referencing a resource at
+\js|sketchy.ru|, then the referenced script will have unfettered
+access to both the user's password (provided by the Facebook page,
+which the library {\em must} see to do its job) and to write to the
+network via XHR. This simple state of affairs is emblematic of the
+ease with which na\"{\i}ve web developers can introduce leaks of
+sensitive data in applications.
 
 A more skilled web developer could today host the checker script on
 her {\em own} server and have that server specify a content security
@@ -197,40 +199,47 @@ sender may be sending data derived from sensitive data owned by
 % code from still {\em other} third-party origins, and should be able to
 % further confine such untrusted code.
 
-\subsection{Encrypted Document Editor}
-
+\paragraph{Encrypted Document Editor}
+%% XXX IMPORTANT bk:
+%% need to articulate usage model as *company* wants to encrypt its
+%% documents stored in Google Docs, and that *company* writes the
+%% encryption code, which is hosted from its origin. This eliminates
+%% objection, "why would the user trust the encryption library to
+%% encrypt correctly, but *not* trust it not to leak the cleartext?"
 Today's web applications, such as in-browser document editors backed
 by cloud-based storage (e.g., Google Docs), typically require the user
 to trust the app developer/cloud-based storage provider (often the
 same principal under the SOP) with the data in her documents. That is,
-the provider's server observes the user's data in cleartext. How might
-the provider offer a privacy-preserving editor app that does {\em not}
-reveal the user's document data to the provider's server?  One
-promising approach might be to outsource encryption of documents to a
-distinct web-based service at a different origin than that which hosts
-the editor app. The editor app would allow the user to select a
-JavaScript library she trusts to perform cryptography robustly. In
-this design, one origin serves the JavaScript code for the editor app
-(say, \js|google.com|) and a different origin serves the JavaScript
-code for the cryptography library (say, \js|eff.org|). Note that these
-two origins may be {\em mutually distrusting.}  \js|google.com|'s
-script must pass the document's cleartext to a script from
-\js|eff.org| for encryption, and would like to confine the execution
-of the encryption script so that it cannot exfiltrate the document to
-any origin {\em other} than \js|google.com|. And \js|eff.org|'s
-cryptography library doesn't trust \js|google.com| with the cleartext
-document---it would like to confine \js|google.com|'s editor script to
-prevent exfiltration of the cleartext document to \js|google.com| (or
-to any other origin). This simple use case highlights the need for
-{\em symmetric confinement:} when two mutually distrusting scripts
-from different origins communicate, {\em each must be able to confine
-  the other's further use of data it provides the other.}
+the provider's server observes the user's data in cleartext. Suppose
+an organization wished to use an in-browser document editor, but did
+{\em not} want to reveal its users' document data to the editor
+provider's server. How might the provider offer a privacy-preserving
+editor app that would satisfy the needs of such a privacy-conscious
+organization?  One promising approach might be for the ``customer''
+privacy-sensitive organization to implement a trusted document encryption
+service hosted at its own origin, distinct from that which hosts the
+editor app. The editor app could allow the user to specify a JavaScript
+``plugin'' library she trusts to perform cryptography robustly. In this design,
+one origin serves the JavaScript code for the editor app (say,
+\js|google.com|) and a different origin serves the JavaScript code for
+the cryptography library (say, \js|fbi.gov|). Note that these two
+origins may be {\em mutually distrusting.}  \js|google.com|'s script
+must pass the document's cleartext to a script from \js|fbi.gov| for
+encryption, and would like to confine the execution of the encryption
+script so that it cannot exfiltrate the document to any origin {\em
+  other} than \js|google.com|. And \js|fbi.gov|'s cryptography library
+doesn't trust \js|google.com| with the cleartext document---it would
+like to confine \js|google.com|'s editor script to prevent
+exfiltration of the cleartext document to \js|google.com| (or to any
+other origin). This simple use case highlights the need for {\em
+  symmetric confinement:} when two mutually distrusting scripts from
+different origins communicate, {\em each must be able to confine the
+  other's further use of data it provides the other.}
 
 %% brings up the requirement of *symmetric* confinement: two mutually
 %% distrusting origins each confine the other.
 
-\subsection{Third-Party Mashup}
-
+\paragraph{Third-Party Mashup}
 Some of the most useful web applications are {\em mashups,} which
 integrate and compute over data hosted by multiple origins. For
 example, consider an application that reconciles a user's Amazon
@@ -262,6 +271,67 @@ once it has read the responses from those origins.\footnote{The
   these semantics in detail in Section~\ref{sec:system}.} Here, too,
 MAC-based confinement meets this need.
 
-\subsection{Untrusted Third-Party Library}
+\paragraph{Untrusted Third-Party Library}
+Web application developers today make extensive use of third-party
+libraries like jQuery (whose prevalence we cite in the
+introduction). Simply importing a library into a page provides no
+isolation whatsoever between the untrusted third-party code and any
+sensitive data within the page. Developers of applications that
+process sensitive data want the convenience of reusing popular
+libraries. But such reuse risks exfiltration of sensitive data by
+these untrusted libraries. This unpalatable trade-off between privacy
+and convenience for the programmer in today's web programming status
+quo raises again the importance of robust confinement for the
+browser---of allowing untrusted code to compute over sensitive data,
+but confining the code so as to prevent leakage of the sensitive
+data. Once more, MAC-based confinement intuitively seems to fit
+well.
 
-\subsection{Browser Extension: Ad Block}
+%% describe trusted compartment between page w/JQuery and network as
+%% firewall---its job is to deny network requests to origins other
+%% than those that are trusted.
+
+%% after discussion with Deian:
+%% there are two versions of this scenario.
+%%
+%% (1) page initially includes sensitive data. so steps are:
+%%      (a) page creates worker with DOM access and privilege
+%%      (b) page raises label to a.com; hereafter page cannot talk to
+%%      any origin but a.com (so cannot leak elsewhere).
+%%      (c) tcb code (in worker) loads jquery and injects it into page
+%%      (d) jquery is now in page, and cannot leak
+%%
+%% (2) page initially includes no sensitive data, so steps are:
+%%      (a) page has public label
+%%      (b) page creates worker with DOM access and privilege
+%%      (c) page drops privilege
+%%      (d) page loads jquery (note label not raised yet!)
+%%      (e) hereafter, page can only send to a.com and worker
+%%      (f) worker only allows flows to allowed origins
+%%      (g) tcb code transfers sensitive data from a.com, proxies into
+%%      page
+%%
+%%  in both cases, untrusted jquery runs in page, but cannot leak to
+%%  non-a.com origins.
+
+\subsection{Design Goals}
+
+We have briefly introduced four motivating web applications that
+achieve rich functionality by combining code from one or more
+untrusted parties. The privacy challenges that arise in such
+applications are unfortunately unaddressed by status-quo browser
+security policies, such as the SOP. These applications clearly
+illustrate the need for robust yet flexible confinement for untrusted
+code in browsers. To summarize, these applications would appear to be
+well served by a confinement system that:
+
+\begin{itemize}
+\item applies mandatory access control (MAC);
+\item supports {\em symmetric confinement,} i.e., permits two principals to {\em
+    mutually} distrust one another, and each prevent the other from
+  exfiltrating its data;
+\item allows {\em hierarchical confinement,} i.e., permits principal
+  $A$ to confine code from principal $B$ that processes $A$'s data,
+  while principal $B$ can independently confine code from principal
+  $C$ that processes $B$'s data.
+\end{itemize}
