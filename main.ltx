@@ -7,12 +7,19 @@
 \usepackage{epsfig,endnotes}
 \usepackage{graphicx, url}
 \usepackage{enumerate}
+%\usepackage[pdfborder={0 0 0}]{hyperref}
 \usepackage[square,comma,numbers,sort&compress]{natbib}
 \usepackage{tablefootnote,booktabs}
-\usepackage{caption,subcaption}
+\usepackage[small,bf]{caption}
+\usepackage{subcaption}
 
 \newcommand{\sys}{COWL}
 \newcommand{\xhr}{\js|XMLHttpRequest|}
+
+%\setlength{\textfloatsep}{0.30cm}
+\usepackage[compact,nonindentfirst]{titlesec}
+\titlespacing{\section}{0pt}{1.5ex}{0.4ex}
+\titlespacing{\subsection}{0pt}{1ex}{0.37ex}
 
 \makeatletter
 \@dblfptop 0pt
@@ -175,10 +182,10 @@ Protecting Users by Confining JavaScript with \sys
 
 
 \balance
-{\frenchspacing\scriptsize
-\setlength{\bibsep}{2pt}
+%{\frenchspacing\scriptsize
+%\setlength{\bibsep}{2pt}
 \bibliographystyle{abbrvnat}
 \bibliography{local}
-}
+%}
 
 \end{document}
