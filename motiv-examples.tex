@@ -1,4 +1,4 @@
-\section{Primer, Examples, and Goals}
+\section{Background, Examples, and Goals}
 
 A single top-level web page often incorporates multiple scripts
 written by different authors.\footnote{Throughout we refer to ``web
@@ -6,17 +6,16 @@ written by different authors.\footnote{Throughout we refer to ``web
   ``JavaScript code'' and ``script'' interchangeably.} Ideally, the
 browser should \todo{ar}{Is this a OS term? why not just protect?} robustly protect the user's sensitive data from
 unauthorized disclosure, yet afford page developers the greatest
-possible flexibility to construct \Red{rich, }featureful applications that
+possible flexibility to construct richly featureful applications that
 reuse functionality implemented in scripts provided by (potentially
 distrusted) third parties. \todo{ar}{too long relative closure} To make concrete the diversity of potential
 trust relationships between scripts' authors and diverse ways page
-developers may wish to structure amalgamations of scripts, we describe
-several example web applications, none of which can be implemented
-with \todo{ar}{why not just privacy?, what does it mean ``strong privacy''} strong privacy for the user in today's web browsers. These
-examples illustrate key requirements for the design of a flexible
-browser confinement mechanism. Before describing these examples,
-however, we offer a brief refresher on the privacy polices in place
-prior to our work. \todo{ezyang}{I think this could be made shorter}
+developers may structure amalgamations of scripts, we describe several
+example web applications, none of which can be implemented with strong
+privacy for the user in today's web browsers. These examples
+illustrate key requirements for the design of a flexible browser
+confinement mechanism. Before describing these examples, however, we
+offer a brief refresher on status-quo browser privacy polices.
 % and a sketch of the labeling mechanism that
 %forms the core of our system, \sys{}.
 
@@ -271,13 +270,16 @@ browser. To enable third-party mashups that do not sacrifice the
 user's privacy, we note again the need for an untrusted script to be
 able to issue requests to multiple remote origins (e.g., Amazon and
 the bank), but to lose the privilege to communicate over the network
-once it has read the responses from those origins.\footnote{The desired
-semantics here are very subtle. Should a third-party script be continue
-to be able to communicate with the origin which it \emph{first} read
-sensitive data? In some cases, this could lead to the possibility
-of cross-site request forgery.  We explain the correct semantics in
-detail in Section~\ref{sec:labeled-xhr}} Here, too,
-MAC-based confinement meets this need.
+once it has read the responses from those origins.\footnote{The
+  desired semantics here can be subtle. Once a third-party script
+  communicates with a \emph{second} origin, should it retain the
+  ability to communicate with the origin from which it \emph{first}
+  read sensitive data? In some cases, allowing such communication
+  would create the risk of cross-site request
+  forgery~\tocite{CSRF}. We explain the correct semantics in detail in
+  Section~\ref{sec:labeled-xhr}.} \Red{Deian, please check footnote; I
+  have edited it for clarity, but want to make sure I've not damaged
+  correctness. -BK} Here, too, MAC-based confinement meets this need.
 
 \paragraph{Untrusted Third-Party Library}
 Web application developers today make extensive use of third-party
@@ -287,14 +289,27 @@ isolation whatsoever between the untrusted third-party code and any
 sensitive data within the page. Developers of applications that
 process sensitive data want the convenience of reusing popular
 libraries. But such reuse risks exfiltration of sensitive data by
-these untrusted libraries.
-A primary difficulty is that jQuery requires wide reign over the
-contents of the entire web page, which means it is not reasonable to try
-to confine jQuery to an isolated context in the same way we isolated the
-password checker.  The key insight is to flip the situation: the trusted
-code should be placed in another context, so that it can manipulate the
-(untrusted) page running jQuery, but not vice versa.  Once more,
-MAC-based confinement intuitively seems to fit well.
+these untrusted libraries. Note that because jQuery requires access to
+the content of the entire page that uses it, we cannot isolate jQuery
+in a separate context from the page's context, as we did for the
+password-checker example. Instead, we observe that jQuery demands a
+design that is a mirror image of that for confining the password
+checker: we place the {\em trusted} code for a page in a separate
+context and deem the rest of the page (including the untrusted jQuery
+code) as untrusted. The trusted code can then communicate with remote
+origins and inject sensitive data into the untrusted page, but the
+untrusted page (including jQuery) cannot communicate with remote
+origins (and thus cannot exfiltrate sensitive data within the
+untrusted page). Once more, MAC-based confinement intuitively seems to
+fit this scenario well. We note further that any {\em library} author
+may wish to reuse functionality from another untrusted
+library. Accordingly, to allow the broadest reuse of code, the browser
+should support {\em hierarchical confinement}---the primitives for
+confining untrusted code should allow not only a single level of
+confinement (one trusted context confining one untrusted context), but
+arbitrarily many levels of confinement (one trusted context confining
+an untrusted one, that in turn confines a further untrusted one,
+etc.).
 
 %% describe trusted compartment between page w/JQuery and network as
 %% firewall---its job is to deny network requests to origins other
@@ -342,5 +357,5 @@ well served by a confinement system that:
 \item allows {\em hierarchical confinement,} i.e., permits principal
   $A$ to confine code from principal $B$ that processes $A$'s data,
   while principal $B$ can independently confine code from principal
-  $C$ that processes $B$'s data.
+  $C$ that processes $B$'s data, and so on.
 \end{itemize}
