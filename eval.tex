@@ -10,9 +10,10 @@ In the case of \sys{}, this question is two-fold.
 First, are existing websites affected by our modifications?
 %
 Since our system relies on a page to enable confinement mode by using
-our API, the functionality of existing websites is not
-affected---hence we are solely concerned with how \sys{} affects the
-performance of existing apps.
+our API (or web server to be aware of \sys{}-aware browsers), the
+functionality of existing websites is not affected---hence we are
+solely concerned with how \sys{} affects the performance of existing
+apps.
 %
 Second, is the performance of an end-to-end application that uses
 \sys{} acceptable, for instance, when compared to a comparable, but
@@ -35,10 +36,11 @@ running GNU/Linux 3.13, with 16GB of RAM.
 \subsection{Macro benchmarks}
 \label{sec:eval:macro}
 
-Below we measure the performance (usually page load time) of some of
-the applications running on our modified browsers.
+Below we measure the performance (usually page load time) of
+simplified version of our applications running on our modified
+browsers.
 %
-To underhand whether the performance as noticed by the user is
+To understand whether the performance as noticed by the user is
 reasonable, we modified the applications by removing any security
 related checks and measured their performance on unmodified, vanilla
 browsers.
@@ -53,7 +55,7 @@ to address the different trust relationships; an alternative
 %% Chome: With \sys{} it take 80.5ms, Vanilla:  71.5
 %
 We implemented the password-strength checker of
-\Red{Section~\ref{sec:motiv:checker}}, using the checker script
+Section~\ref{sec:motivating-examples}, using the checker script
 from~\cite{checker1}.
 %
 Our end-to-end evaluation measures the average duration it takes to
@@ -63,18 +65,19 @@ checking on a password 16-characters in length.
 %
 %
 In Firefox the average (over 10 runs) amount of time it takes to
-perform the strength checking is \Red{59.5ms}.
+perform the strength checking is 18ms.
 %
-This figure, though predominantly dominated by network delay, is
-roughly \Red{3\%} faster than the strength checker running running in a
-``normal'' worker on a vanilla, unmodified, browser (which
-also caches the worker script).
+This figure, is roughly 4ms faster than the strength checker running
+running in a ``normal'' worker on a vanilla, unmodified, browser.
 %
-We attribute our speedup to the fact that creating and communicating
-with labeled workers is faster than existing workers (see
-micro-benchmarks, below).
+We attribute this speedup---although small, it also encompasses
+security checks---to the fact that creating and communicating with
+light-weight workers is cheaper than ``normal'' workers (see
+Section~\ref{sec:eval:micro}.
 %
-\Red{In Chrome....}
+Similarly, the Chromium implementation (which solely uses the
+compartment labels) is 5ms faster than the vanilla version (measured
+at 54ms).
 
 
 \paragraph{Encrypted document editor}
@@ -137,8 +140,6 @@ that would allow the integrator to arbitrarily leak the sum.
 %% Vanilla: incorporate script directly, no sandboxes.
 %% As page confine:
 %% Firefox: With \sys{} it take 164.8ms, Vanilla:  160.2ms
-%% As extension
-%% Firefox: With \sys{} it take 224.4ms
 
 We measure the load time of a banking app that incorporates jQuery and
 a library that traverses the DOM to replace phone numbers with links.
