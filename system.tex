@@ -65,9 +65,7 @@ The security policy of a container consists of two components:
 %       limit on the sensitivity of the data in the container.
 \end{itemize}
 
-We describe each of these components in turn in the following sections,
-and then discuss how these features interoperate smoothly with the old
-security policies of the web (Section~\ref{sec:bc}).
+We describe each of these components in turn in the following sections.
 
 \subsection{Labels}
 \label{sec:labels}
@@ -75,17 +73,18 @@ security policies of the web (Section~\ref{sec:bc}).
 The \emph{current label} protects all data associated with a compartment or
 web site, specifying what origins can read the data.
 %
-Individual pieces of data can also be labeled (see Section~\ref{sec:labeled-blobs}).
+Individual pieces of data can also be labeled: \sys{}
+introduces opaque \emph{labeled blobs} for this purpose.
 %
 The particular labels that are used in \sys{} are \emph{DC labels},
 presented in~\cite{stefan:2011:dclabels}.
 %
 We chose DC labels, much like Hails~\cite{giffin:2012:hails} and
-Breeze~\cite{Breeze13}, because they have a simple and clear
-semantics, yet are as expressive as the labels used by other practical
+Breeze~\cite{Breeze13}, because they have a simple
+semantics while being as expressive as the labels used by other practical
 confinement systems~\cite{GenLabels}.
 %
-In this section, we give a brief description of DC labels; an interested
+In this section, we briefly describe DC labels; an interested
 reader should see~\cite{stefan:2011:dclabels} for more details.
 
 A privacy label (henceforth just label) is a boolean formula over
@@ -93,7 +92,9 @@ origins.%
 %
 \footnote{
   Our system also handles \emph{integrity}, but it is omitted from
-  the discussion for simplicity.
+  the discussion for simplicity, as most web applications operate at the
+  public level of integrity, except in the case of cross-site request
+  forgery checks (Section~\ref{sec:bc}).
 }
 %
 When a compartment wishes to send a message to another compartment or
@@ -102,9 +103,13 @@ label $l$.
 %
 Intuitively, this requires that the security of the destination be as strong as original security policy, i.e.\ that the target label \emph{subsumes} the source label.\footnote{If the communication is bidirectional, e.g.\ mutation of a shared DOM, then both the target and source must imply each other.}
 %
-In the password checker, the labeled password (2) cannot be read by a
-publically labeled worker (corresponding to the logical formula
-``true''), because ``true'' does not imply ``\https{fb.us}''.
+For example, to read the contents of a labeled blob, we must check that
+the label of the compartment subsumes the label of the blob.
+%
+In the password checker, the labeled blob containing the password (2)
+cannot be read by a publically labeled worker (corresponding to the
+logical formula ``true''), because ``true'' does not imply
+``\https{fb.us}''.
 %
 However, once the worker raises its label to ``\https{fb.us}'', the
 logical implication holds trivially.
@@ -148,9 +153,9 @@ the password checker arranged to create a publically labeled worker
 when its label was \https{fb.us}.  In fact, doing so is not possible
 to do so without privileges (Section~\ref{sec:privileges}).}
 %
-For web pages proper, we look for a {\tt Document-label} header to
-specify the initial label, defaulting to the origin of the web site when
-this header is not present.
+For web pages proper, we look for a {\tt Document-label} header which
+specifies the initial label, defaulting to public (i.e.\ no extra
+restrictions) when this header is not present.
 %
 After creation, a compartment can freely \emph{raise} its label, i.e.\
 change its label to any label which subsumes it, but not vice versa.
@@ -158,35 +163,6 @@ change its label to any label which subsumes it, but not vice versa.
 This leads to a common interpretation of labels as ``taint;'' as
 a compartment receives data from more sources, it accumulates more
 conjuncts on account of raising its label to read the received data.
-
-\subsubsection{Labeled blobs}
-\label{sec:labeled-blobs}
-
-A \emph{labeled blob} is a piece of data with a label
-associated with it.
-%
-The contents of a labeled blob are opaque: in order to
-inspect these contents, we must check that the label of the environment
-subsumes the label of the blob.
-%
-In the password checker, the password passed to the untrusted worker
-is explicitly labeled with ``\https{fb.us}'', to ensure that the worker
-taints itself once the password is read.\footnote{This is important
-when privileges are in use; see the next section.}
-
-Labeled blobs can be explicitly created by the programmer and then
-passed around by container-to-container message passing.
-%
-Labeled blobs can also be created from requests to websites using
-\emph{labeled XHR}: instead of immediately raising the label upon
-receiving the result, a labeled blob is returned instead.
-%
-This allows a developer to defer reading the result of a request. This
-is useful if the compartment is simply passing the labeled blob to
-another compartment, or querying multiple websites of different origins
-before reading the results all at once (Section~\ref{sec:apps-mashup}).
-
-% maybe footnote about integrity
 
 \subsection{Privileges}
 \label{sec:privileges}
@@ -224,9 +200,9 @@ In \sys{}, privileges are \emph{implicitly} exercised: if a compartment
 has a privilege, it will always attempt to use it.  To force a label
 check without the privilege, a privileged compartment can wrap the
 data in question as a labeled blob.  In the password checker, the main
-page must do precisely this, as it has the \https{fb.us} privilege and
-thus sending the password directly would be equivalent to publishing it.
-\Red{I am a bit afraid this is hard to understand.}
+page must do precisely this, as it has the \https{fb.us} privilege.
+Without labeling the password, it could accidentally leak the password
+to a publically labeled worker.
 
 % Initial privileges and privilege creation
 By default, a browsing context has the privilege corresponding to the
@@ -245,6 +221,59 @@ Importantly, any code can allocate a origin-privilege pair: this
 makes isolation an egalitarian security mechanism: an untrusted library
 can use this mechanism to isolate a sub-library that it itself
 may not trust~\cite{Zeldovich:2006}.
+
+\subsection{Labeled XMLHttpRequest}
+
+In the previous sections, we described the general design principles
+behind the security policies on compartments.
+%
+In this section, we concretely describe the implication of these
+policies on one particular API function: XMLHttpRequest (XHR).
+%
+XHR is an interesting because: (1) the added \sys{} policy checks are
+representative of those of other web browser APIs, (2) the API
+interacts with servers, so it is important to explain how HTTP headers are
+handled, and (3) \sys{} provides a variant of this API called
+\emph{labeled XHR} which relaxes the same-origin policy.
+
+A traditional XHR request is composed of two parts: a write to an
+external origin (sending the request), and then a read from the external
+origin (reading the response, which may be restricted under the
+same-origin policy).
+%
+\sys{} adds two new checks: before initiating a
+request, we check to see if the label of the origin subsumes the label
+of compartment, and if the reader attempts to read the request, we check
+to see if the label of the compartment subsumes the label of the response
+(which may be explicitly labeled with the {\tt Document-label} header).
+
+If the server is IFC enabled, it may be interested in the current label
+of the compartment which initiated the request, to determine the
+sensitivity (and integrity) of the request.
+%
+Thus, the XHR request is also labeled with a {\tt Document-label} header.
+%
+We extended the send function of XHR to also accept labeled blobs,
+which explicitly specify the transmitted label header (and disallow
+JavaScript from manually setting this header).
+
+Finally, we consider the design of \emph{labeled XHR}.
+%
+Intuitively, a safe way to relax the same-origin policy is to allow
+cross-origin code to read the result of a response, as long as it
+commits to performing no further communication.
+%
+This must include communication to the \emph{same} origin, since these requests
+carry the risk of self-exfiltration~\Red{cite} and cross-site request
+forgery.
+%
+Thus, labeled XHR returns its result as a labeled blob, protected
+with a server-specified label that defaults to a fresh origin
+(Section~\ref{sec:privileges}).
+%
+A server that is protected against self-exfiltration and cross-site
+request forgery using end-to-end labels can relax this requirement by
+only labeling a result with its own origin.
 
 \subsection{Backwards compatibility}
 \label{sec:bc}
