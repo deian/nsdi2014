@@ -58,7 +58,7 @@ interface LWorker :
     \subcaption{Labeled compartments}
     \label{fig:api:compartments}
   \end{subfigure}
-  \caption{\sys{} programming interface in simplified WebIDL.}
+  \caption{\todo{ar}{Why the or is bolded?} \sys{} programming interface in simplified WebIDL.}
   \label{fig:api}
 \end{figure}
 
@@ -116,7 +116,7 @@ layout engine to add support for structurally cloning labeled blobs;
 this allows us to flexibly use labeled blobs where other structurally
 clonable objects (e.g., JSON) can be used, including \js|postMessage|.
 %
-Second, we modified the XHR code allow arbitrary cross-origin reading
+Second, we modified the XHR code to allow arbitrary cross-origin reading
 when the response type is set to \verb|labeled-blob|;
 %
 as a consequence, the \js|response| attribute returns a labeled blob.
@@ -233,7 +233,12 @@ As shown in Table~\ref{tab:comm} we rely on compartment wrappers to
 confine cross-compartment (which includes cross-iframe) communication.
 %
 Once confinement-mode is enabled---by using any of the APIs of
-Figure~\ref{fig:api}---we ``recompute'' \todo{ezy}{Explain why recomputing is desirable!} all the cross-compartment
+Figure~\ref{fig:api}---we ``recompute'' \todo{ezy}{Explain why recomputing is
+  desirable!} 
+\todo{ar}{Agreed, perhaps ``SWAPI reaccomodates all the cross-compartment 
+wrappers to enforce the restrictions imposed by the current label, and not the 
+SOP''}
+all the cross-compartment
 wrappers to ensure that all subsequent cross-compartment access is
 mediated by confinement, i.e., it uses labels, and not the SOP\@.
 %
