@@ -6,34 +6,48 @@ In this section, we describe the \sys{} system.
 As mentioned previously, the basic unit of confinement in \sys{}---a
 compartment---corresponds to a JavaScript execution context, e.g.\@ a
 browser tab, an iframe on a page, or even a Web Worker~\cite{workers}.
-\footnote{We also introduce a new type
-of Web Worker called a DOM Worker which shares a DOM with its parent.
-These workers run synchronously with the parent (rather than in parallel)
-and are solely used for confinement: think of them as iframes
-without DOMs of their own.  See Section~\ref{sec:apps-third-party} for
-one useful use-case for this feature.}
+
+\sys{} makes two basic changes to this model.
 %
-\sys{} associates each compartment and web site with a security policy,
+First, \sys{} adds a new unit of confinement, a \emph{lightweight
+worker} (LWorker), which can be thought of either as a Web Worker
+without parallelism or an iframe without a DOM\@.
+%
+LWorkers are generally useful for implementing privilege separated applications.
+%
+Second, \sys{} associates each compartment and web site with a security policy,
 which specifies the kind of messages and requests which are permitted to
 flow to other compartments and web sites.
 %
-In order to maintain backwards-compatibility, this security policy is
+The communication we interpose upon includes:
+
+\begin{itemize}
+    \item {\tt postMessage},
+    \item DOMs shared between same-origin contexts,
+    \item Content loading (via {\tt img} tags, CSS, etc),
+    \item Form submission,
+    \item XMLHttpRequest, and
+    \item Browser storage (cookies and local storage).
+\end{itemize}
+
+In order to maintain backwards-compatibility, these policies are
 applied on top of the old same-origin policy for existing browser APIs,
-merely allowing developers to apply more restrictive policies than
+for the purpose of allowing developers to apply more restrictive policies than
 SOP\@.
 %
 To relax the same-origin policy, \sys{} also introduces variants of
-these APIs (most notably labeled XHR, see Section~\Red{ref}) which don't
-respect same-origin policy and consequently allow more
-use-cases.\footnote{Relaxing the same-origin policy in a way that's
+these APIs---namely labeled XHR (Section~\ref{sec:labeled-xhr})---which don't
+respect same-origin policy.\footnote{Relaxing the same-origin policy in a way that's
 secure and maintains backwards-compatibility is subtle, and we directly
 address this issue in Section~\ref{sec:labeled-xhr}}
 
-The security policy of a container consists of two components:
+The security policy of a container consists of three components:
 
 \begin{itemize}
     \item A current label (Section~\ref{sec:labels}), which indicates the
-        sensitivity of the data in the container, and
+        sensitivity of the data in the container,
+    \item A DOM label, which indicates the sensitivity of the DOM if the
+        container is associated with one, and
     \item A set of privileges (Section~\ref{sec:privileges}), which
         dicates what authority the compartment's code has to
         \emph{relax} policy requirements.
@@ -41,14 +55,14 @@ The security policy of a container consists of two components:
 %       limit on the sensitivity of the data in the container.
 \end{itemize}
 
-We describe each of these components in turn in the following sections,
-and then we describe how these policies apply to XMLHttpRequest in more detail (Section~\ref{sec:labeled-xhr}).
-
 \subsection{Labels}
 \label{sec:labels}
 
 The \emph{current label} protects all data associated with a compartment or
 web site, specifying what origins can read the data.
+%
+An additional \emph{DOM label} specifically protects the DOM associated
+with a compartment, if it has one.
 %
 Individual pieces of data can also be labeled: \sys{}
 introduces opaque \emph{labeled blobs} for this purpose.
@@ -68,9 +82,8 @@ A privacy label (henceforth just label) is a boolean formula over
 origins.%
 %
 \footnote{
-  Our system also handles \emph{integrity}, but it is omitted from
-  the discussion for simplicity, as most web applications operate at the
-  public level of integrity.
+  Our system also handles \emph{integrity}, but we largely omit it
+  from the discussion for simplicity.
 }
 %
 When a compartment wishes to send a message to another compartment or
@@ -97,27 +110,27 @@ logical implication holds trivially.
 %   class: the fact that policies are preserved means that if a library has
 %   sub-libraries, they will get the appropriate policy enforced}
 %
-Why is a label represented as a boolean formula rather than simply
-as a set of origins?
-%
-As it turns out, both conjunctions (``and'')
-and disjunctions (``or'') are useful for specifying security policies.
-%
-Informally, a conjunction describes what origins contributed sensitive data
-to the compartment, while a disjunction describes what origins are allowed
-to read the data.
-%
-% EZY: Unfortunately, I can't use the password checker here because
-% the labels are too simple
-A compartment with the label ``\https{bank.ch} and \https{amazon.com}''
-may contain sensitive data from both sites, so it cannot send data to
-\https{bank.ch}, as doing so might leak private information from
-\https{amazon.com} (and vice versa).
-%
-Conversely, a compartment labeled ``\https{bank.ch} or \https{amazon.com}''
-could send data to either website; however, it could not receive any
-messages from either origin---it might have originally been public data
-whose sensitivity was raised so that no other site could read it.
+%Why is a label represented as a boolean formula rather than simply
+%as a set of origins?
+%%
+%As it turns out, both conjunctions (``and'')
+%and disjunctions (``or'') are useful for specifying security policies.
+%%
+%Informally, a conjunction describes what origins contributed sensitive data
+%to the compartment, while a disjunction describes what origins are allowed
+%to read the data.
+%%
+%% EZY: Unfortunately, I can't use the password checker here because
+%% the labels are too simple
+%A compartment with the label ``\https{bank.ch} and \https{amazon.com}''
+%may contain sensitive data from both sites, so it cannot send data to
+%\https{bank.ch}, as doing so might leak private information from
+%\https{amazon.com} (and vice versa).
+%%
+%Conversely, a compartment labeled ``\https{bank.ch} or \https{amazon.com}''
+%could send data to either website; however, it could not receive any
+%messages from either origin---it might have originally been public data
+%whose sensitivity was raised so that no other site could read it.
 
 How is the current label initially determined?
 %
@@ -132,6 +145,10 @@ to do so without privileges (Section~\ref{sec:privileges}).}
 For web pages proper, we look for a {\tt Document-label} header which
 specifies the initial label, defaulting to public (i.e.\ no extra
 restrictions) when this header is not present.
+%
+The DOM label of a compartment is more stringent: it is set such that
+only compartments with the privilege for the origin can write to
+it.\footnote{This is done by setting the integrity label to the origin.}
 %
 After creation, a compartment can freely \emph{raise} its label, i.e.\
 change its label to any label which subsumes it, but not vice versa.
@@ -152,7 +169,7 @@ is quite simple:  whenever a compartment with a privilege $p$ performs a
 label check, instead of checking that $l'$ implies $l$, we check that
 $l'$ and $p$ implies $l$.
 
-There are two primary use-cases for privileges:
+There are three primary use-cases for privileges:
 
 \begin{itemize}
     \item A privilege can be used to \emph{declassify} private
@@ -170,6 +187,9 @@ There are two primary use-cases for privileges:
         \https{fb.us} privilege in the main web site.  Conceptually, we
         are declassifying \emph{all} of the data associated with the
         compartment.
+
+    \item A privilege usually must be exercised to edit the DOM
+        of another compartment.
 \end{itemize}
 
 In \sys{}, privileges are \emph{implicitly} exercised: if a compartment
@@ -278,105 +298,6 @@ the code is still confined.
 It can only exfiltrate data via a covert channel while the user
 is on the web site---a strict improvement over existing mash-ups which
 \emph{ask for your password}.
-
-%\subsection{Backwards compatibility}
-%\label{sec:bc}
-%
-%With any new browser feature like \sys{}, one must be prepared for the
-%vast majority of clients and servers to have the feature unimplemented.
-%Thus, a critical question for \sys{} is whether or not it securely
-%interoperates with browsers and servers which are not \sys{}-aware.
-%We consider each of these cases in turn.
-%
-%\paragraph{Unsupported clients}  Like most new web features, if
-%a browser does not support the feature, the web site will not
-%work.  While this is fine for applications like the encrypted
-%document editor or third-party mashup, which are simply unimplementable
-%in the current web architecture, this is less than ideal for applications
-%like the password checker or users of jQuery, which may only be interested
-%in using \sys{} for defense-in-depth.
-%
-%For cases like this, we implemented a simple wrapper library for \sys{}
-%which can fall back to the basic APIs without any extra policy checks
-%when a browser does not support \sys{}.  Without \sys{}, the confinement
-%of the application is no worse than if the user had developed it the usual
-%way.
-%
-%%   As a side note, a \sys{}-enabled server can easily check if a client
-%%   is \sys{}-enabled by looking for a {\tt Document-label} in requests.\footnote{In particular, it should reject pre-flight requests for {\tt Document-label}, which indicated some code on a non-\sys{}-enabled client attempted to forge a request label.}
-%
-%\paragraph{Unsupported servers}  \sys{}'s features which impose further
-%restrictions on the same-origin policy can be used without any
-%cooperation from the server.  The most important case are features
-%of \sys{} which relax the same-origin policy.  Previous systems which
-%allowed this relaxation, such as Cross-Origin Resource Sharing (CORS)
-%require opt-in from the server in question.  However, an important
-%application of \sys{} is to be able to use web sites in ways that were
-%not originally anticipated by the site owner.  We apply a very stringent
-%restriction to labeled XHR\@; labeling these responses with a fresh origin
-%is critical as it prevents arbitrary JavaScript from trivially bypassing
-%cross-site request forgery protection of web sites.
-
-%   \subsection{Clearance}
-%   \label{sec:clearance}
-
-%   \emph{Clearance} is a label which imposes a limit on the kind of data a compartment can have,
-%   i.e., it is an upper-bound on compartment label, and thus the kind of
-%   data a piece of code executing in the compartment can access.
-%   %
-%   In an ideal confinement system, code can read arbitrary data at the
-%   cost of raising the context label (and thus giving up write
-%   capabilities).
-%   %
-%   Unfortunately, practical systems typically have covert channels which
-%   may be exploited to leak sensitive data.
-%   %
-%   Hence, as in HiStar~\cite{Zeldovich:2006}, Hails~\cite{giffin:2012:hails}, and
-%   Breeze~\cite{Breeze13} we associate a \emph{clearance} with every
-%   compartment: the compartment is not allowed to raise its label higher
-%   than the clearance.
-
-%   \Red{Clearance choice by user? We need to know what the default
-%       clearance is.  The attack model is kind of funny: we want to argue
-%       that covert channels are obvious (e.g. crashing your browser) or low
-%       bit-rate; i.e. set in such a way that opting in to run the untrusted
-%   code on the sensitive data is materially less harmful than if the
-%   untrusted code ran automatically}
-
-%   In \sys{}, the clearance assigned to browsing contexts is primarily a
-%   choice made by the user.
-%   %
-%   ``Do I want to give this mash-up website (confined) access to my
-%   bank statement?''  In absence of covert channels, the user's choice
-%   makes no difference
-%   \Red{Similarity to content scripts}
-
-%   For completeness, we summarize  \sys{}'s API for compartments
-%   in Figure~\ref{systemAPI}. In the next subsection, 
-%   we explain the purpose of the different primitives through examples. 
-%   We remark that \sys{}'s API is designed to be minimalistic, and as such, it only
-%   consists on the primitives shown in Figures~\ref{fig:APIspec} and
-%   \ref{systemAPI}.
-
-%   In the rest of this section, we expand on the \sys{} design by
-%   introducing mechanisms that meet the requirements of the four
-%   example applications described in Section~\ref{sec:goals}.
-%% through
-%% three concrete examples: 
-%% a password-strength checker (Section~\ref{sec:system:worker}),
-%% a password manager (Section~\ref{sec:system:iframe}), 
-%% a third-party mashup (Section~\ref{sec:system:mashup}), and
-%% a library that converts phone numbers to links
-%% (Section~\ref{sec:system:script}--Section~\ref{sec:system:extension}).
-%
-%For completeness, we summarize the different system components,
-%security mechanisms, and DOM API (using WebIDL-like syntax), in
-%Table~\toref{table:components}.
-
-
-% Implementation notes:
-% postMessage: receiver subsumes sender
-% DOM: receiver =_p sender plus DOM access label =_p sender
 
 % Local Variables:
 % TeX-master: "main.ltx"
