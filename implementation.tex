@@ -39,7 +39,7 @@ interface LabeledBlob :
   \begin{subfigure}{\columnwidth}
     {\small
     \begin{webidl}
-interface SWAPI :
+interface COWL :
   static void enable()
   static attribute Label label
   static attribute Label clearance 
@@ -219,7 +219,7 @@ associate a label, clearance, and privilege with compartments.
 In the case of browsing contexts, we also associate a DOM access label
 with the compartment.
 %
-As shown in Figure~\ref{fig:api}, the \js|SWAPI| object exposes these
+As shown in Figure~\ref{fig:api}, the \js|COWL| object exposes these
 properties to JavaScript.
 % 
 Moreover, these labels and privilege, in addition to the compartment
@@ -270,7 +270,7 @@ Since \sys{} allows for policies that are more fine grained than
 same-origin, we modified the binding code by extending the security
 checks to all DOM objects and adding label checks; this modification
 imposes a penalty of a branch condition (that checks if
-confinement-mode is enabled). \todo{ezy}{As well as the penalty of the SWAPI check, no?}
+confinement-mode is enabled). \todo{ezy}{As well as the penalty of the COWL check, no?}
 
  
 \paragraph{External communication}
@@ -298,7 +298,7 @@ it sufficiently addresses our external communication concern by
 precisely controlling from where a page loads content, performs XHR, etc.
 %
 To this end, we set a custom CSP policy whenever the compartment label
-changes, e.g., with \js|SWAPI.label|.
+changes, e.g., with \js|COWL.label|.
 %
 For instance, if the effective compartment label is
 \js|Label("https://bank.ch").and("https://amazon.com")|, all the
