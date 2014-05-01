@@ -273,45 +273,69 @@ A server that is protected against self-exfiltration and cross-site
 request forgery using end-to-end labels can relax this requirement by
 only labeling a result with its own origin.
 
-\subsection{Backwards compatibility}
-\label{sec:bc}
+In an ideal confinement system, it would always be safe to let untrusted
+code compute on sensitive data.
+%
+Unfortunately, practical systems typically have covert channels which
+may be exploited to leak sensitive data.
+%
+Hence, keeping with HiStar~\cite{Zeldovich:2006},
+Hails~\cite{giffin:2012:hails}, and Breeze~\cite{Breeze13}, we associate
+a \emph{clearance} with every compartment: the compartment is not
+allowed to raise its label higher than the clearance or raise its
+clearance without an appropriate privilege.
+%
+The default clearance is \emph{user-controlled}; a user can thus disable
+labeled XHR by configuring the clearance of a page to be just
+its origin.
+%
+A user can also selectively enable labeled XHR on specific sites; a
+mash-up would ask the user to raise its clearance accordingly.
+%
+Importantly, raised clearance does \emph{not} give a mash-up free reign:
+the code is still confined.
+%
+It can only exfiltrate data via a covert channel while the user
+is on the web site---a strict improvement over existing mash-ups which
+\emph{ask for your password}.
 
-With any new browser feature like \sys{}, one must be prepared for the
-vast majority of clients and servers to have the feature unimplemented.
-Thus, a critical question for \sys{} is whether or not it securely
-interoperates with browsers and servers which are not \sys{}-aware.
-We consider each of these cases in turn.
-
-\paragraph{Unsupported clients}  Like most new web features, if
-a browser does not support the feature, the web site will not
-work.  While this is fine for applications like the encrypted
-document editor or third-party mashup, which are simply unimplementable
-in the current web architecture, this is less than ideal for applications
-like the password checker or users of jQuery, which may only be interested
-in using \sys{} for defense-in-depth.
-
-For cases like this, we implemented a simple wrapper library for \sys{}
-which can fall back to the basic APIs without any extra policy checks
-when a browser does not support \sys{}.  Without \sys{}, the confinement
-of the application is no worse than if the user had developed it the usual
-way.
-
-%   As a side note, a \sys{}-enabled server can easily check if a client
-%   is \sys{}-enabled by looking for a {\tt Document-label} in requests.\footnote{In particular, it should reject pre-flight requests for {\tt Document-label}, which indicated some code on a non-\sys{}-enabled client attempted to forge a request label.}
-
-\paragraph{Unsupported servers}  \sys{}'s features which impose further
-restrictions on the same-origin policy can be used without any
-cooperation from the server.  The most important case are features
-of \sys{} which relax the same-origin policy.  Previous systems which
-allowed this relaxation, such as Cross-Origin Resource Sharing (CORS)
-require opt-in from the server in question.  However, an important
-application of \sys{} is to be able to use web sites in ways that were
-not originally anticipated by the site owner.  We apply a very stringent
-restriction to labeled XHR\@; labeling these responses with a fresh origin
-is critical as it prevents arbitrary JavaScript from trivially bypassing
-cross-site request forgery protection of web sites.
-
-\Red{Clearance}
+%\subsection{Backwards compatibility}
+%\label{sec:bc}
+%
+%With any new browser feature like \sys{}, one must be prepared for the
+%vast majority of clients and servers to have the feature unimplemented.
+%Thus, a critical question for \sys{} is whether or not it securely
+%interoperates with browsers and servers which are not \sys{}-aware.
+%We consider each of these cases in turn.
+%
+%\paragraph{Unsupported clients}  Like most new web features, if
+%a browser does not support the feature, the web site will not
+%work.  While this is fine for applications like the encrypted
+%document editor or third-party mashup, which are simply unimplementable
+%in the current web architecture, this is less than ideal for applications
+%like the password checker or users of jQuery, which may only be interested
+%in using \sys{} for defense-in-depth.
+%
+%For cases like this, we implemented a simple wrapper library for \sys{}
+%which can fall back to the basic APIs without any extra policy checks
+%when a browser does not support \sys{}.  Without \sys{}, the confinement
+%of the application is no worse than if the user had developed it the usual
+%way.
+%
+%%   As a side note, a \sys{}-enabled server can easily check if a client
+%%   is \sys{}-enabled by looking for a {\tt Document-label} in requests.\footnote{In particular, it should reject pre-flight requests for {\tt Document-label}, which indicated some code on a non-\sys{}-enabled client attempted to forge a request label.}
+%
+%\paragraph{Unsupported servers}  \sys{}'s features which impose further
+%restrictions on the same-origin policy can be used without any
+%cooperation from the server.  The most important case are features
+%of \sys{} which relax the same-origin policy.  Previous systems which
+%allowed this relaxation, such as Cross-Origin Resource Sharing (CORS)
+%require opt-in from the server in question.  However, an important
+%application of \sys{} is to be able to use web sites in ways that were
+%not originally anticipated by the site owner.  We apply a very stringent
+%restriction to labeled XHR\@; labeling these responses with a fresh origin
+%is critical as it prevents arbitrary JavaScript from trivially bypassing
+%cross-site request forgery protection of web sites.
 
 %   \subsection{Clearance}
 %   \label{sec:clearance}
