@@ -128,7 +128,8 @@ are also several drawbacks.
 %
 First, JSFlow cannot be used to confine style sheets that execute code
 or build applications that rely on policies more flexible than SOP,
-such as third-party mashups \Red{reading cross-origin data by XHR requests.}
+such as third-party mashups that read cross-origin data (e.g., using
+XHR).
 %
 %%Second, developers need to understand a new semantics for the core
 %%JavaScript language~\cite{Hedin:2012}, in contrast to a new DOM-leve
@@ -172,9 +173,10 @@ amendable to scenarios where declassification plays
 a key role (e.g., the encrypted editor, password manager, or
 third-party mashup). 
 %
-\Red{Although SME has been recently extended to consider
-  declassification~\cite{Rafnsson:2013}, it is unclear how this theoretical
-result translates into FlowFox, and more importantly, how it affects its applicability.}
+Although SME has been recently extended to consider
+declassification~\cite{Rafnsson:2013}, it is unclear how this
+theoretical result translates into FlowFox, and more importantly, how
+it affects its applicability.
 %
 An interesting application of FlowFox is how it labels user interaction and metadata
 (history, screen size, etc.) to address common privacy attacks such as
