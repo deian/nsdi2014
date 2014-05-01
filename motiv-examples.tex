@@ -4,11 +4,11 @@ A single top-level web page often incorporates multiple scripts
 written by different authors.\footnote{Throughout we refer to ``web
   page'' and ``web application'' (or ``web app'') interchangeably, and
   ``JavaScript code'' and ``script'' interchangeably.} Ideally, the
-browser should \todo{ar}{Is this a OS term? why not just protect?} robustly protect the user's sensitive data from
-unauthorized disclosure, yet afford page developers the greatest
-possible flexibility to construct richly featureful applications that
-reuse functionality implemented in scripts provided by (potentially
-distrusted) third parties. \todo{ar}{too long relative closure} To make concrete the diversity of potential
+browser should protect the user's sensitive data from unauthorized
+disclosure, yet afford page developers the greatest possible
+flexibility to construct richly featureful applications that reuse
+functionality implemented in scripts provided by (potentially
+distrusted) third parties. To make concrete the diversity of potential
 trust relationships between scripts' authors and diverse ways page
 developers may structure amalgamations of scripts, we describe several
 example web applications, none of which can be implemented with strong
@@ -220,8 +220,7 @@ organization?  One promising approach might be for the ``customer''
 privacy-sensitive organization to implement a trusted document encryption
 service hosted at its own origin, distinct from that which hosts the
 editor app. The editor app could allow the user to specify a JavaScript
-``plugin'' library she trusts to perform cryptography \todo{ar}{what is ``robust
-  cryptography''?}robustly. In this design,
+``plugin'' library she trusts to perform cryptography correctly. In this design,
 one origin serves the JavaScript code for the editor app (say,
 \js|google.com|) and a different origin serves the JavaScript code for
 the cryptography library (say, \js|nsa.gov|). Note that these two
