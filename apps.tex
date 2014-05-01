@@ -120,4 +120,6 @@ the main context, which loads the library (5).  At the time the library
 is loaded, the main context becomes untrusted, but this is no matter, as
 it is fully confined at this point.  As the trusted DOM worker has both
 privileges, it can freely modify the DOM of the main context, as well as
-communicate with the wider web.
+communicate with the wider web.  We can think of this DOM worker as a
+\emph{firewall} between the page proper (with the untrusted library)
+and the rest of the world.
