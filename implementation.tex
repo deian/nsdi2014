@@ -82,6 +82,8 @@ approach diverges in a non-trivial way.
 
 \subsection{\sys{} DOM objects}
 
+\todo{ezy}{maybe flip this section after}
+
 \paragraph{Labels and privileges}
 %
 DOM objects such as \js|Label|s and \js|Privilege|s are implemented in
@@ -223,17 +225,19 @@ properties to JavaScript.
 Moreover, these labels and privilege, in addition to the compartment
 principal and CSP, are used when making security decisions.
 
+\todo{ezy}{A diagram would be nice here! I don't think it's really clear from the text above how wrappers work.}
+
 \paragraph{Cross-compartment communication}
 %
 As shown in Table~\ref{tab:comm} we rely on compartment wrappers to
 confine cross-compartment (which includes cross-iframe) communication.
 %
 Once confinement-mode is enabled---by using any of the APIs of
-Figure~\ref{fig:api}---we ``recompute'' all the cross-compartment
+Figure~\ref{fig:api}---we ``recompute'' \todo{ezy}{Explain why recomputing is desirable!} all the cross-compartment
 wrappers to ensure that all subsequent cross-compartment access is
-mediated by confinement, i.e., it uses labels, and not the SOP.
+mediated by confinement, i.e., it uses labels, and not the SOP\@.
 %
-To this end, we implemented a new wrapper policy and modified the
+To this end, we implemented a new wrapper policy \todo{ezy}{What's a wrapper policy} and modified the
 function that recomputes wrappers to use \sys{}'s wrappers when
 confinement-mode is enabled.
 %
@@ -266,7 +270,7 @@ Since \sys{} allows for policies that are more fine grained than
 same-origin, we modified the binding code by extending the security
 checks to all DOM objects and adding label checks; this modification
 imposes a penalty of a branch condition (that checks if
-confinement-mode is enabled).
+confinement-mode is enabled). \todo{ezy}{As well as the penalty of the SWAPI check, no?}
 
  
 \paragraph{External communication}
