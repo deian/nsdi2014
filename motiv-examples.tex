@@ -228,11 +228,7 @@ origins may be {\em mutually distrusting.}  \js|google.com|'s script
 must pass the document's cleartext to a script from \js|nsa.gov| for
 encryption, and would like to confine the execution of the encryption
 script so that it cannot exfiltrate the document to any origin {\em
-  other} than \js|google.com|. \todo{ar}{It is not clear what is the 
-concern of nsa. The crypto library does not care about the exfiltration of 
-the  plaintext since it got it from google already. Is nsa giving some data to 
-google more than the cyphertext?}
-And \js|nsa.gov|'s cryptography library
+  other} than \js|google.com|. And \js|nsa.gov|'s cryptography library
 does not trust \js|google.com| with the cleartext document---it would
 like to confine \js|google.com|'s editor script to prevent
 exfiltration of the cleartext document to \js|google.com| (or to any
