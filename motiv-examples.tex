@@ -174,7 +174,8 @@ and subsequent examples, rectangular frames denote compartments,
 arrows denote communication (either between a compartment and the network,
 or IPC-style between compartments), and events during execution are
 numbered sequentially in time. Compartments may be \emph{labeled} (Section~\ref{sec:labels}) with the
-origins to whose sensitive data they have been exposed. A compartment that
+origins to whose sensitive data they have been exposed. (The privilege
+of the compartment (generalization of origin) is underlined.) A compartment that
 has not yet observed sensitive data is denoted \js|public|; however, when it
 wishes to incorporate sensitive data, the compartment \emph{raises} its
 label (at the cost of being more restricted in where it can write). Here, a top-level page at
