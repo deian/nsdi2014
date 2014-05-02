@@ -231,27 +231,28 @@ service hosted at its own origin, distinct from that which hosts the
 editor app. The editor app could allow the user to specify a JavaScript
 ``plugin'' library she trusts to perform cryptography correctly. In this design,
 one origin serves the JavaScript code for the editor app (say,
-\js|google.com|) and a different origin serves the JavaScript code for
+\js|gdocs.com|) and a different origin serves the JavaScript code for
 the cryptography library (say, \js|nsa.gov|). Note that these two
-origins may be {\em mutually distrusting.}  \js|google.com|'s script
+origins may be {\em mutually distrusting.}  \js|gdocs.com|'s script
 must pass the document's cleartext to a script from \js|nsa.gov| for
 encryption, and would like to confine the execution of the encryption
 script so that it cannot exfiltrate the document to any origin {\em
-other} than \js|google.com|. And \js|nsa.gov|'s cryptography library
-does not trust \js|google.com| with the cleartext document---it would
-like to confine \js|google.com|'s editor script to prevent
-exfiltration of the cleartext document to \js|google.com| (or to any
+other} than \js|gdocs.com|. And \js|nsa.gov|'s cryptography library
+does not trust \js|gdocs.com| with the cleartext document---it would
+like to confine \js|gdocs.com|'s editor script to prevent
+exfiltration of the cleartext document to \js|gdocs.com| (or to any
 other origin). This simple use case highlights the need for {\em
   symmetric confinement:} when two mutually distrusting scripts from
 different origins communicate, {\em each must be able to confine the
-  other's further use of data it provides the other.}
+  other's further use of data it provides.}
 
 %% brings up the requirement of *symmetric* confinement: two mutually
 %% distrusting origins each confine the other.
 
 \paragraph{Third-Party Mashup}
-Some of the most useful web applications are {\em mashups,} which
-integrate and compute over data hosted by multiple origins. For
+Some of the most useful web applications are {\em mashups}; these
+applications integrate and compute over data hosted by multiple
+origins. For
 example, consider an application that reconciles a user's Amazon
 purchases (the data for which are hosted by \js|amazon.com|) against a
 user's bank statement (the data for which are hosted by
@@ -279,9 +280,8 @@ once it has read the responses from those origins.\footnote{The
   read sensitive data? In some cases, allowing such communication
   would create the risk of cross-site request
   forgery~\tocite{CSRF}. We explain the correct semantics in detail in
-  Section~\ref{sec:labeled-xhr}.} \Red{Deian, please check footnote; I
-  have edited it for clarity, but want to make sure I've not damaged
-  correctness. -BK} Here, too, MAC-based confinement meets this need.
+  Section~\ref{sec:labeled-xhr}.} Here, too, MAC-based confinement
+  meets this need.
 
 \paragraph{Untrusted Third-Party Library}
 Web application developers today make extensive use of third-party
