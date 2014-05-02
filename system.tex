@@ -1,72 +1,111 @@
 \section{The \sys{} confinement system}
 \label{sec:system}
 
-In this section, we describe the \sys{} system.
-%
-As mentioned previously, the basic unit of confinement in \sys{}---a
-compartment---corresponds to a JavaScript execution context, e.g.\@ a
-browser tab, an iframe on a page, or even a Web Worker~\cite{workers}.
+%%In this section, we describe the \sys{} system.
+%%%
+%%As mentioned previously, the basic unit of confinement in \sys{}---a
+%%compartment---corresponds to a JavaScript execution context, e.g.\@ a
+%%browser tab, an iframe on a page, or even a Web Worker~\cite{workers}.
 
-\sys{} makes two basic changes to this model.
+\sys{} builds on the existing web security model by using compartments
+as the basic unit of isolation and mediating communication between 
+the compartments and external servers.
 %
-First, \sys{} adds a new unit of confinement, a \emph{lightweight
-worker} (LWorker), which can be thought of either as a Web Worker
-without parallelism or an iframe without a DOM\@.
 %
-LWorkers are generally useful for implementing privilege separated applications;
-when they are used to access DOMs of other containers (something that
-cannot be done with traditional Web Workers) we call them ``DOM workers.''
+The two basic changes to the existing compartment model are as follows.
 %
-Second, \sys{} associates each compartment and web site with a security policy,
-which specifies the kind of messages and requests which are permitted to
-flow to other compartments and web sites.
+First, \sys{} associates each compartment with a MAC label.
 %
-The communication we interpose upon includes:
-
+The compartment label (Section~\ref{sec:labels}), indicates the
+sensitivity of the data in the compartment; this label is used to
+dictate where information can flow.\footnote{Conceptually, the notion
+of labels extends to network end-points, i.e., web servers.}
+%
+%
+%%In the case of browsing context, \emph{DOM label}, is further used to
+%%indicate the sensitivity of the DOM.
+%
+Second, \sys{} makes the ambient authority of an origin explicit, with
+privileges (Section~\ref{sec:privileges}).
+ 
+\sys{} uses these labels and privileges to restrict the
+kind of messages and requests which are permitted to flow to other
+compartments and web servers, respectively.
+%
+However, since \sys{} re-purposes existing notions of compartments, we
+must mediate existing communication mechanisms to ensure confinement.
+%
+(This is subtle when considering browsing contexts, which can use
+different parts of the DOM API to exfiltrate data.)
+%
+The communication channel we interpose on include:
+%
 \begin{itemize}
     \item {\tt postMessage},
     \item DOMs shared between same-origin contexts,
-    \item Content loading (via {\tt img} tags, CSS, etc),
+    \item Content loading (via {\tt img} tags, CSS, etc.),
     \item Form submission,
-    \item XMLHttpRequest, and
+    \item XMLHttpRequest,
+    \item Navigation, and
     \item Browser storage (cookies and local storage).
 \end{itemize}
-
-In order to maintain backwards-compatibility, these policies are
-applied on top of the old same-origin policy for existing browser APIs,
-for the purpose of allowing developers to apply more restrictive policies than
-SOP\@.
 %
-To relax the same-origin policy, \sys{} also introduces variants of
-these APIs---namely labeled XHR (Section~\ref{sec:labeled-xhr})---which don't
-respect same-origin policy.\footnote{Relaxing the same-origin policy in a way that's
-secure and maintains backwards-compatibility is subtle, and we directly
-address this issue in Section~\ref{sec:labeled-xhr}}
 
-The security policy of a container consists of three components:
+However, this interposition maintains backwards-compatibility with
+existing web policies.
+%
+Indeed, unless a compartment chooses to use \sys{} (e.g., by using our
+API or communicating with a \sys{}-enabled compartment) the policy
+imposed should be SOP.
+%
+Consequently, \sys{} policies are applied on top of the old
+same-origin policy for existing browser APIs; this allows developers
+to apply more restrictive policies than SOP\@.
+%
+However, to relax the same-origin policy, \sys{} also introduces
+variants of these APIs---namely labeled XHR
+(Section~\ref{sec:labeled-xhr}).\footnote{Relaxing the same-origin
+  policy in a way that's secure and maintains backwards-compatibility
+  is subtle, and we directly address this issue in
+Section~\ref{sec:labeled-xhr}}
 
-\begin{itemize}
-    \item A current label (Section~\ref{sec:labels}), which indicates the
-        sensitivity of the data in the container,
-    \item A DOM label, which indicates the sensitivity of the DOM if the
-        container is associated with one, and
-    \item A set of privileges (Section~\ref{sec:privileges}), which
-        dicates what authority the compartment's code has to
-        \emph{relax} policy requirements.
-%   \item A clearance (Section~\ref{sec:clearance}), which imposes a
-%       limit on the sensitivity of the data in the container.
-\end{itemize}
+To provide developers with a means for privilege-separating
+\js|<script>|'s, which always execute with the privilege of the page,
+\sys{} provides a new unit of confinement: a \emph{lightweight worker}
+(LWorker)
+%
+LWorkers are compartments without a DOM, similar to existing Workers,
+but, unlike normal Workers, execute in the same thread as their
+parent.
+%
+When they are used to access DOMs (e.g., when confining jQuery) of
+their parent (something that cannot be done with traditional Web
+Workers) we call them ``DOM workers.''
+
+%%The security policy of a container consists of three components:
+%%
+%%\begin{itemize}
+%%    \item A current label (Section~\ref{sec:labels}), which indicates the
+%%        sensitivity of the data in the container,
+%%    \item A DOM label, which indicates the sensitivity of the DOM if the
+%%        container is associated with one, and
+%%    \item A set of privileges , which
+%%        dicates what authority the compartment's code has to
+%%        \emph{relax} policy requirements.
+%%%   \item A clearance (Section~\ref{sec:clearance}), which imposes a
+%%%       limit on the sensitivity of the data in the container.
+%%\end{itemize}
 
 \subsection{Labels}
 \label{sec:labels}
 
-The \emph{current label} is the security policy which protects all data associated with the compartment or
+The \emph{current compartment label} is the security policy which protects all data associated with the compartment or
 web site, specifying what origins can read the data.
 %
 An additional \emph{DOM label} specifically protects the DOM associated
 with a compartment, if it has one.
 %
-Individual pieces of data can also be labeled: \sys{}
+Individual objects can also be labeled: \sys{}
 introduces opaque \emph{labeled blobs} for this purpose.
 %
 The particular labels that are used in \sys{} are \emph{DC labels},
@@ -102,11 +141,11 @@ For example, to read the contents of a labeled blob, we must check that
 the label of the compartment subsumes the label of the blob.
 %
 In the password checker, the labeled blob containing the password (2)
-cannot be read by a publically labeled worker (corresponding to the
+cannot be read by a publicly labeled worker (corresponding to the
 logical formula ``true''), because ``true'' does not imply
-``\https{fb.us}''.
+``\https{fb.com}''.
 %
-However, once the worker raises its label to ``\https{fb.us}'', the
+However, once the worker raises its label to ``\https{fb.com}'', the
 logical implication holds trivially.
 
 %Reworded version: Intuitively, an entity is allowed to receive data that is at most as
@@ -145,7 +184,7 @@ created, a particular current label can be assigned to it (which
 must subsume the parent's label).  Otherwise, new containers implicitly
 inherit the label of its parent.\footnote{Perceptive readers may now be wondering how
 the password checker arranged to create a publically labeled worker
-when its label was \https{fb.us}.  In fact, doing so is not possible
+when its label was \https{fb.com}.  In fact, doing so is not possible
 to do so without privileges (Section~\ref{sec:privileges}).}
 %
 For web pages with no parent, we look for a {\tt Document-label} header which
@@ -190,7 +229,7 @@ There are three primary use-cases for privileges:
         This is how privileges are used
         in the password checker: the untrusted worker was created
         with a current label of ``public'' by exercising the
-        \https{fb.us} privilege in the main web site.  Conceptually, we
+        \https{fb.com} privilege in the main web site.  Conceptually, we
         are declassifying \emph{all} of the data associated with the
         compartment.
 
@@ -208,7 +247,7 @@ requiring that the \emph{target} compartment (which may not have
 the privilege) do an additional label check.
 %
 In the password checker, the main
-page must do precisely this, as it has the \https{fb.us} privilege.
+page must do precisely this, as it has the \https{fb.com} privilege.
 %
 Without labeling the password, it could accidentally leak the password
 to a publically labeled worker.
