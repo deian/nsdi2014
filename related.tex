@@ -33,13 +33,13 @@ authors set out to confine untrusted third-party scripts, but never to
 support applications that incorporate code from mutually distrusting
 parties.
 %
-Like BFlow, \sys{} accepts labels that arrive in HTTP headers and is thus
-amenable to confining one user's code from another's on the same
-website. However, we have yet to develop a server that implements this
-functionality; developers can use BFlow's server or systems such as
-Hails~\cite{giffin:2012:hails} or Aeolus~\cite{cheng:aeolus} to
-ensure that labels are propagated appropriately in an end-to-end
-fashion.
+% Like BFlow, \sys{} accepts labels that arrive in HTTP headers and is thus
+% amenable to confining one user's code from another's on the same
+% website. However, we have yet to develop a server that implements this
+% functionality; developers can use BFlow's server or systems such as
+% Hails~\cite{giffin:2012:hails} or Aeolus~\cite{cheng:aeolus} to
+% ensure that labels are propagated appropriately in an end-to-end
+% fashion.
 %
 %%I think the story might be even better for us: I don't think they
 %%can build password checker where the latter is an iframe hosted on
@@ -75,25 +75,28 @@ the script and because the checker's author may not want to share
 source code\tocite{postman}).
 %
 Like BFlow, DCS does not offer symmetrical confinement---an iframe
-cannot impose restrictions on its parent.
+cannot impose restrictions on its parent. It therefore cannot support
+applications that combine code from mutually distrusting origins, as
+does the encrypted document editor example.
 %
-DCS's support for only asymmetric confinement falls out of the work's
-narrower goal of confining untrusted libraries.
+% DCS's support for only asymmetric confinement falls out of the work's
+% narrower goal of confining untrusted libraries.
+% %
+% Unlike \sys{}, DCS is not limited to using labels for policy
+% specification; instead, it allows a page to implement policies using
+% arbitrary JavaScript.
+% %
+% However, to ensure that the monitor cannot reveal more information
+% about an iframe's content than allowed by the SOP, a page can only
+% impose a limited range of policies on an iframe (e.g., DCS cannot
+% impose restrictions on redirects).
+% %
+% \sys{} does not have this limitation---the iframe itself imposes
+% the policy by voluntarily raising its label.
 %
-Unlike \sys{}, DCS is not limited to using labels for policy
-specification; instead, it allows a page to implement policies using
-arbitrary JavaScript.
-%
-However, to ensure that the monitor cannot reveal more information
-about an iframe's content than allowed by the SOP, a page can only
-impose a limited range of policies on an iframe (e.g., DCS cannot
-impose restrictions on redirects).
-%
-\sys{} does not have this limitation---the iframe itself imposes
-the policy by voluntarily raising its label.
-%
-\sys{}'s declarative policies further let developers safely relax the
-SOP and build applications such as third-party mashups.
+DCS further does not incorporate functionality to let developers build
+applications like third-party mashups, which require safe relaxation of the
+SOP.
 %
 
 % \Red{What is the limitation} However, we recognize this as a limitation of \sys{} and leave the
@@ -115,48 +118,55 @@ SOP and build applications such as third-party mashups.
 
 
 % JSFlow 
-JSFlow~\cite{JSFlow} is a fine-grained IFC system for JavaScript
-that is implemented in JavaScript.
+JSFlow~\cite{JSFlow} is a fine-grained JavaScript IFC system itself
+implemented in JavaScript.
 %
 Because JSFlow can associate labels with individual objects, a
 developer can use JSFlow to confine untrusted libraries that are
 closely coupled with trusted code on a page (as is jQuery).
 %
-\sys{}, on the other hand, is coarse-grained and, like BFlow, generally
+\sys{}, on the other hand, is coarse-grained and
+%, like BFlow,
+generally
 requires that an application be compartmentalized (e.g., by placing the
 page's code that needs to communicate with the network in a lightweight
 DOM worker).
 %
-Despite these benefits, JSFlow's fine-grained approach
-also incurs costs.
+% Despite these benefits, JSFlow's fine-grained approach
+% also incurs costs.
 %
-First, JSFlow cannot confine style sheets that execute code
-or support applications that rely on policies more flexible than SOP,
-such as third-party mashups that read cross-origin data (e.g., using
-XHR).
+% First, JSFlow cannot confine style sheets that execute code
+% or
+JSFlow, however, does not support applications that rely on policies
+more flexible than the SOP, such as our third-party mashup example.
 %
 %%Second, developers need to understand a new semantics for the core
 %%JavaScript language~\cite{Hedin:2012}, in contrast to a new DOM-leve
 %%API.
 %
-Second, as an IFC-supporting JavaScript interpreter written in
-JavaScript,  JSFlow must model all library APIs, including
-the JavaScript built-in APIs.
+% Second, as an IFC-supporting JavaScript interpreter written in
+% JavaScript,  JSFlow must model all library APIs, including
+% the JavaScript built-in APIs.
 % That said, the coverage of the DOM demonstrated is commendable.
 %
-Executing pages' JavaScript code in an interpreter written in
-JavaScript incurs a significant execution slowdown (by two orders of magnitude).
-And the requirement that JSFlow include a model of all
-library APIs restricts the APIs available to developers.
-%
-JSFlow is largely complementary to \sys{}; we believe there may be
-applications where it would make sense for some \sys{} compartments to
-enforce fine-grained IFC internally with JSFlow.
+JSFlow's authors suggest that the computational cost of executing pages' JavaScript
+code in an interpreter written in JavaScript (two orders of magnitude
+slowdown) makes JSFlow a better fit for use as a development tool than
+as an ``always-on'' privacy system for users' browsers.
 
-ConDOM~\cite{ConDOM} is another fine-grained IFC system for the
-browser. Like JSFlow, ConDOM extends objects with labels that are
-propagated across the JavaScript built-in API, and consequently shares
-JSFlow's execution overhead.
+% Executing pages' JavaScript code in an interpreter written in
+% JavaScript incurs a significant execution slowdown (by two orders of magnitude).
+% And the requirement that JSFlow include a model of all
+% library APIs restricts the APIs available to developers.
+% %
+% JSFlow is largely complementary to \sys{}; we believe there may be
+% applications where it would make sense for some \sys{} compartments to
+% enforce fine-grained IFC internally with JSFlow.
+
+% ConDOM~\cite{ConDOM} is another fine-grained IFC system for the
+% browser. Like JSFlow, ConDOM extends objects with labels that are
+% propagated across the JavaScript built-in API, and consequently shares
+% JSFlow's execution overhead.
 % and  suffer from similar shortcomings as 
 % the ones described for JSFlow. 
 
@@ -175,27 +185,24 @@ JSFlow's execution overhead.
 
 
 % With our
-FlowFox~\cite{DeGroef:2012} is an IFC system that uses secure-multi
-execution (SME)~\cite{Devriese:2010} to execute a program multiple
-times, once per label; SME ensures that no leaks from a sensitive
-context can leak into a less-senstive context by construction.
+FlowFox~\cite{DeGroef:2012} is a browser IFC system that executes a
+program multiple times, once per label, using secure-multi execution
+(SME)~\cite{Devriese:2010}. SME ensures by construction that no leaks
+from a sensitive context can leak into a less-senstive context.
 %
-Like JSFlow, FlowFox can confine programs
-with fine-grained labeling of data.
+Like JSFlow, FlowFox supports fine-grained labeling of data.
 %
-Unlike JSFlow and \sys{}, FlowFox's SME approach is not
-amenable to scenarios where declassification plays
-a key role (e.g., the encrypted editor, password manager, or
-third-party mashup). 
+Unlike JSFlow and \sys{}, FlowFox's SME approach is not amenable to
+scenarios where declassification plays a key role (e.g., the encrypted
+editor, password manager, or third-party mashup).\footnote{Although
+  SME has been recently extended to consider
+  declassification~\cite{Rafnsson:2013}, it is unclear how this
+  theoretical result translates into the FlowFox system, or more
+  importantly, to what extent it would extend Flowfox's applicability.}
 %
-Although SME has been recently extended to consider
-declassification~\cite{Rafnsson:2013}, it is unclear how this
-theoretical result translates into FlowFox, and more importantly, how
-it affects its applicability.
-%
-Applications of FlowFox to mitigation of history sniffing and behavior
-tracking are made possible by its labeling of user interactions and
-metadata (history, screen size, etc.).
+FlowFox's labeling of user interactions and metadata (history, screen
+size, etc.) allow it to mitigate history sniffing and behavior
+tracking.
 %
 These attacks are outside the present threat model for \sys{}.  The
 degree of protection \sys{} provides for such data is limited to the
