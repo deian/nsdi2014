@@ -354,11 +354,11 @@ illustrate the need for robust yet flexible confinement for untrusted
 code in browsers. To summarize, these applications would appear to be
 well served by a confinement system that:
 \begin{CompactItemize}
-\item applies mandatory access control (MAC);
-\item supports {\em symmetric confinement,} i.e., permits two principals to {\em
+\item Applies mandatory access control (MAC);
+\item Supports {\em symmetric confinement,} i.e., permits two principals to {\em
     mutually} distrust one another, and each prevent the other from
   exfiltrating its data;
-\item allows {\em hierarchical confinement,} i.e., permits principal
+\item Allows {\em hierarchical confinement,} i.e., permits principal
   $A$ to confine code from principal $B$ that processes $A$'s data,
   while principal $B$ can independently confine code from principal
   $C$ that processes $B$'s data, etc.
