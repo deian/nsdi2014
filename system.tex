@@ -108,6 +108,9 @@ with a compartment, if it has one.
 Individual objects can also be labeled: \sys{}
 introduces opaque \emph{labeled blobs} for this purpose.
 %
+Labeled blobs are primarily used to label \js|postMessage| messages
+(otherwise they would take the label of the compartment).
+%
 The particular labels that are used in \sys{} are \emph{DC labels},
 presented in~\cite{stefan:2011:dclabels}.
 %
@@ -116,7 +119,7 @@ Breeze~\cite{Breeze13}, because they have a simple
 semantics while being as expressive as the labels used by other practical
 confinement systems~\cite{GenLabels}.
 %
-In this section, we briefly describe DC labels. %; an interested
+%In this section, we briefly describe DC labels. %; an interested
 %reader should see~\cite{stefan:2011:dclabels} for more details.
 
 A privacy label (henceforth just label) is a boolean formula over
@@ -130,10 +133,10 @@ origins.%
 }
 %
 When a compartment wishes to send a message to another compartment or
-web site, we check if the target label $l'$ logically implies the source
+server, we check if the target label $l'$ logically implies the source
 label $l$.
 %
-Intuitively, this requires that the security of the destination be as strong as original security policy, i.e.\ that the target label \emph{subsumes} the source label.\footnote{If the communication is bidirectional, e.g.\ mutation of a shared DOM, then both the target and source must imply each other.}
+Intuitively, this requires that the security of the destination be as strong as original security policy, i.e., that the target label \emph{subsumes} the source label.\footnote{If the communication is bidirectional, e.g.\ mutation of a shared DOM, then both the target and source must imply each other.}
 %
 We also refer to the target label as \emph{higher} (as in ``higher security'') than the source label.
 %
@@ -183,20 +186,21 @@ How is the current label initially determined?
 created, a particular current label can be assigned to it (which
 must subsume the parent's label).  Otherwise, new containers implicitly
 inherit the label of its parent.\footnote{Perceptive readers may now be wondering how
-the password checker arranged to create a publically labeled worker
+the password checker arranged to create a publicly labeled worker
 when its label was \https{fb.com}.  In fact, doing so is not possible
 to do so without privileges (Section~\ref{sec:privileges}).}
 %
 For web pages with no parent, we look for a {\tt Document-label} header which
-specifies the initial label, defaulting to public (i.e.\ no extra
+specifies the initial label, defaulting to public (i.e., no extra
 restrictions) when this header is not present.
 %
 The DOM label of a compartment is more stringent: it is set such that
 only compartments with the privilege (Section~\ref{sec:privileges}) for the origin can write to
 it.\footnote{This is done by setting the integrity label to the origin.}
 
-After creation, a compartment can freely \emph{raise} its label, i.e.\
-change its label to any label which subsumes it, but not vice versa.
+After creation, a compartment can freely \emph{raise} its label, i.e.,
+change its label to any label which subsumes it, in order to read more
+sensitive data (from another compartment) but not vice versa.
 %
 This leads to a common interpretation of labels as ``taint;'' as
 a compartment receives data from more sources, it accumulates more
@@ -242,15 +246,19 @@ There are three primary use-cases for privileges:
 In \sys{}, privileges are \emph{implicitly} exercised: if a compartment
 has a privilege, it will always attempt to use it.
 %
-Labeled blobs can be useful for avoiding privilege exercise, by
-requiring that the \emph{target} compartment (which may not have
-the privilege) do an additional label check.
+Importantly, however, code can retrieve and drop its privileges; this
+allows programmers to wrap functions, such as \js|postMessage|, to
+enforce a model wherein privileges must be explicitly exercised.
+%
+In addition, labeled blobs can be useful for avoiding privilege
+exercise, by requiring that the \emph{target} compartment (which may
+not have the privilege) do an additional label check.
 %
 In the password checker, the main
 page must do precisely this, as it has the \https{fb.com} privilege.
 %
 Without labeling the password, it could accidentally leak the password
-to a publically labeled worker.
+to a publicly labeled worker.
 
 % Initial privileges and privilege creation
 By default, a browsing context has the privilege corresponding to the
@@ -258,7 +266,7 @@ page origin; this context can drop the privilege if it is not
 needed or spawn other containers sans privilege to run untrusted code.
 %
 While privileges for existing origins cannot be created, a privilege can
-be created for a fresh origin, i.e.\ an origin which does not correspond
+be created for a fresh origin, i.e., an origin which does not correspond
 any actual web site, but which is guaranteed to be unique.
 %
 A fresh origin is often used to run code under full isolation, since any
@@ -298,7 +306,7 @@ to see if the label of the compartment subsumes the label of the response
 
 If the server is IFC enabled, it may be interested in the current label
 of the compartment which initiated the request, to determine the
-sensitivity\footnote{\ldots and integrity. In fact, mostly integrity.} of the request.
+sensitivity\footnote{And integrity. In fact, mostly integrity.} of the request.
 %
 Thus, the XHR request is also labeled with a {\tt Document-label} header.
 %
