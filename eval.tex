@@ -124,8 +124,8 @@ average cost of a label check.
 For a random label with a handful of origins, these operations are on
 the order of 1 microsecond.
 %
-The primary cost is recomputing
-cross-compartment wrappers, which ends up costing up to 13ms (e.g., when
+The primary cost is recomputing cross-compartment wrappers and
+underlying CSP policy, which ends up costing up to 13ms (e.g., when
 the label is raised from public to a third-party origin).
 %
 For many real applications, we expect the raising the current label
@@ -213,8 +213,8 @@ as an iframe, which further loads the actual editor.
 The most expensive operation in the secured application
 is raising of the current label, since it requires changing the CSP, the
 underlying document origin, and most importantly, recomputing the
-cross-compartment wrappers (to ensure that DOM access is restricted
-according to confinement).
+cross-compartment wrappers and CSP (to ensure that DOM and network
+access is restricted according to confinement).
 %
 In Chromium, the performance of the \sys{} and insecure applications
 were comparable; the measured load time was within 1ms of 244ms.
