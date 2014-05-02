@@ -40,15 +40,22 @@ different parts of the DOM API to exfiltrate data.)
 %
 The communication channels we interpose on include:
 %
-\begin{CompactItemize}
-    \item {\tt postMessage},
-    \item Cross-compartment DOM objects,
-    \item Content loading (via {\tt img} tags, CSS, etc.),
-    \item Form submission,
-    \item XMLHttpRequest,
-    \item Navigation, and
-    \item Browser storage (cookies and local storage).
-\end{CompactItemize}
+{\tt postMessage},
+cross-compartment DOM objects,
+content loading (via {\tt img} tags, CSS, etc.),
+form submission,
+XMLHttpRequest,
+navigation, and
+browser storage (cookies and local storage).
+%% \begin{CompactItemize}
+%%     \item {\tt postMessage},
+%%     \item Cross-compartment DOM objects,
+%%     \item Content loading (via {\tt img} tags, CSS, etc.),
+%%     \item Form submission,
+%%     \item XMLHttpRequest,
+%%     \item Navigation, and
+%%     \item Browser storage (cookies and local storage).
+%% \end{CompactItemize}
 
 However, this interposition maintains backwards-compatibility with
 existing web policies.
