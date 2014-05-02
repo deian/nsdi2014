@@ -42,14 +42,16 @@ iframes). They also may read and write persistent storage (e.g.,
 cookies) and issue network requests (either implicitly in page content
 that references a URL retrieved over the network, or explicitly in
 JavaScript, through invoking the \xhr{} (XHR) constructor).  Some
-contexts such as Web Workers run JavaScript but do not have a DOM.
+contexts such as Web Workers run JavaScript but do not have a
+DOM. W use the term \emph{compartment} to refer to both browsing
+contexts and workers when the more precise meaning is not relevant.
 
 \paragraph{Origins and the Same-Origin Policy}
 Since different authors may contribute components within a page,
 today's status quo browsers impose a security policy on interactions
 among components. Policies are expressed in terms of \emph{origins}.
 An origin is a source of authority encoded by the protocol (e.g.,
-\js|http|), domain name (e.g., \js|fb.com|), and port (e.g., \js|443|)
+\js|https|), domain name (e.g., \js|fb.com|), and port (e.g., \js|443|)
 of a resource URL.\footnote{For brevity, we elide the protocol and
   port from URLs throughout, and assume that they are respectively
   \js|https| and \js|443|.}
@@ -91,7 +93,7 @@ of an \js|img| element to this URL.
 % communication methods, (notably, those relying on \js|window.name| and
 % \js|window.location|~\cite{thidpartyjs}), has lead to the introduction
 The HTML5 \js|postMessage| API~\cite{webmessaging}
-allows code in different browsing contexts to exchange
+allows code in different compartments to exchange
 messages, as shown in Figure~\ref{fig:primer-browser-arch}.
 %
 % Given a foreign-origin DOM window object \js|win|, the
@@ -102,8 +104,8 @@ messages, as shown in Figure~\ref{fig:primer-browser-arch}.
 % attacks~\cite{barth2009securing}, a second argument
 % \js|destOrigin| is used to specify the intended origin of the message.
 %
-Unfortunately, a sending browsing context has no control over what a
-receiving browsing context can do with the the received data. Hence in the
+Unfortunately, a sending compartment has no control over what a
+receiving compartment can do with the received data. Hence in the
 status quo, a developer should only send sensitive data using
 \js|postMessage| if she trusts the foreign origin.
 %
@@ -152,12 +154,12 @@ so requires communicating with a remote origin other than that of the
 top-level page.\footnote{Unfortunately, even permitting communication
   with the top-level page's same origin is risky---a malicious script
   could then write the password to a public page at that same origin,
-  in a {\em self-exfiltration attack}~\cite{selfex}.}
+  in a {\em self-exfiltration attack}~\cite{Yip:2009:PBS,selfex}.}
 
 The key insight is that it is entirely safe and useful for an untrusted script to
 communicate with remote origins {\em before} it obtains sensitive
 data. We note, then, the requirement of a confinement mechanism that
-allows code in a browsing context to communicate with the network {\em
+allows code in a compartment to communicate with the network {\em
   until it has been exposed to sensitive data.} MAC-based confinement
 meets this requirement.
 
@@ -168,31 +170,38 @@ under \sys{}.}
 \end{figure}
 
 Figure~\ref{fig:checker} shows how such a design might look. In this
-and subsequent examples, rectangular frames denote browser contexts,
-arrows denote communication (either between a context and the network,
-or IPC-style between contexts), and events during execution are
-numbered sequentially in time. Contexts may be \emph{labeled} (Section~\ref{sec:labels}) with the
-origins to whose sensitive data they have been exposed. A context that
-has not yet observed sensitive data is denoted \js|public|, and a page
-that contains sensitive data can \emph{raise} the label of its own
-browsing context to its own origin. Here, a top-level page at
+and subsequent examples, rectangular frames denote compartments,
+arrows denote communication (either between a compartment and the network,
+or IPC-style between compartments), and events during execution are
+numbered sequentially in time. Compartments may be \emph{labeled} (Section~\ref{sec:labels}) with the
+origins to whose sensitive data they have been exposed. A compartment that
+has not yet observed sensitive data is denoted \js|public|; however, when it
+wishes to incorporate sensitive data, the compartment \emph{raises} its
+label (at the cost of being more restricted in where it can write). Here, a top-level page at
 \js|fb.com| encapsulates a password-checker script from a third-party
-origin within a Web Worker. Each browsing context has a
+origin within a worker. Each compartment has a
 distinct current label. First, in step (1), the checker script is free
 to download updated regular expressions from an arbitrary remote
 origin. In step (2), the top-level page sends the user's password to
-the checker script's worker using XHR\@ \todo{ar}{I thought it was via postMessage}; the browser \emph{labels} the
-sent data with the origin of the page that sent it (in this case,
-\js|fb.com|). When the browser delivers the password to the checker
-script's context, it raises the label of the context to reflect that
-the context is about to be exposed to sensitive data from \js|fb.com|. 
-\Red{Consequently, and to prevent exfiltration of the sensitive data, 
-\sys{} atomically denies the context further access to the network in
-\Red{step (3)}.} The checker script is then
-free to compute the result, which it returns via XHR to the top-level
-page \Red{in step (4)}; the result carries the label \js|fb.com| to reflect that the
-sender may be sending data derived from sensitive data owned by
-\js|fb.com|.
+the checker script's worker using \js|postMessage|; the password is
+\emph{labeled} by \js|fb.com| to indicate that the data is sensitive
+to this origin.
+%
+%%When the browser delivers the password to the checker
+%%script's context, it raises the label of the context to reflect that
+%%the context is about to be exposed to sensitive data from \js|fb.com|. 
+%
+In step (3) the checker raises its label to reflect that the context
+is about to be exposed to sensitive data from \js|fb.com|, and
+inspects the password.
+%
+When the label is raised, \sys{} atomically denies the context further
+access to the network in step (3).
+%
+However, the checker script is then free to compute the result, which
+it returns via \js|postMessage| to the top-level page in step (4); the
+result carries the label \js|fb.com| to reflect that the sender may be
+sending data derived from sensitive data owned by \js|fb.com|.
 % bk: unneeded to clutter this first simple example with the below, as
 % other examples illustrate the need for hierarchical confinement?
 %  We note further the requirement of a {\em hierarchical}
@@ -222,27 +231,28 @@ service hosted at its own origin, distinct from that which hosts the
 editor app. The editor app could allow the user to specify a JavaScript
 ``plugin'' library she trusts to perform cryptography correctly. In this design,
 one origin serves the JavaScript code for the editor app (say,
-\js|google.com|) and a different origin serves the JavaScript code for
+\js|gdocs.com|) and a different origin serves the JavaScript code for
 the cryptography library (say, \js|nsa.gov|). Note that these two
-origins may be {\em mutually distrusting.}  \js|google.com|'s script
+origins may be {\em mutually distrusting.}  \js|gdocs.com|'s script
 must pass the document's cleartext to a script from \js|nsa.gov| for
 encryption, and would like to confine the execution of the encryption
 script so that it cannot exfiltrate the document to any origin {\em
-other} than \js|google.com|. And \js|nsa.gov|'s cryptography library
-does not trust \js|google.com| with the cleartext document---it would
-like to confine \js|google.com|'s editor script to prevent
-exfiltration of the cleartext document to \js|google.com| (or to any
+other} than \js|gdocs.com|. And \js|nsa.gov|'s cryptography library
+does not trust \js|gdocs.com| with the cleartext document---it would
+like to confine \js|gdocs.com|'s editor script to prevent
+exfiltration of the cleartext document to \js|gdocs.com| (or to any
 other origin). This simple use case highlights the need for {\em
   symmetric confinement:} when two mutually distrusting scripts from
 different origins communicate, {\em each must be able to confine the
-  other's further use of data it provides the other.}
+  other's further use of data it provides.}
 
 %% brings up the requirement of *symmetric* confinement: two mutually
 %% distrusting origins each confine the other.
 
 \paragraph{Third-Party Mashup}
-Some of the most useful web applications are {\em mashups,} which
-integrate and compute over data hosted by multiple origins. For
+Some of the most useful web applications are {\em mashups}; these
+applications integrate and compute over data hosted by multiple
+origins. For
 example, consider an application that reconciles a user's Amazon
 purchases (the data for which are hosted by \js|amazon.com|) against a
 user's bank statement (the data for which are hosted by
@@ -270,9 +280,8 @@ once it has read the responses from those origins.\footnote{The
   read sensitive data? In some cases, allowing such communication
   would create the risk of cross-site request
   forgery~\tocite{CSRF}. We explain the correct semantics in detail in
-  Section~\ref{sec:labeled-xhr}.} \Red{Deian, please check footnote; I
-  have edited it for clarity, but want to make sure I've not damaged
-  correctness. -BK} Here, too, MAC-based confinement meets this need.
+  Section~\ref{sec:labeled-xhr}.} Here, too, MAC-based confinement
+  meets this need.
 
 \paragraph{Untrusted Third-Party Library}
 Web application developers today make extensive use of third-party
@@ -284,7 +293,7 @@ process sensitive data want the convenience of reusing popular
 libraries. But such reuse risks exfiltration of sensitive data by
 these untrusted libraries. Note that because jQuery requires access to
 the content of the entire page that uses it, we cannot isolate jQuery
-in a separate context from the page's context, as we did for the
+in a separate compartment from the parent's, as we did for the
 password-checker example. Instead, we observe that jQuery demands a
 design that is a mirror image of that for confining the password
 checker: we place the {\em trusted} code for a page in a separate
@@ -341,7 +350,6 @@ security policies, such as the SOP. These applications clearly
 illustrate the need for robust yet flexible confinement for untrusted
 code in browsers. To summarize, these applications would appear to be
 well served by a confinement system that:
-
 \begin{itemize}
 \item applies mandatory access control (MAC);
 \item supports {\em symmetric confinement,} i.e., permits two principals to {\em
@@ -352,3 +360,5 @@ well served by a confinement system that:
   while principal $B$ can independently confine code from principal
   $C$ that processes $B$'s data, and so on.
 \end{itemize}
+In the next section, we describe \sys{}, a new confinement system that
+satisfies these design goals.

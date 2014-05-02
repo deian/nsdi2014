@@ -44,6 +44,12 @@
 \newcommand{\para}[1]{\vspace*{.5ex}\noindent {\bf #1}}
 \newcommand{\subpara}[1]{\vspace*{.5ex}\noindent {\it #1}}
 
+%\newenvironment{CompactItemize}%
+%  {\begin{list}{$\triangleright$}%
+%   {\leftmargin=\parindent \itemsep=2pt \topsep=2pt
+%     \parsep=0pt \partopsep=0pt}}%
+%  {\end{list}}
+
 %% code related
 \usepackage{listings}
 \definecolor{lightgray}{rgb}{.95,.95,.95}
@@ -78,7 +84,7 @@
 
 \lstnewenvironment{webidl}
     {\lstset{
-        keywords={interface, object, static, readonly, attribute, or},
+        keywords={interface, object, static, readonly, attribute},
          extendedchars=true,
          basicstyle=\ttfamily,
          showstringspaces=false,

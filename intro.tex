@@ -71,7 +71,8 @@ And when a developer of a mashup that integrates content from two {\em
   other} origins finds that the SOP forbids his application from
 retrieving data from them, he designs his mashup to require that the
 user provide the mashup her login credentials for the sites at the two
-other origins---the epitome of ``functionality over privacy.''
+other origins~\cite{mint.com}---the epitome of ``functionality over
+privacy.''
 
 % When a developer uses these various libraries and services to build
 % their application, one might wonder: to whom are we entrusting our
@@ -169,18 +170,18 @@ untrusted code from exfiltrating sensitive data (e.g., by sending it
 to an untrusted remote origin). It thus allows web developers to opt
 for {\em both} flexibility and privacy.
 
-We consider four motivating example web applications---a password
-strength-checker, an application that imports the (untrusted) jQuery
-library, an encrypted cloud-based document editor, and a third-party
-mashup, none of which can be implemented in a way that preserves the
-user's privacy in the status-quo web security architecture. These
-examples drive the design requirements for \sys{}, particularly MAC
-with {\em symmetric and hierarchical confinement.} Symmetric
-confinement allows {\em mutually} distrusting principals each to pass
-sensitive data to the other, and confine the other's use of the passed
-sensitive data. And hierarchical confinement allows any developer to
-confine code she does not trust, and confinement to be nested to
-arbitrary depths.
+We consider four motivating example web ap\-pli\-ca\-tions---a
+password strength-checker, an application that imports the (untrusted)
+jQuery library, an encrypted cloud-based document editor, and a
+third-party mashup, none of which can be implemented in a way that
+preserves the user's privacy in the status-quo web security
+architecture. These examples drive the design requirements for \sys{},
+particularly MAC with {\em symmetric and hierarchical confinement.}
+Symmetric confinement allows {\em mutually} distrusting principals
+each to pass sensitive data to the other, and confine the other's use
+of the passed sensitive data. And hierarchical confinement allows any
+developer to confine code she does not trust, and confinement to be
+nested to arbitrary depths.
 %
 % To offer the greatest flexibility to web application developers, the
 % means of confinement should further be \emph{first class,} in that any
