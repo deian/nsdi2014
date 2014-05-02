@@ -228,7 +228,7 @@ $l'$ and $p$ implies $l$~\cite{stefan:2011:dclabels}.
 
 There are three primary use-cases for privileges:
 
-\begin{itemize}
+\begin{CompactItemize}
     \item A privilege can be used to \emph{declassify} private
         information without raising the current label.  For example, we
         could downgrade ``\https{amazon.com}'' labeled data to
@@ -247,7 +247,7 @@ There are three primary use-cases for privileges:
         of another compartment.\footnote{This is because the current
         integrity label of a compartment generally public, which
         without the privilege is insufficient to permit writes.}
-\end{itemize}
+\end{CompactItemize}
 
 In \sys{}, privileges are \emph{implicitly} exercised: if a compartment
 has a privilege, it will always attempt to use it.
