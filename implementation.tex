@@ -231,14 +231,14 @@ As shown in Table~\ref{tab:comm}, we additionally rely on the HTML5
 iframe \verb|sandbox| flag (which is the same as the CSP
 \verb|'sandbox'| directive) to restrict access to storage, such as cookies~\cite{html5}.
 %
-Specifically, when the effective compartment label is a conjunctive
-label (or a singleton whose origin is not the initially set origin),
-we change the compartment principal to a fresh, unique
-principal by setting the \verb|sandbox| flag.
-%
-This effectively amounts to changing the origin of the browsing
-context, and thus ensures that the document can no longer access its
-original storage.
+%% Specifically, when the effective compartment label is a conjunctive
+%% label (or a singleton whose origin is not the initially set origin),
+%% we change the compartment principal to a fresh, unique
+%% principal by setting the \verb|sandbox| flag.
+%% %
+%% This effectively amounts to changing the origin of the browsing
+%% context, and thus ensures that the document can no longer access its
+%% original storage.
 %
 Like~\cite{Akhawe2013}, this is a conservative approach.
 %
