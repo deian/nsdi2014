@@ -1,4 +1,25 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-\Red{Future work: phishing, IFC loading, making it easier for developers to privilege separate, doing better, more realistic applications}
+Web applications routinely pull together JavaScript contributed by
+parties untrusted by the user, as well as by mutually distrusting
+parties. And they routinely compute over users' sensitive data. The
+lack of robust confinement for untrusted code in the status-quo
+browser security architecture puts users' privacy at risk: untrusted
+third-party libraries can leak sensitive data from the applications
+that include them, and third-party mashup developers resort to
+demanding users' login credentials for other online services whose
+content they wish to integrate. In this paper, we have presented
+\sys{}, a label-based MAC system for web browsers that preserves
+users' privacy in the common case where untrusted code computes over
+sensitive data. \sys{} affords developers flexibility in synthesizing
+web applications out of untrusted code and services, yet preserves
+users' privacy. Our positive experience building four web applications
+atop \sys{} for which privacy had previously been unattainable in
+status-quo web browsers suggests that \sys{} holds promise as a
+practical platform for preserving privacy in today's pastiche-like web
+applications. And our measurements of \sys{}'s performance overhead in
+the Firefox and Chromium browsers suggest that \sys{}'s privacy
+benefits come at negligible end-to-end cost in performance.
+
+% \Red{Future work: phishing, IFC loading, making it easier for developers to privilege separate, doing better, more realistic applications}
