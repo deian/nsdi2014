@@ -331,7 +331,7 @@ commits to performing no further communication.
 %
 This must include communication to the \emph{same} origin, since these requests
 carry the risk of self-exfiltration~\cite{selfex} and cross-site request
-forgery~\Red{cite}.
+forgery~\cite{CSRF}.
 %
 To fulfill this requirement, labeled XHR returns its result as a labeled
 blob, protected with a server-specified label that defaults to a \emph{fresh}
