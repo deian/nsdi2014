@@ -293,7 +293,7 @@ process sensitive data want the convenience of reusing popular
 libraries. But such reuse risks exfiltration of sensitive data by
 these untrusted libraries. Note that because jQuery requires access to
 the content of the entire page that uses it, we cannot isolate jQuery
-in a separate context from the page's context, as we did for the
+in a separate compartment from the parent's, as we did for the
 password-checker example. Instead, we observe that jQuery demands a
 design that is a mirror image of that for confining the password
 checker: we place the {\em trusted} code for a page in a separate
@@ -350,7 +350,6 @@ security policies, such as the SOP. These applications clearly
 illustrate the need for robust yet flexible confinement for untrusted
 code in browsers. To summarize, these applications would appear to be
 well served by a confinement system that:
-
 \begin{itemize}
 \item applies mandatory access control (MAC);
 \item supports {\em symmetric confinement,} i.e., permits two principals to {\em
@@ -361,3 +360,5 @@ well served by a confinement system that:
   while principal $B$ can independently confine code from principal
   $C$ that processes $B$'s data, and so on.
 \end{itemize}
+In the next section, we describe \sys{}, a new confinement system that
+satisfies these design goals.
