@@ -47,7 +47,7 @@ Iframe comm.       &  0.11   &  0.11   &   0.12  &  0.04  &  0.04  & 0.04 %% avg
 XHR comm           &  3.5   &   3.6   &  3.7   &  7.0    &  7.4    & 7.2 %1000request in 10 iframes
 \\
 % cost of worker ping-pong                                           
-Worker comm.       &  0.20    &   0.24  &  0.03$\dagger$   &  0.07  &  0.07  & 0.03$\dagger$  % 90 messages ping-pong
+Worker comm.       &  0.20    &   0.24  &  0.03$\ddagger$   &  0.07  &  0.07  & 0.03$\ddagger$  % 90 messages ping-pong
 %%\\\midrule%--------------------------------------------------------------------
 %%% cost of setting current label                                      
 %%Set label          &  --     &  \multicolumn{2}{c|}{0.0016} &   --   
@@ -73,20 +73,11 @@ Table~\ref{microbench} shows our micro-benchmarks for the stock
 browsers (vanilla), our modified browsers with confinement-mode turned
 off (unlabeled), and confinement-mode enabled (labeled).
 %
-We measure the cost of creating various compartments (workers and
-iframes) and sending messages between various end-points
-(compartments and servers).
-
-\paragraph{Iframes and lightweight workers} The average (of 10 runs creating 10) performance impact of creating an
-iframe or worker is within 3.5\% and 2.5\% of the vanilla
-implementations on Firefox and Chromium, respectively.
+For the creation of compartments, \sys{} adds negligible latency (less
+than 1ms).
 %
-In absolute terms, \sys{} adds, on average, less than 1ms latency.
-%
-In the labeled case we report the cost of creating light-weight labeled
-workers; as expected, creating these compartments is considerably
-faster than the ``normal'' workers, roughly 17 and 6 times on Firefox
-and Chromium, respectively.
+Furthermore, the cost of creating lightweight workers is considerably
+faster than the ``normal'' workers ($\dagger$).
 
 \paragraph{Communication} The iframe, worker and XHR communication measurements evaluate the
 cost of sending and receiving a message (\js|PING| and \js|PONG|,
@@ -94,16 +85,14 @@ respectively) across iframes, workers, and the network.
 %
 For the XHR benchmark, we report the cost of using the labeled XHR
 constructor, i.e., XHR with the response type set to
-\verb|"labeled-blob"|; the average (of 10,000 requests) performance
-impact of labels (local-network test) is less than 3.6\% for both
-browsers, which amounts to a less than 0.5ms delay.
+\verb|"labeled-blob"|, averaged over 10,000 requests.
 %
-Our Chromium implementation does not yet have support for XHR with
-labeled blobs; instead labeled workers are used to wrap the XHR
+Our Chromium implementation utilized a lightweight worker to wrap the XHR
 constructor, so the cost using labeled XHR accounts for an additional
 cross-compartment call.
-%
-We highlight that communicating with light-weight workers is also
+
+Once again, communicating with lightweight workers ($\ddagger$)
+is
 faster than communicating with Web Workers.
 %
 This speedup is due to the fact that the light-weight workers share
@@ -133,12 +122,14 @@ we also measured the cost of setting/getting the current label and the
 average cost of a label check.
 %
 For a random label with a handful of origins, these operations are on
-the order of 1 microsecond; in most cases, it is recomputing of
-cross-compartment wrappers that ends up costing up to 13ms (e.g., when
+the order of 1 microsecond.
+%
+The primary cost is recomputing
+cross-compartment wrappers, which ends up costing up to 13ms (e.g., when
 the label is raised from public to a third-party origin).
 %
 For many real applications, we expect the raising the current label
-to be a rare optimization.
+to be a rare occurrence.
 %
 Moreover, there is much room for optimization: in some cases,
 we could avoid changing the underlying CSP policy and document
