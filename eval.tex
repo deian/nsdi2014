@@ -184,7 +184,10 @@ Similarly, the Chromium implementation (which solely uses the
 compartment labels) is 5ms faster than the vanilla version (measured
 at 54ms).
 %
-\todo{ezyang}{The alternate really needs to be put in}
+However, using our light-weight worker is 5ms slower than simply
+using an inline script.
+Indeed solely creating the LWorker compartment to isolate the script
+accounts for this.
 
 
 \paragraph{Encrypted document editor}
