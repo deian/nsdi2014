@@ -1,4 +1,4 @@
-\section{Background and Examples}
+\section{Background, Examples, \& Goals}
 
 A single top-level web page often incorporates multiple scripts
 written by different authors.\footnote{Throughout we refer to ``web
@@ -350,7 +350,7 @@ security policies, such as the SOP. These applications clearly
 illustrate the need for robust yet flexible confinement for untrusted
 code in browsers. To summarize, these applications would appear to be
 well served by a confinement system that:
-\begin{itemize}
+\begin{CompactItemize}
 \item applies mandatory access control (MAC);
 \item supports {\em symmetric confinement,} i.e., permits two principals to {\em
     mutually} distrust one another, and each prevent the other from
@@ -358,7 +358,7 @@ well served by a confinement system that:
 \item allows {\em hierarchical confinement,} i.e., permits principal
   $A$ to confine code from principal $B$ that processes $A$'s data,
   while principal $B$ can independently confine code from principal
-  $C$ that processes $B$'s data, and so on.
-\end{itemize}
+  $C$ that processes $B$'s data, etc.
+\end{CompactItemize}
 In the next section, we describe \sys{}, a new confinement system that
 satisfies these design goals.
