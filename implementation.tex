@@ -69,93 +69,14 @@ Because of our coarse-grained approach,
 we were able to implement \sys{} as a new DOM API for the Gecko and
 Blink layout engines, without modifying the JavaScript engines.
 %
-The core parts of this API are shown in Figure~\ref{fig:api}; our full
-specification consists of 281 lines of WebIDL~\cite{webidl}.
+The core parts of this API are shown in Figure~\ref{fig:api}.
 %
-The underlying Gecko and Blink implementations are roughly 3.8K and
-2.6K lines (including comments and white space) of C++, respectively.
+Below, we describe the key aspects of our implementation.
 %
-Below, we describe the these implementations; we focus on the Firefox
+We focus on the Firefox
 implementation and only describe the Chromium implementation where the
 approach diverges in a non-trivial way.
 %
-
-\subsection{\sys{} DOM objects}
-
-\todo{ezy}{maybe flip this section after}
-
-\paragraph{Labels and privileges}
-%
-DOM objects such as \js|Label|s and \js|Privilege|s are implemented in
-C++ and made available to JavaScript using DOM binding code.
-%
-For example, \js|x.subsumes(y)| calls the underlying \js|Subsumes|
-method on the C++ object corresponding to \js|x|.
-%
-The implementation of labels and privileges is straight forward and
-follows directly from~\cite{stefan:2011:dclabels}.
-
-%% We solely remark that this approach of 
-%% imlementation corresponds to rougly 1/3 of
-%% the \sys{} code base; this large fraction is a direct result of using
-%% C++ and having to, for example, implement method overloading to
-%% support a friendly API and handle exceptional code with error codes.
-%% Do we care??
-
-\paragraph{Labeled blobs}
-%
-Though we rely on the cross-language barriers to ensure that arbitrary
-JavaScript cannot inspect the blob contents without raising the
-current label, the implementation of labels blobs is mostly straightforward.
-%
-However, there are two interesting details.
-%
-First, instead of overloading the definition of \js|postMessage| to
-allow sending labeled data across browsing contexts, we modified the
-layout engine to add support for structurally cloning labeled blobs;
-this allows us to flexibly use labeled blobs where other structurally
-clonable objects (e.g., JSON) can be used, including \js|postMessage|.
-%
-Second, we modified the XHR code to allow arbitrary cross-origin reading
-when the response type is set to \verb|labeled-blob|;
-%
-as a consequence, the \js|response| attribute returns a labeled blob.
-%
-Unfortunately, the XHR specification for other attributes, such as
-\js|status|, is to return primitive values (non-objects) and our
-implementation raises the current label to reflect the observation of
-potentially sensitive data.\footnote{
-An alternative implementation can, at the cost of backwards
-incompatibility, label all the attributes of XHR instead of raising
-the current label and returning the ``unlabeled'' attribute.
-}
-
-\paragraph{Light-weight workers}
-%
-The \js|LWorker| API of Figure~\ref{fig:api:compartments} is used to
-create and communicate with light-weight labeled workers.
-%
-These are distinguished from ``normal'' workers, which create a new OS thread; the
-constructor code for \js|LWorker| simply create a new compartment
-(described below) which contains a fresh JavaScript global; the
-execution of this code shares the event-loop with its parent (much
-like creating a callback with \js|setTimeout|).
-%
-As such, a page can confine code without incurring the
-penalties of creating OS threads or full IPC for message
-passing---dispatching messages to/from light-weight workers is cheap
-since the data is on the same heap.
-%
-(Of course, this also means that the worker no longer runs in parallel.)
-%
-More importantly, the sharing of the event loop also allows a page to
-give workers access their DOM\@.
-%
-Our implementation of this is very similar to the implementation of
-Add-on SDK content-scripts~\cite{addon-sdk}; in fact, our Firefox
-implementation uses the same \js|Sandbox| objects~\cite{mdn-sandbox}
-used by these content scripts.
- 
 
 \subsection{Compartments}
 \begin{table}
@@ -187,7 +108,7 @@ mechanisms.}
 \label{tab:comm}
 \end{table}
  
-Gecko's isolation model relies on JavaScript compartments, i.e.,
+Gecko's existing isolation model relies on JavaScript compartments, i.e.,
 disjoint JavaScript heaps, for both efficient garbage collection and
 security isolation~\cite{wagner2011compartmental}.
 %
@@ -195,41 +116,34 @@ The isolation is enforced by ensuring that all cross-compartment
 communication (e.g., \js|postMessage| between iframes) is done through
 \emph{wrappers}, that implement the object-capability \emph{membrane}
 pattern~\cite{miller2003paradigm,miller2006robust} to enable sound reasoning
-about ``border crossing''. 
+about ``border crossing'' between compartments. 
 %% I want to say that they soundly let us reason about calls back into
 %% the caller's compartment and border crossing came to mind, but I
 %% don't really like it
 %
-Importantly, wrappers ensure that an object from one compartment can
+Wrappers ensure that an object from one compartment can
 never directly reference another object from a different compartment.
 %
-This has the benefit that all inter-browsing context access control
-checks---as specified by the SOP---can be enforced by the wrappers.
+Thus, all inter-browsing context access control
+checks---as specified by the SOP---are enforced by the wrappers.
 %
-Naturally, this is possible because each compartment has a security
+Compartments have a security
 principal that is used in making this policy decision:
 the principal contains the origin and CSP policy of the compartment.
 
-Our implementation relies on compartments and their properties in
-several ways.
+Since \sys{}'s security model is very similar to this existing
+model, we can leverage these wrappers to introduce our new
+security policies.
 %
-Since compartments are our units of isolation, we
-associate a label, clearance, and privilege with compartments.
+A label, clearance, and privilege is now associated with compartments
+alongside the security principle.
 %
-In the case of browsing contexts, we also associate a DOM access label
-with the compartment.
-%
-As shown in Figure~\ref{fig:api}, the \js|COWL| object exposes these
-properties to JavaScript.
-% 
-Moreover, these labels and privilege, in addition to the compartment
-principal and CSP, are used when making security decisions.
-
-\todo{ezy}{A diagram would be nice here! I don't think it's really clear from the text above how wrappers work.}
+All of these properties are taken together when making security decisions
+in the wrappers.
 
 \paragraph{Cross-compartment communication}
 %
-As shown in Table~\ref{tab:comm} we rely on compartment wrappers to
+Table~\ref{tab:comm}, we rely on compartment wrappers to
 confine cross-compartment (which includes cross-iframe) communication.
 %
 Once confinement-mode is enabled---by using any of the APIs of
@@ -332,6 +246,76 @@ Like~\cite{Akhawe2013}, this is a conservative approach.
 We leave the implementation of labeled storage (and API for it) to
 future work.
 
+
+%\subsection{\sys{} DOM objects}
+%
+%DOM objects such as \js|Label|s and \js|Privilege|s are implemented in
+%C++ and made available to JavaScript using DOM binding code.
+%%
+%The implementation of labels and privileges is straight forward and
+%follows directly from~\cite{stefan:2011:dclabels}.
+%
+%%% We solely remark that this approach of 
+%%% imlementation corresponds to rougly 1/3 of
+%%% the \sys{} code base; this large fraction is a direct result of using
+%%% C++ and having to, for example, implement method overloading to
+%%% support a friendly API and handle exceptional code with error codes.
+%%% Do we care??
+%
+%\paragraph{Labeled blobs}
+%%
+%The implementation of labeled blobs is mostly straightforward.
+%%
+%
+%%
+%However, there are two interesting details.
+%%
+%First, instead of overloading the definition of \js|postMessage| to
+%allow sending labeled data across browsing contexts, we modified the
+%layout engine to add support for structurally cloning labeled blobs;
+%this allows us to flexibly use labeled blobs where other structurally
+%clonable objects (e.g., JSON) can be used, including \js|postMessage|.
+%%
+%Second, we modified the XHR code to allow arbitrary cross-origin reading
+%when the response type is set to \verb|labeled-blob|;
+%%
+%as a consequence, the \js|response| attribute returns a labeled blob.
+%%
+%Unfortunately, the XHR specification for other attributes, such as
+%\js|status|, is to return primitive values (non-objects) and our
+%implementation raises the current label to reflect the observation of
+%potentially sensitive data.\footnote{
+%An alternative implementation can, at the cost of backwards
+%incompatibility, label all the attributes of XHR instead of raising
+%the current label and returning the ``unlabeled'' attribute.
+%}
+%
+%\paragraph{Light-weight workers}
+%%
+%The \js|LWorker| API of Figure~\ref{fig:api:compartments} is used to
+%create and communicate with light-weight labeled workers.
+%%
+%These are distinguished from ``normal'' workers, which create a new OS thread; the
+%constructor code for \js|LWorker| simply create a new compartment
+%(described below) which contains a fresh JavaScript global; the
+%execution of this code shares the event-loop with its parent (much
+%like creating a callback with \js|setTimeout|).
+%%
+%As such, a page can confine code without incurring the
+%penalties of creating OS threads or full IPC for message
+%passing---dispatching messages to/from light-weight workers is cheap
+%since the data is on the same heap.
+%%
+%(Of course, this also means that the worker no longer runs in parallel.)
+%%
+%More importantly, the sharing of the event loop also allows a page to
+%give workers access their DOM\@.
+%%
+%Our implementation of this is very similar to the implementation of
+%Add-on SDK content-scripts~\cite{addon-sdk}; in fact, our Firefox
+%implementation uses the same \js|Sandbox| objects~\cite{mdn-sandbox}
+%used by these content scripts.
+% 
 
 % Local Variables:
 % TeX-master: "main.ltx"
