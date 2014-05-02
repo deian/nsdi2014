@@ -40,7 +40,7 @@ different parts of the DOM API to exfiltrate data.)
 %
 The communication channels we interpose on include:
 %
-\begin{itemize}
+\begin{CompactItemize}
     \item {\tt postMessage},
     \item Cross-compartment DOM objects,
     \item Content loading (via {\tt img} tags, CSS, etc.),
@@ -48,8 +48,7 @@ The communication channels we interpose on include:
     \item XMLHttpRequest,
     \item Navigation, and
     \item Browser storage (cookies and local storage).
-\end{itemize}
-%
+\end{CompactItemize}
 
 However, this interposition maintains backwards-compatibility with
 existing web policies.
