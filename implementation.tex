@@ -115,8 +115,8 @@ security isolation~\cite{wagner2011compartmental}.
 The isolation is enforced by ensuring that all cross-compartment
 communication (e.g., \js|postMessage| between iframes) is done through
 \emph{wrappers}, that implement the object-capability \emph{membrane}
-pattern~\cite{miller2003paradigm,miller2006robust} to enable sound reasoning
-about ``border crossing'' between compartments. 
+pattern~\cite{miller2003paradigm,miller2006robust}; membranes enable
+sound reasoning about ``border crossing'' between compartments. 
 %% I want to say that they soundly let us reason about calls back into
 %% the caller's compartment and border crossing came to mind, but I
 %% don't really like it
@@ -124,12 +124,15 @@ about ``border crossing'' between compartments.
 Wrappers ensure that an object from one compartment can
 never directly reference another object from a different compartment.
 %
-Thus, all inter-browsing context access control
-checks---as specified by the SOP---are enforced by the wrappers.
+Thus, all inter-compartment access control checks---as specified by
+the SOP---are enforced by the wrappers which have an accompanying
+security policy.
 %
 Compartments have a security
-principal that is used in making this policy decision:
-the principal contains the origin and CSP policy of the compartment.
+principal that is used by the wrapper policy in making security
+decisions at the boundaries.
+%
+This principal contains the origin and CSP policy of the compartment.
 
 Since \sys{}'s security model is very similar to this existing
 model, we can leverage these wrappers to introduce our new
@@ -143,27 +146,23 @@ in the wrappers.
 
 \paragraph{Cross-compartment communication}
 %
-Table~\ref{tab:comm}, we rely on compartment wrappers to
+As shown in Table~\ref{tab:comm}, we rely on compartment wrappers to
 confine cross-compartment (which includes cross-iframe) communication.
 %
 Once confinement-mode is enabled---by using any of the APIs of
-Figure~\ref{fig:api}---we ``recompute'' \todo{ezy}{Explain why recomputing is
-  desirable!} 
-\todo{ar}{Agreed, perhaps ``SWAPI reaccomodates all the cross-compartment 
-wrappers to enforce the restrictions imposed by the current label, and not the 
-SOP''}
-all the cross-compartment
-wrappers to ensure that all subsequent cross-compartment access is
-mediated by confinement, i.e., it uses labels, and not the SOP\@.
+Figure~\ref{fig:api}---we ``recompute'' all the cross-compartment
+wrappers to use our MAC wrapper policy and thereby ensure that all
+subsequent cross-compartment access is mediated by confinement, i.e.,
+it uses labels, and not the SOP\@.
 %
-To this end, we implemented a new wrapper policy \todo{ezy}{What's a wrapper policy} and modified the
-function that recomputes wrappers to use \sys{}'s wrappers when
-confinement-mode is enabled.
+In addition to implementing the MAC wrapper policy (which simply
+performs label checks), we modified the function that recomputes
+wrappers to use \sys{}'s wrappers when confinement-mode is enabled.
 %
-When the cross-compartment communication is \js|postMessage|, we simply
-ensure that the receiver's label subsumes that of the sender (taking
-the sender's privileges into consideration); otherwise the message is
-dropped.
+When the cross-compartment communication is \js|postMessage|, our
+policy ensures that the receiver's label subsumes that of the sender
+(taking the sender's privileges into consideration); otherwise the
+message is dropped.
 %
 When the communication is a DOM property access, we additionally check
 that the sender's label subsumes that of the receiver, i.e., the labels of
@@ -189,7 +188,7 @@ Since \sys{} allows for policies that are more fine grained than
 same-origin, we modified the binding code by extending the security
 checks to all DOM objects and adding label checks; this modification
 imposes a penalty of a branch condition (that checks if
-confinement-mode is enabled). \todo{ezy}{As well as the penalty of the COWL check, no?}
+confinement-mode is enabled) on all DOM calls.
 
  
 \paragraph{External communication}
@@ -223,7 +222,7 @@ For instance, if the effective compartment label is
 \js|Label("https://bank.ch").and("https://amazon.com")|, all the
 underlying CSP directive are set to \verb|'none'| (e.g.,
 \verb|default-src 'none'|) as to disallow all network communication;
-we additionally use the \verb|'sandbox'| directive to disallow
+we additionally use the \verb|'sandbox'| directive to disable
 navigation~\cite{csp1.1,whatwg-html,html5}.
 %
 
