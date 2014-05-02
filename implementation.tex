@@ -290,32 +290,33 @@ future work.
 %the current label and returning the ``unlabeled'' attribute.
 %}
 %
-%\paragraph{Light-weight workers}
-%%
-%The \js|LWorker| API of Figure~\ref{fig:api:compartments} is used to
-%create and communicate with light-weight labeled workers.
-%%
-%These are distinguished from ``normal'' workers, which create a new OS thread; the
-%constructor code for \js|LWorker| simply create a new compartment
-%(described below) which contains a fresh JavaScript global; the
-%execution of this code shares the event-loop with its parent (much
-%like creating a callback with \js|setTimeout|).
-%%
-%As such, a page can confine code without incurring the
-%penalties of creating OS threads or full IPC for message
-%passing---dispatching messages to/from light-weight workers is cheap
-%since the data is on the same heap.
-%%
-%(Of course, this also means that the worker no longer runs in parallel.)
-%%
-%More importantly, the sharing of the event loop also allows a page to
-%give workers access their DOM\@.
-%%
-%Our implementation of this is very similar to the implementation of
-%Add-on SDK content-scripts~\cite{addon-sdk}; in fact, our Firefox
-%implementation uses the same \js|Sandbox| objects~\cite{mdn-sandbox}
-%used by these content scripts.
-% 
+
+\subsection{Light-weight workers}
+%
+The \js|LWorker| API of Figure~\ref{fig:api:compartments} is used to
+create and communicate with light-weight labeled workers.
+%
+These are distinguished from ``normal'' workers, which create a new OS thread; the
+constructor code for \js|LWorker| simply create a new compartment
+(described below) which contains a fresh JavaScript global; the
+execution of this code shares the event-loop with its parent (much
+like creating a callback with \js|setTimeout|).
+%
+As such, a page can confine code without incurring the
+penalties of creating OS threads or full IPC for message
+passing---dispatching messages to/from light-weight workers is cheap
+since the data is on the same heap.
+%
+(Of course, this also means that the worker no longer runs in parallel.)
+%
+More importantly, the sharing of the event loop also allows a page to
+give workers access their DOM\@.
+%
+Our implementation of this is very similar to the implementation of
+Add-on SDK content-scripts~\cite{addon-sdk}; in fact, our Firefox
+implementation uses the same \js|Sandbox| objects~\cite{mdn-sandbox}
+used by these content scripts.
+ 
 
 % Local Variables:
 % TeX-master: "main.ltx"
