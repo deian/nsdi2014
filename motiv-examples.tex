@@ -22,19 +22,18 @@ offer a brief refresher on status-quo browser privacy polices.
 \subsection{Contexts and the Same-Origin Policy}
 \label{sec:backgd}
 
-%% \paragraph{Browsing contexts}
-%% \iffigures
-%% \begin{figure}
-%% \begin{center}
-%% \includegraphics[width=\columnwidth]{arch.pdf}
-%% %\includegraphics[scale=0.35]{setting.pdf}
-%% \end{center}
-%% \vspace{-10pt}
-%% \caption{\label{fig:primer-browser-arch} Browser architecture.}
-%% \vspace{-10pt}
-%% \end{figure}
-%% As shown in Figure~\ref{fig:primer-browser-arch}, a \else A \fi web page
-A web page
+\paragraph{Browsing contexts}
+\iffigures
+\begin{figure}
+\begin{center}
+\includegraphics[width=\columnwidth]{arch.pdf}
+%\includegraphics[scale=0.35]{setting.pdf}
+\end{center}
+\vspace{-10pt}
+\caption{\label{fig:primer-browser-arch} Browser architecture.}
+\vspace{-10pt}
+\end{figure}
+As shown in Figure~\ref{fig:primer-browser-arch}, a web page
 consists of content and JavaScript code.  A \emph{browsing context}
 presents a page's content to the user, and JavaScript code accesses
 content within the page through the \emph{Document Object Model
@@ -95,7 +94,7 @@ of an \js|img| element to this URL.
 % \js|window.location|~\cite{thidpartyjs}), has lead to the introduction
 The HTML5 \js|postMessage| API~\cite{webmessaging}
 allows code in different compartments to exchange
-messages.
+messages, as shown in Figure~\ref{fig:primer-browser-arch}.
 %
 % Given a foreign-origin DOM window object \js|win|, the
 % \js|postMessage| method can be invoked on it to send the
