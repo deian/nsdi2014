@@ -2,22 +2,20 @@
 
 B, D: What kinds of applications is COWL not sufficient for?
 
-    The central assumption underlying the design of COWL is that an
-    application need not mix data of different sensitivity classes in
-    the same compartment and continue communicating. Note, however,
-    that because COWL supports arbitrary nesting of compartments, one
-    may introduce nesting to "force" data in different sensitivity
-    classes into distinct compartments. If one is "porting" a legacy
-    application to COWL, it may be inconvenient for the programmer to
-    have to introduce this sort of nesting. Moreover, since
-    inter-compartment communication in web browsers is asynchronous,
-    one might give up the intuitive ease of synchrony within a single
-    compartment when compartmentalizing.
+    Underlying the design of COWL is the assumption that applications
+    need not mix data of different sensitivity in the same compartment
+    and continue communicating. Note, however, that because COWL
+    supports arbitrary nesting of compartments, one may introduce
+    nesting to "force" data of different sensitivity into distinct
+    compartments. If one is "porting" a legacy application to COWL,
+    this may be inconvenient for the programmer.  Moreover, since
+    inter-compartment communication in asynchronous, one might give up
+    the intuitive ease of synchrony within a single compartment when
+    compartmentalizing.
 
-    However, the kinds of policies that COWL can directly express is
-    limited by the labe system and thus applications that require
-    policies that do not fit the lattice model may not be expressible
-    (or require additional encoding). (More on this this below.)
+    However, applications that require policies that do not fit the
+    lattice-label model may not be expressible using COWL. This
+    limitation is due to the chosen label model, further discussed
 
 B, D, E: Are there applications that fine-grained systems can express, but coarse-grained systems cannot?
 
@@ -262,19 +260,15 @@ D:  Why is CSP too restrictive for the password checker example when it can be u
 
 ## PRESENTATION 
 
-C: Show the code for the password checker
+We will take the reviewers' comments on presentation into
+consideration and revise the writing to address them (e.g., C's
+comments on showing code for the checker, and explaining CSP in the
+style of the background, etc.).
 
-    We agree that it would be instructive to present the code for the
-    password checker, and will do so in future.
+D: Underlines, colors, bubbles?
 
-C: "Could you also explain CSP and CORS in [the] style" of the background?
-
-    Yes. We will do so.
-
-D: Underlines, collors, and bubbles?
-
-    We unfortunately neglected to state in our submission that an
-    underlined label indicates that a compartment holds the privilege for
-    that origin. We colored different origins differently for contrast
-    (nothing more). In these examples, all spiked bubbles connote the
-    raising of labels; none signify lowering of them.
+    We unfortunately neglected to state in our submission that 
+    underlined origin indicates that a compartment holds the privilege for
+    that origin. We colored different origins differently for
+    contrast. In these examples, all spiked bubbles connote the
+    raising of labels.
