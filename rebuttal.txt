@@ -25,7 +25,6 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
     systems rather than drawing conclusions about these two broad
     approaches. Coarse-grained (compartment-granularity) IFC is much
     easier to implement than fine-grained (object-granularity) IFC
-    q
     tracking, as the former requires no changes to the JavaScript
     execution engine, whereas the latter requires extensive changes to
     propagate and check labels for every low-level JavaScript
@@ -67,15 +66,15 @@ D: How general is the label system?
     correspond closely to web origins, and we thus believe that web
     developers will find them intuitive.
 
-B: Must an application not communicate after obtaining sensitive information?
+B: The tainted component does not need communication after initially
+obtaining its taint/private information. Is that what's required of
+applications in order for them to be secured by COWL?
 
-    This is not a restriction since one may always introduce an
-    additional compartment that doesn't become tainted to handle that
-    communication for the application. Of course, the tainted
-    compartment cannot influence the communication behavior of this
-    "untainted," network-enabled compartment. (More on the effort of
-    introducing additional compartments below.)
-    [XXX fix this answer]
+    Yes: this is the defining characteristic of floating label dynamic
+    information flow control systems.  However, as described in Section
+    3.2, privileges are an escape-valve which allow *trusted* code to
+    declassify sensitive information for communication; untrusted code
+    has no recourse, and rightly so!
 
 A: Will mashups with many libraries impose a requirement on developers to understand overly-complex policies?
 
@@ -101,21 +100,19 @@ B, D, E: What about integrity?
 
 E: SOP "provides some degree of integrity" for DOM changes, what about COWL?
 
-    The policies COWL enforces on DOM access are as strict as or
-    stricter than the SOP.
+    In Section 3.2, we mention that a privilege is required to modify
+    the DOM.  Privileges are allocated in the same manner as traditional SOP,
+    so the integrity guarantees are the same.
 
 E: Is your vision to co-exist or replace all existing security mechanisms?
 
-    Prior work (e.g., [40]) specifically discusses how a label
-    system similar to that in this submission can subsume the policies
-    that can be implemented with today's SOP, CSP, CORS, etc.
-
-    Our vision is that any new technology like COWL needs an incremental
-    deployment path to succeed. That path is for COWL to co-exist with
-    today's SOP, CSP, etc., and not interfere with the correct operation
-    of pages that use these mechanisms, while at the same time offering
-    MAC to pages that invoke this functionality. We briefly touch on
-    backwards compatibility in Section 3.
+    [keyword: vision]
+    COWL is explicitly designed to allow for an incremental deployment
+    path.  While prior work (e.g., [40]) discusses how a label system
+    can subsume the policies that can be implemented with today's SOP,
+    CSP, CORS, etc, COWL co-exists with these mechanisms, offering MAC
+    to pages which opt-in to this new functionality (summarized in
+    Section 3).
 
 E: How do you address taint-accumulation for compartments and files?
 
@@ -150,37 +147,32 @@ E: How do you address taint-accumulation for compartments and files?
 
 A: What kind of objects can be labeled?
 
-    When a compartment sends an object to another with postMessage,
-    the message by default carries the current label of the sending
-    compartment. Labeled blobs provide a means for specifying a higher
-    label for messages sent with postMessage. By "individual object,"
-    we intend only to refer to serialized labeled blobs.
+    Blobs, which can include serialized JavaScript values (e.g.
+    as seen in postMessage).
 
 A, B: How do you disallow the manual setting of label XHR header?
 
-    "Manually" here means that the labeled XHR constructor doesn't
-    allow one to construct an HTTP request that includes this
-    header. It's impossible to set this header manually because we
-    have modified the XHR constructor to strip this header, if present
-    (browser already do this for other headers).
+    The XHR API has the option for users to add custom headers to the
+    request, as long as they are not a reserved header.  Label headers
+    are also considered reserved, disallowing their "manual" modification.
 
 B: What is the covert channel story for COWL?
 
-    When the labeled XHR constructor is not in use (i.e., for 3/4 of the
-    example applications; all but the third-party mashup), the covert
-    channel story for COWL is the same as that for the SOP: COWL does not
-    grant any compartment access to data it wouldn't have had access to
-    under the SOP in such scenarios.
+    As mentioned in Section 3, COWL both restricts and relaxes the SOP.
+    When the SOP is restricted--i.e., no labeled XHR was used--the
+    question of covert channels is irrelevant,  since webpages do not
+    have direct access to any more sensitive data than they would have
+    had access to already.  This is the case for 3/4 example applications.
 
-    However, when labeled XHR is use, the user can use clearance to
-    restrict the sensitivity of the data that a compartment can read (and
-    thus leak through covert channels), effectively restricting a
-    compartment's access to only data it "needs to know." As we mention in
-    the last paragraph of Section 3.3, COWL lets the user specify when an
-    origin's data shouldn’t be shared with compartments of any other
-    origin. As also mentioned in this paragraph, the status quo involves
-    the user giving her password to operators of third-party mashup sites;
-    COWL significantly improves this state of affairs.
+    Labeled XHR allows access to sensitive data that would not be
+    accessible under SOP, so covert channels are a definite concern
+    here.  In Section 3.3, we discuss how clearance can be used to
+    restrict the sensitivity of data that can be read (and thus leaked
+    via covert channels), allowing access only to data a compartment
+    "needs to know." As also mentioned, to achieve the functionality of
+    third-party mashup sites, the status quo requires the user to give
+    up their password; COWL significantly improves this state of
+    affairs.
 
 B: Does the sharing of heap space for LWorker introduce new covert channels?
 
