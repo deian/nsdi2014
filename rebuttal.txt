@@ -54,18 +54,18 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
 
 D: How general is the label system?
 
-    We use the DC Label model described in [28]. As described in
-    Section 3.1 each label is a boolean formula over origins. As for
-    the generality: the particular logic is propositional logic
-    without negation. More powerful logics (e.g., first order logic as
-    used by Sirer et al.'s NexusOS [SOSP '11]) can allow for richer
-    policies than those permitted by DC Labels. For instance, even
-    allowing negation would permit more expressive policies (e.g.,
-    "this labeled blob cannot be read by a.com, but can be read by any
-    other origin"). With DCLabels, such policies must be encoded by
-    "white-listing" all the permitted readers. We chose DC Labels
-    because we believe they correspond closely to web origins, and we
-    thus believe that web developers will find them intuitive.
+    We use the DCLabel model of [28]. As described in Section 3.1 each
+    label is a boolean formula over origins.  The particular logic is
+    propositional logic without negation. More expressive logics
+    (e.g., first order logic as used by NexusOS [SOSP '11]) can allow
+    for richer policies than those permitted by DCLabels. For
+    instance, even allowing negation would permit more expressive
+    policies (e.g., "this labeled blob cannot be read by a.com, but
+    can be read by any other origin"). With DCLabels, such policies
+    must be encoded by "white-listing" all the permitted readers. We
+    chose DCLabels because we believe they correspond closely to web
+    origins, and we thus believe that web developers will find them
+    intuitive.
 
 B: Must an application not communicate after obtaining sensitive information?
 
