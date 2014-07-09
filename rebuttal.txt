@@ -1,0 +1,280 @@
+## High-level questions
+
+B, D: What kinds of applications is COWL not sufficient for?
+
+		The central assumption underlying the design of COWL is that an
+		application need not mix data of different sensitivity classes in
+		the same compartment and continue communicating. Note, however,
+		that because COWL supports arbitrary nesting of compartments, one
+		may introduce nesting to "force" data in different sensitivity
+		classes into distinct compartments. If one is "porting" a legacy
+		application to COWL, it may be inconvenient for the programmer to
+		have to introduce this sort of nesting. Moreover, since
+		inter-compartment communication in web browsers is asynchronous,
+		one might give up the intuitive ease of synchrony within a single
+		compartment when compartmentalizing.
+
+		However, the kinds of policies that COWL can directly express is
+		limited by the labe system and thus applications that require
+		policies that do not fit the lattice model may not be expressible
+		(or require additional encoding). (More on this this below.)
+
+B, D, E: Are there applications that fine-grained systems can express, but coarse-grained systems cannot?
+
+		We touch on some of the trade-offs of coarse-grained
+		vs. fine-grained flow tracking in the related work section, but
+		agree that this discussion in the submission was directed at
+		individual prior systems rather than drawing conclusions about
+		these two broad approaches. Coarse-grained
+		(compartment-granularity) flow tracking is much easier to
+		implement than fine-grained (JavaScript object-granularity) flow
+		tracking, as the former requires no changes to the JavaScript
+		execution engine, whereas the latter requires extensive changes to
+		propagate and check labels for every low-level JavaScript
+		operation. The coarse-grained approach also incurs far less
+		execution overhead than the fine-grained one: essentially,
+		label-related processing occurs nearly exclusively upon
+		inter-compartment communication, rather than at every step of a
+		computation in every compartment.
+
+		We conjecture (but have not yet proven) that coarse-grained and
+		fine-grained flow tracking are equivalent, provided one can
+		introduce arbitrary nesting of compartments in a coarse-grained
+		system. Even if this equivalence holds in theory, in practice,
+		it’s unattractive for the programmer to need to introduce deep
+		nesting of compartments to emulate fine-grained IFC with
+		coarse-grained IFC (and presumably would perform at least as
+		poorly as fine-grained IFC, if you literally put compartments
+		around every individual object).
+
+		Fine-grained IFC can require less effort for the programmer in
+		some scenarios. For example (as we briefly mention in the
+		discussion of JSFlow in the related work section), when trying to
+		confine an untrusted jQuery library in the same page as trusted
+		application code and sensitive data, JSFlow’s fine-grained
+		approach lets jQuery remain within the same compartment as the
+		trusted code and sensitive data, whereas COWL requires the
+		programmer to explicitly partition the page into a trusted
+		compartment and untrusted compartment (somewhat reminiscent of
+		least-privilege partitioning, in the style of okws and Wedge).
+
+D: How general is the label system?
+
+		We use the DC Label model described in [28]. As described in
+		Section 3.1 each label is a boolean formula over origins. As for
+		the generality: the particular logic is propositional logic
+		without negation. More powerful logics (e.g., first order logic as
+		used by Sirer et al.'s NexusOS [SOSP '11]) can allow for richer
+		policies than those permitted by DC Labels. For instance, even
+		allowing negation would permit more expressive policies (e.g.,
+		"this labeled blob cannot be read by a.com, but can be read by any
+		other origin"). With DCLabels, such policies must be encoded by
+		"white-listing" all the permitted readers. We chose DC Labels
+		because we believe they correspond closely to web origins, and we
+		thus believe that web developers will find them intuitive.
+
+B: Must an application not communicate after obtaining sensitive information?
+
+	 	This is not a restriction since one may always introduce an
+		additional compartment that doesn't become tainted to handle that
+		communication for the application. Of course, the tainted
+		compartment cannot influence the communication behavior of this
+		"untainted," network-enabled compartment. (More on the effort of
+		introducing additional compartments below.)
+
+
+B, D, E: What about integrity?
+
+		We intend to expand upon the description of how COWL provides
+		integrity, as suggested; the design is complete and implemented,
+		but was given short shrift in the submission for reasons of
+		brevity.
+		
+E: SOP "provides some degree of integrity" when it comes to modifying the DOM, does COWL provide this?
+
+		The policies COWL enforces on DOM access are as strict as or
+		stricter than the SOP.
+
+E: Is your vision to replace all existing security mechanisms or co-exist?
+
+		Prior work (reference [40]) specifically discusses how a label
+		system similar to that in this submission can subsume the policies
+		that can be implemented with today's SOP, CSP, CORS, etc.
+
+		Our vision is that any new technology like COWL needs an incremental
+		deployment path to succeed. That path is for COWL to co-exist with
+		today's SOP, CSP, etc., and not interfere with the correct operation
+		of pages that use these mechanisms, while at the same time offering
+		MAC to pages that invoke this functionality. We briefly touch on
+		backwards compatibility in Section 3, in the last two paragraphs
+		before the start of Section 3.1.
+
+A: Will mashups with many libraries impose a requirement on developers to understand overly-complex policies?
+
+		We acknowledge that programming with COWL definitely does require
+		understanding COWL's primitives. However, our experience to date
+		(as illustrated in the four example applications) is that a
+		relatively small set of canonical design patterns captures many of
+		the common web application (and mashup) behaviors. We believe that
+		a higher-level policy language could let developers express
+		intricate policies (e.g., that involve many libraries and mutual
+		distrust among them) in a straightforward way, and that a compiler
+		could then compile such policies into the COWL primitives. Such a
+		language and compiler are the subject of our future work.
+
+E: How do you address taint-accumulation for compartments and files?
+
+		First, compartments: Accumulation of labels has been described in the
+		context of previously proposed taint-tracking systems. Two design
+		features of COWL make such label accumulation less problematic for
+		COWL's compartments. First, COWL allows one to create compartments. If
+		a developer knows that a script needs to process sensitive data (i.e.,
+		raise its label), she can always elect to run that script in a
+		separate compartment (and thus confine the additional label to that
+		compartment). Second, COWL's support for labeled blobs allows a script
+		to receive messages of distinct sensitivity classes, *not* read their
+		payload, but inspect their labels. By doing so, a developer can then
+		intelligently decide when spawning a distinct compartment before
+		reading a payload is desirable (so as to avoid accumulating too much
+		taint). In addition, a compartment's lifetime spans only the period
+		during that a user remains on a page; all labels vanish when the user
+		navigates away from a page.
+
+		Second, files: we do not believe that accumulation of many labels is
+		fundamental to local storage. While we have not yet codified a
+		complete design for local storage or implemented it, we envision that
+		under COWL, while a compartment raises its label before reading
+		sensitive data, a file would *not* simply raise its label for each
+		sensitivity class of data written to it. Instead, the labels on files
+		would be immutable (as in prior coarse-grained IFC systems, such as
+		HiStar [42] and Hails/LIO [11]); as shown in a recent CSF paper,
+		flow-insensitive systems (i.e., systems that consider object labels to
+		be immutable) can be used to encode flow-sensitive objects (i.e.,
+		objects whose labels change according to the sensitivity of data being
+		written to them).
+
+A: What kind of objects can be labeled?
+
+		When a compartment sends an object to another with postMessage,
+		the message by default carries the current label of the sending
+		compartment. Labeled blobs provide a means for specifying a higher
+		label for messages sent with postMessage. By "individual object,"
+		we intend only to refer to serialized labeled blobs.
+
+A, B: How do you disallow the manual setting of label XHR header?
+
+		"Manually" here means that the labeled XHR constructor doesn't
+		allow one to construct an HTTP request that includes this
+		header. It's impossible to set this header manually because we
+		have modified the XHR constructor to strip this header, if present
+		(browser already do this for other headers).
+
+B: What is the covert channel story for COWL?
+
+		When the labeled XHR constructor is not in use (i.e., for 3/4 of the
+		example applications; all but the third-party mashup), the covert
+		channel story for COWL is the same as that for the SOP: COWL does not
+		grant any compartment access to data it wouldn't have had access to
+		under the SOP in such scenarios.
+
+		However, when labeled XHR is use, the user can use clearance to
+		restrict the sensitivity of the data that a compartment can read (and
+		thus leak through covert channels), effectively restricting a
+		compartment's access to only data it "needs to know." As we mention in
+		the last paragraph of Section 3.3, COWL lets the user specify when an
+		origin's data shouldn’t be shared with compartments of any other
+		origin. As also mentioned in this paragraph, the status quo involves
+		the user giving her password to operators of third-party mashup sites;
+		COWL significantly improves this state of affairs.
+
+B: Does the sharing of heap space for LWorker introduce new covert channels?
+
+		Our implementation of LWorkers repurposes V8 and SpiderMonkey's
+		contexts and compartments, respectively. These primitives are already
+		used to isolate iframes of different origins to ensure that they
+		operate on disjoint sub-heaps. Hence, we believe the chance of
+		unauthorized leakage of information between LWorkers is identical to
+		that between iframes.
+
+A: What the label check done when accessing DOM of compartment?
+
+		Each compartment has distinct secrecy and integrity labels (though
+		the submission elides many of the details of integrity labels in
+		the interest of brevity). Suppose compartment A tries to modify
+		the DOM of compartment B. The label check is as follows: the
+		operation is allowed if compartment A's integrity label implies
+		compartment B's (the reverse implication to the label check for
+		secrecy, as we stated somewhat opaquely in footnote 8). If this
+		label check fails (as it would if compartment B’s label were
+		"public," as is typically the case), the operation is *still*
+		allowed if compartment A holds the privilege for the origin of
+		compartment B. In other words, "exercised" here signifies an
+		"override" of the integrity label check to allow a
+		cross-compartment DOM write when the writing compartment holds the
+		privilege for the origin of the written compartment. (Privilege
+		analogously affects secrecy label checks, as described in the
+		first two bullets in Section 3.2.)
+
+D: What did you mean by ambient authority?
+
+		Under the SOP, the notion of origin is always implicit: a page is
+		loaded from a URL, and that compartment is forever associated with
+		that exact origin. By "ambient authority" we mean the origin is
+		implicit in the page. By contrast, under COWL, a compartment has
+		explicit control over its label (and privilege).
+
+C: Why is the iframe and worker creation in Firefox faster for the labeled case?
+
+		We believe this difference (14.5 ms unlabeled, 14.4 ms labeled) is
+		small enough to be explained by variability in the distribution of
+		completion times.
+
+
+C: Why do you exchaust the call stack and is this limit set by the spec?
+
+		The number of stack frames depends on the underlying JavaScript
+		engine implementation (not the spec). The Firefox implementation
+		exhausted the call stack at 90 messages, since the LWorkers run in
+		the same context as the parent, so a message exchange is a
+		function call.
+
+C: Why did you use a "simplified version" of the encrypted document editor?
+
+		The "simplified version" was the baseline for comparison (i.e.,
+		running in today's Firefox browser, without COWL). It wasn't clear
+		how to implement this application with the same privacy guarantees
+		in the baseline browser, so we implemented a version without any
+		privacy guarantees. As we would expect a version with any sort of
+		partial privacy to run more slowly (because of added cryptographic
+		operations), the "simplified version" if anything overstates the
+		performance penalty of the COWL version of the application.
+
+D:	Why is CSP too restrictive for the password checker example when it can be used to white-list origins?
+
+		It's correct that one could use CSP in a way that would allow the
+		password checker to communicate with an origin that hosts updated
+		regular expressions for weak passwords. However, CSP is a
+		discretionary access control mechanism: once you grant access to
+		communicate with an origin, that access persists for that
+		page. Thus, using CSP to specify that the password checker may
+		communicate with a remote origin would allow the checker to send
+		the user's passwords to that remote origin.
+
+## PRESENTATION 
+
+C: Show the code for the password checker
+
+		We agree that it would be instructive to present the code for the
+		password checker, and will do so in future.
+
+C: "Could you also explain CSP and CORS in [the] style" of the background?
+
+    Yes. We will do so.
+
+D: Underlines, collors, and bubbles?
+
+		We unfortunately neglected to state in our submission that an
+		underlined label indicates that a compartment holds the privilege for
+		that origin. We colored different origins differently for contrast
+		(nothing more). In these examples, all spiked bubbles connote the
+		raising of labels; none signify lowering of them.
