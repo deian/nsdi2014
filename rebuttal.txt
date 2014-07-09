@@ -25,6 +25,7 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
     systems rather than drawing conclusions about these two broad
     approaches. Coarse-grained (compartment-granularity) IFC is much
     easier to implement than fine-grained (object-granularity) IFC
+    q
     tracking, as the former requires no changes to the JavaScript
     execution engine, whereas the latter requires extensive changes to
     propagate and check labels for every low-level JavaScript
@@ -66,13 +67,37 @@ D: How general is the label system?
     correspond closely to web origins, and we thus believe that web
     developers will find them intuitive.
 
+B: Must an application not communicate after obtaining sensitive information?
+
+    This is not a restriction since one may always introduce an
+    additional compartment that doesn't become tainted to handle that
+    communication for the application. Of course, the tainted
+    compartment cannot influence the communication behavior of this
+    "untainted," network-enabled compartment. (More on the effort of
+    introducing additional compartments below.)
+    [XXX fix this answer]
+
+A: Will mashups with many libraries impose a requirement on developers to understand overly-complex policies?
+
+    We acknowledge that programming with COWL definitely does require
+    understanding COWL's primitives. However, our experience to date
+    (as illustrated in the four example applications) is that a
+    relatively small set of canonical design patterns captures many of
+    the common web application (and mashup) behaviors. We believe that
+    a higher-level policy language could let developers express
+    intricate policies (e.g., that involve many libraries and mutual
+    distrust among them) in a straightforward way, and that a compiler
+    could then compile such policies into the COWL primitives. Such a
+    language and compiler are the subject of our future work.
+
+## Factual questions
+
 B, D, E: What about integrity?
 
     Each label contains an integrity component; the design of
     integrity is complete and implemented, but was given short shrift
     in the submission for reasons of brevity.  As suggested, we intend
     to expand on this.
-
 
 E: SOP "provides some degree of integrity" for DOM changes, what about COWL?
 
@@ -91,16 +116,6 @@ E: Is your vision to co-exist or replace all existing security mechanisms?
     of pages that use these mechanisms, while at the same time offering
     MAC to pages that invoke this functionality. We briefly touch on
     backwards compatibility in Section 3.
-
-B: Must an application not communicate after obtaining sensitive information?
-
-    This is not a restriction since one may always introduce an
-    additional compartment that doesn't become tainted to handle that
-    communication for the application. Of course, the tainted
-    compartment cannot influence the communication behavior of this
-    "untainted," network-enabled compartment. (More on the effort of
-    introducing additional compartments below.)
-    
 
 E: How do you address taint-accumulation for compartments and files?
 
@@ -132,19 +147,6 @@ E: How do you address taint-accumulation for compartments and files?
     be immutable) can be used to encode flow-sensitive objects (i.e.,
     objects whose labels change according to the sensitivity of data being
     written to them).
-
-A: Will mashups with many libraries impose a requirement on developers to understand overly-complex policies?
-
-    We acknowledge that programming with COWL definitely does require
-    understanding COWL's primitives. However, our experience to date
-    (as illustrated in the four example applications) is that a
-    relatively small set of canonical design patterns captures many of
-    the common web application (and mashup) behaviors. We believe that
-    a higher-level policy language could let developers express
-    intricate policies (e.g., that involve many libraries and mutual
-    distrust among them) in a straightforward way, and that a compiler
-    could then compile such policies into the COWL primitives. Such a
-    language and compiler are the subject of our future work.
 
 A: What kind of objects can be labeled?
 
