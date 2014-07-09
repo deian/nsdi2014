@@ -54,44 +54,34 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
 
 D: How general is the label system?
 
-    We use the DCLabel model of [28]. As described in Section 3.1 each
-    label is a boolean formula over origins.  The particular logic is
-    propositional logic without negation. More expressive logics
-    (e.g., first order logic as used by NexusOS [SOSP '11]) can allow
-    for richer policies than those permitted by DCLabels. For
-    instance, even allowing negation would permit more expressive
-    policies (e.g., "this labeled blob cannot be read by a.com, but
-    can be read by any other origin"). With DCLabels, such policies
-    must be encoded by "white-listing" all the permitted readers. We
-    chose DCLabels because we believe they correspond closely to web
-    origins, and we thus believe that web developers will find them
-    intuitive.
-
-B: Must an application not communicate after obtaining sensitive information?
-
-     This is not a restriction since one may always introduce an
-    additional compartment that doesn't become tainted to handle that
-    communication for the application. Of course, the tainted
-    compartment cannot influence the communication behavior of this
-    "untainted," network-enabled compartment. (More on the effort of
-    introducing additional compartments below.)
-
+    As described in Section 3.1, we use the logic-based DCLabels of
+    [28].  The particular logic is propositional logic without
+    negation. More expressive logics (e.g., first order logic as used
+    by NexusOS [SOSP '11]) can allow for richer policies than those
+    permitted by DCLabels. For instance, even allowing negation would
+    permit more expressive policies (e.g., "this labeled blob cannot
+    be read by a.com, but can be read by any other origin"). With
+    DCLabels, such policies must be encoded by "white-listing" all the
+    permitted readers. We chose DCLabels because we believe they
+    correspond closely to web origins, and we thus believe that web
+    developers will find them intuitive.
 
 B, D, E: What about integrity?
 
-    We intend to expand upon the description of how COWL provides
-    integrity, as suggested; the design is complete and implemented,
-    but was given short shrift in the submission for reasons of
-    brevity.
-    
-E: SOP "provides some degree of integrity" when it comes to modifying the DOM, does COWL provide this?
+    Each label contains an integrity component; the design of
+    integrity is complete and implemented, but was given short shrift
+    in the submission for reasons of brevity.  As suggested, we intend
+    to expand on this.
+
+
+E: SOP "provides some degree of integrity" for DOM changes, what about COWL?
 
     The policies COWL enforces on DOM access are as strict as or
     stricter than the SOP.
 
-E: Is your vision to replace all existing security mechanisms or co-exist?
+E: Is your vision to co-exist or replace all existing security mechanisms?
 
-    Prior work (reference [40]) specifically discusses how a label
+    Prior work (e.g., [40]) specifically discusses how a label
     system similar to that in this submission can subsume the policies
     that can be implemented with today's SOP, CSP, CORS, etc.
 
@@ -100,21 +90,17 @@ E: Is your vision to replace all existing security mechanisms or co-exist?
     today's SOP, CSP, etc., and not interfere with the correct operation
     of pages that use these mechanisms, while at the same time offering
     MAC to pages that invoke this functionality. We briefly touch on
-    backwards compatibility in Section 3, in the last two paragraphs
-    before the start of Section 3.1.
+    backwards compatibility in Section 3.
 
-A: Will mashups with many libraries impose a requirement on developers to understand overly-complex policies?
+B: Must an application not communicate after obtaining sensitive information?
 
-    We acknowledge that programming with COWL definitely does require
-    understanding COWL's primitives. However, our experience to date
-    (as illustrated in the four example applications) is that a
-    relatively small set of canonical design patterns captures many of
-    the common web application (and mashup) behaviors. We believe that
-    a higher-level policy language could let developers express
-    intricate policies (e.g., that involve many libraries and mutual
-    distrust among them) in a straightforward way, and that a compiler
-    could then compile such policies into the COWL primitives. Such a
-    language and compiler are the subject of our future work.
+    This is not a restriction since one may always introduce an
+    additional compartment that doesn't become tainted to handle that
+    communication for the application. Of course, the tainted
+    compartment cannot influence the communication behavior of this
+    "untainted," network-enabled compartment. (More on the effort of
+    introducing additional compartments below.)
+    
 
 E: How do you address taint-accumulation for compartments and files?
 
@@ -146,6 +132,19 @@ E: How do you address taint-accumulation for compartments and files?
     be immutable) can be used to encode flow-sensitive objects (i.e.,
     objects whose labels change according to the sensitivity of data being
     written to them).
+
+A: Will mashups with many libraries impose a requirement on developers to understand overly-complex policies?
+
+    We acknowledge that programming with COWL definitely does require
+    understanding COWL's primitives. However, our experience to date
+    (as illustrated in the four example applications) is that a
+    relatively small set of canonical design patterns captures many of
+    the common web application (and mashup) behaviors. We believe that
+    a higher-level policy language could let developers express
+    intricate policies (e.g., that involve many libraries and mutual
+    distrust among them) in a straightforward way, and that a compiler
+    could then compile such policies into the COWL primitives. Such a
+    language and compiler are the subject of our future work.
 
 A: What kind of objects can be labeled?
 
