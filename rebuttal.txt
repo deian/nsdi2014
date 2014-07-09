@@ -50,7 +50,7 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
     trusted compartment and untrusted compartment. (This is somewhat
     reminiscent of least-privilege partitioning, in the style of okws
     and Wedge.) However, the fine-grained approach lets jQuery remain
-    within the same compartment as the trusted code and sensitive data.
+    in the same compartment as the trusted code and sensitive data.
 
 D: How general is the label system?
 
