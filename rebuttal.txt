@@ -15,7 +15,7 @@ B, D: What kinds of applications is COWL not sufficient for?
 
     However, applications that require policies that do not fit the
     lattice-label model may not be expressible using COWL. This
-    limitation is due to the chosen label model, further discussed
+    limitation is due to the chosen label model (discussed below).
 
 B, D, E: What does COWL give up by taking a coarse-grained approach?
 
