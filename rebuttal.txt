@@ -42,16 +42,15 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
     than fine-grained IFC, if you literally put compartments around
     every individual object).
 
-    Fine-grained IFC can require less effort for the programmer in
-    some scenarios. For example (as we briefly mention in the
-    discussion of JSFlow in the related work section), when trying to
-    confine an untrusted jQuery library in the same page as the
-    trusted application code and sensitive data; whereas COWL requires
-    the programmer to explicitly partition the page into a trusted
-    compartment and untrusted compartment (somewhat reminiscent of
-    least-privilege partitioning, in the style of okws and Wedge), the
-    fine-grained JFlow approach lets jQuery remain within the same
-    compartment as the trusted code and sensitive data.
+    Fine-grained IFC can require less programmer effort in some cases.
+    For example (as we briefly mention in the discussion of JSFlow),
+    when trying to confine an untrusted jQuery library in the same
+    page as the trusted application code and sensitive data, COWL
+    requires the programmer to explicitly partition the page into a
+    trusted compartment and untrusted compartment. (This is somewhat
+    reminiscent of least-privilege partitioning, in the style of okws
+    and Wedge.) However, the fine-grained approach lets jQuery remain
+    within the same compartment as the trusted code and sensitive data.
 
 D: How general is the label system?
 
