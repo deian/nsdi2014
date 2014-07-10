@@ -71,8 +71,8 @@ D: How general is the label system?
   "white-listing" all the permitted readers except a.com. We chose
   DCLabels because they correspond closely to the existing web
   policies, and we thus believe that web developers will find them
-  intuitive. (Of course, at the cost of not being able to express
-  these applications.)
+  intuitive. (Of course, at the cost of potentially not being able to
+  express these applications.)
 
 B: The tainted component does not need communication after initially
 obtaining its taint/private information. Is that what's required of
