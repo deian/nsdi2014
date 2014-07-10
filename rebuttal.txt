@@ -1,21 +1,5 @@
 ## High-level questions
 
-B, D: What kinds of applications is COWL not sufficient for?
-
-  Underlying the design of COWL is the assumption that applications
-  need not mix data of different sensitivity in the same compartment
-  and continue communicating. Note, however, that because COWL
-  supports arbitrary nesting of compartments, one may introduce
-  nesting to "force" data of different sensitivity into distinct
-  compartments. If one is "porting" a legacy application to COWL,
-  this may be inconvenient for the programmer.  Moreover, since
-  inter-compartment communication in asynchronous, one might give up
-  the intuitive ease of synchrony within a single compartment when
-  compartmentalizing.
-
-  However, applications that require policies that do not fit within
-  the lattice/label model may not be expressible. (See below.)
-
 B, D, E: What does COWL give up by taking a coarse-grained approach?
 
   We touch on some of the trade-offs of coarse-grained vs.
