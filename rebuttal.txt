@@ -68,11 +68,12 @@ B: The tainted component does not need communication after initially
 obtaining its taint/private information. Is that what's required of
 applications in order for them to be secured by COWL?
 
-    Yes: this is the defining characteristic of floating label dynamic
-    information flow control systems.  However, as described in Section
-    3.2, privileges are an escape-valve which allow *trusted* code to
-    declassify sensitive information for communication; untrusted code
-    has no recourse, and rightly so!
+  A compartment cannot communicate after getting tainted unless it
+  has (or receives) the privilege to downgrade/declassify its label,
+  as described in Section 3.2. Moreover, if the applications must
+  communicate after reading sensitive data it can do so by a-priori
+  creating multiple compartments (e.g., one to talk to the network
+  and the other to inspect the data).
 
 A: Will mashups with many libraries impose a requirement on developers to understand overly-complex policies?
 
