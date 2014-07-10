@@ -17,7 +17,7 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
 
   Still, the benefits of a coarse grained system are compelling, and we
   conjecture that coarse-grained and fine-grained IFC are equally
-  expressive, provided one use arbitrarily many compartments.  Of
+  expressive, provided one can use arbitrarily many compartments.  Of
   course, even if this equivalence holds in theory, in practice, it's
   unattractive for the programmer to need to introduce deep nesting of
   compartments to emulate fine-grained IFC (and presumably slower than
@@ -30,15 +30,16 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
 
 D: How general is the label system?
 
-  As described in Section 3.1, we use the logic-based DCLabels of [28],
-  which has been proved in [20] to be as expressive as the Decentralized
-  Label Model.  In the literature, there are more expressive logics
-  (e.g., first order logic) can allow for richer policies than those
-  permitted by DCLabels, and in principle, one could swap one of these
-  in. However, DCLabels have a singular advantage of reflecting existing
-  web policies very closely: to support a more expressive logic, on
-  would have to reimplement suitably generalized checks in the browser
-  rather than reusing existing mechanisms.
+  As described in Section 3.1, we use the logic-based DCLabels of
+  [28], which has been proved in [20] to be as expressive as the
+  Decentralized Label Model.  In the literature, there are more
+  expressive logics (e.g., first order logic) that can allow for
+  richer policies than those permitted by DCLabels, and in principle,
+  one could swap one of these in. However, DCLabels have a singular
+  advantage of reflecting existing web policies very closely: to
+  support a more expressive logic, on would have to reimplement
+  suitably generalized checks in the browser rather than reusing
+  existing mechanisms.
 
 B: The tainted component does not need communication after initially
 obtaining its taint/private information. Is that what's required of
