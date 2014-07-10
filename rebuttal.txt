@@ -154,70 +154,70 @@ B: What is the covert channel story for COWL?
 
 B: Does the sharing of heap space for LWorker introduce new covert channels?
 
-    Our implementation of LWorkers repurposes V8 and SpiderMonkey's
-    contexts and compartments, respectively. These primitives are already
-    used to isolate iframes of different origins to ensure that they
-    operate on disjoint sub-heaps. Hence, we believe the chance of
-    unauthorized leakage of information between LWorkers is identical to
-    that between iframes.
+  Our implementation of LWorkers repurposes V8 and SpiderMonkey's
+  contexts and compartments, respectively. These primitives are already
+  used to isolate iframes of different origins to ensure that they
+  operate on disjoint sub-heaps. Hence, we believe the chance of
+  unauthorized leakage of information between LWorkers is identical to
+  that between iframes.
 
 A: What is the label check done when accessing DOM of compartment?
 
-    In a footnote in Section 3.2, we mention that an integrity check is
-    involved in the label check for DOM modification.  Here are the
-    details: suppose compartment A tries to modify the DOM of
-    compartment B. With DClabels, this operation is allowed if
-    compartment A's current integrity label implies the integrity label
-    on the DOM.
+  In a footnote in Section 3.2, we mention that an integrity check is
+  involved in the label check for DOM modification.  Here are the
+  details: suppose compartment A tries to modify the DOM of
+  compartment B. With DClabels, this operation is allowed if
+  compartment A's current integrity label implies the integrity label
+  on the DOM.
 
-    Ordinarily, this label check would fail, because the current
-    integrity label of all compartments defaults to public (no integrity
-    guarantees), but the integrity label of a DOM defaults to its
-    origin.  However, if compartment A holds the privilege for
-    B, the operation would be allowed, the privilege overriding
-    the label check and endorsing a cross-compartment DOM write.
-    The mechanism by which this occurs is dual to declassification,
-    described in Section 3.2.
+  Ordinarily, this label check would fail, because the current
+  integrity label of all compartments defaults to public (no integrity
+  guarantees), but the integrity label of a DOM defaults to its
+  origin.  However, if compartment A holds the privilege for
+  B, the operation would be allowed, the privilege overriding
+  the label check and endorsing a cross-compartment DOM write.
+  The mechanism by which this occurs is dual to declassification,
+  described in Section 3.2.
 
 D: What did you mean by ambient authority?
 
-    Under the SOP, the notion of origin is always implicit: a page is
-    loaded from a URL, and that compartment is forever associated with
-    that exact origin. By "ambient authority" we mean the origin is
-    implicit in the page. By contrast, under COWL, a compartment has
-    explicit control over its label (and privilege).
+  Under the SOP, the notion of origin is always implicit: a page is
+  loaded from a URL, and that compartment is forever associated with
+  that exact origin. By "ambient authority" we mean the origin is
+  implicit in the page. By contrast, under COWL, a compartment has
+  explicit control over its label (and privilege).
 
 C: Why is the iframe and worker creation in Firefox faster for the labeled case?
 
-    We believe this difference (14.5 ms unlabeled, 14.4 ms labeled) is
-    simply measurement noise.
+  We believe this difference (14.5 ms unlabeled, 14.4 ms labeled) is
+  simply measurement noise.
 
 C: Why do you exhaust the call stack and is this limit set by the spec?
 
-    LWorkers run in the same context as the parent which spawns them,
-    so messaging is actually a function call which runs-to-completion.
-    The stack limit depends on the underlying JavaScript
-    engine implementation and is not specified in the specification.
+  LWorkers run in the same context as the parent which spawns them,
+  so messaging is actually a function call which runs-to-completion.
+  The stack limit depends on the underlying JavaScript
+  engine implementation and is not specified in the specification.
 
 C: Why did you use a "simplified version" of the encrypted document editor?
 
-    It was unclear how to securely reimplement the application without
-    COWL, so we decided to be generous and implement a version with no
-    privacy guarantees, which one would expect to run faster (it utilized
-    no cryptographic operations).
+  It was unclear how to securely reimplement the application without
+  COWL, so we decided to be generous and implement a version with no
+  privacy guarantees, which one would expect to run faster (it utilized
+  no cryptographic operations).
 
 D:  Why is CSP too restrictive for the password checker example when it can be used to white-list origins?
 
-    There are actually two CSP policies one might consider.  A CSP
-    policy which permits no origins is too restrictive because we can
-    never download the password regex database.  However, a CSP policy
-    which permits access to the database is too *permissive*.  Once you
-    grant access to an origin, that access persists for the entire page,
-    even after the password checker has received the password: it could
-    just send the password to the remote origin.
+  There are actually two CSP policies one might consider.  A CSP
+  policy which permits no origins is too restrictive because we can
+  never download the password regex database.  However, a CSP policy
+  which permits access to the database is too *permissive*.  Once you
+  grant access to an origin, that access persists for the entire page,
+  even after the password checker has received the password: it could
+  just send the password to the remote origin.
 
 D: Underlines, colors, bubbles?
 
-    An underlined origin indicates that a compartment holds the
-    privilege for that origin. We colored different origins differently
-    for contrast. Spiked bubbles connote the raising of labels.
+  An underlined origin indicates that a compartment holds the
+  privilege for that origin. We colored different origins differently
+  for contrast. Spiked bubbles connote the raising of labels.
