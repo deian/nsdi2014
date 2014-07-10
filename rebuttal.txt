@@ -236,17 +236,8 @@ D:  Why is CSP too restrictive for the password checker example when it can be u
     even after the password checker has received the password: it could
     just send the password to the remote origin.
 
-## PRESENTATION 
-
-We will take the reviewers' comments on presentation into
-consideration and revise the writing to address them (e.g., C's
-comments on showing code for the checker, and explaining CSP in the
-style of the background, etc.).
-
 D: Underlines, colors, bubbles?
 
-    We unfortunately neglected to state in our submission that 
-    underlined origin indicates that a compartment holds the privilege for
-    that origin. We colored different origins differently for
-    contrast. In these examples, all spiked bubbles connote the
-    raising of labels.
+    An underlined origin indicates that a compartment holds the
+    privilege for that origin. We colored different origins differently
+    for contrast. Spiked bubbles connote the raising of labels.
