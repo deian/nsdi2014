@@ -12,9 +12,9 @@ B, D, E: What does COWL give up by being coarse-grained?
 D: How general is the label system?
 
   As described in Section 3.1, we use DCLabels [28], which are as
-  expressive as the DLM [20] but less expressive as, say, first order
-  logic.  DCLabels reflect existing web policies closely, allowing
-  COWL to reuse existing mechanisms to enforce IFC.
+  expressive as the DLM [20] but less expressive than, say, first
+  order logic.  DCLabels reflect existing web policies closely,
+  allowing COWL to reuse existing mechanisms to enforce IFC.
 
 B: Is "no communication after tainting" what is required of applications?
 
