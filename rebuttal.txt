@@ -2,38 +2,35 @@ We thank the reviewers for their helpful comments.
 
 B, D, E: What does COWL give up by being coarse-grained?
 
-  We touch on some of the trade-offs of coarse-grained vs.
-  fine-grained IFC in the related work section, although focusing on
-  specific systems. For some applications (e.g., using jQuery with
-  trusted code and sensitive-data), fine-grained IFC systems (e.g.,
-  JFlow) may require less programmer effort. Coarse-grained IFC
-  systems typically require developers to think about
-  compartmentalization.  However, the approaches are not mutually
-  exclusive: one could imagine using JSFlow within a COWL compartment.
+  We discuss coarse-grained vs. fine-grained IFC in the context of
+  specific systems in the related work section.  More generally,
+  coarse-grained systems require developers to think about
+  compartmentalization; hence they may require more programmer effort
+  for some applications (e.g., using jQuery with trusted code and
+  sensitive-data).  We also note coarse- and fine-grained mechanisms
+  are not mutually exclusive: one could imagine using JSFlow within a
+  COWL compartment.
 
 D: How general is the label system?
 
   As described in Section 3.1, we use DCLabels [28], which are as
-  expressive as Myers and Liskov's DLM [20]. There are more expressive
-  logics (e.g., first order logic) that allow for richer policies, and
-  in principle, could be used in place of DCLabels.  However, DCLabels
-  have the singular advantage of reflecting existing web policies very
-  closely, allowing COWL to reuse existing mechanisms to enforce IFC.
+  expressive as the DLM [20]. There are more expressive logics (e.g.,
+  first order logic) that allow for richer policies.  However,
+  DCLabels reflect existing web policies closely, allowing COWL to
+  reuse existing mechanisms to enforce IFC.
 
 B: Is "no communication after tainting" what is required of applications?
 
   If an application must communicate after reading sensitive data, it
-  can do so by (a priori) creating multiple compartments (e.g., one to
-  that always communicates with the network and the other for
-  inspecting sensitive data).  Moreover, a compartment can communicate
-  after reading sensitive data if has (or receives) the privilege to
-  downgrade its label (described in Section 3.2).
+  can do so by (beforehand) creating multiple compartments.  (Of
+  course, this is unnecessary if it has or receives appropriate
+  privilege as described in Section 3.2.)
 
 B, D, E: What about integrity?
 
   Each label contains an integrity component; the design of integrity
   is complete and implemented, but was given short shrift for reasons
-  of brevity. We will expand on this. 
+  of brevity.
 
 E: SOP "provides some degree of integrity" for DOM mutation, what about COWL?
 
@@ -43,10 +40,8 @@ E: SOP "provides some degree of integrity" for DOM mutation, what about COWL?
 
 E: Is your vision to co-exist or replace all existing security mechanisms?
 
-  COWL is explicitly designed for incremental deployment.  While [40]
-  discusses how a label system can replace today's mechanisms (SOP,
-  CSP, etc.), COWL co-exists with these mechanisms, offering MAC to
-  pages which opt-in to this new functionality (summarized in Section 3).
+  COWL is designed to coexist with previous mechanisms so as to
+  support incremental deployment and offer MAC to pages that opt-in.
 
 E: How do you address taint accumulation?
 
