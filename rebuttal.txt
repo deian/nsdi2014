@@ -1,3 +1,8 @@
+We thank the reviewers for their helpful comments.  We've structured the
+rebuttal into two parts: the (short) first section addresses some
+high-level questions, and the second section addresses some factual
+questions about the paper.
+
 ## High-level questions
 
 B, D, E: What does COWL give up by taking a coarse-grained approach?
