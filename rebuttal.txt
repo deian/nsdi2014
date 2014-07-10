@@ -57,12 +57,9 @@ to understand overly complex policies?
 
   We acknowledge that programming with COWL definitely requires
   understanding COWL's primitives. However, our experience to date is
-  that a relatively small set of canonical design patterns captures many
-  common web application (and mashup) behaviors. For future work, we're
-  interested in a higher-level policy language which could let
-  developers express intricate policies (e.g., that involve many
-  libraries and mutual distrust among them) in a straightforward way,
-  and that a compiler could then compile into the COWL primitives.
+  that a relatively small set of canonical design patterns captures
+  many common web application (and mashup) behaviors.  We leave the
+  investigation of more case studies to future work.
 
 ## Factual questions
 
