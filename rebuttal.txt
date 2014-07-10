@@ -100,37 +100,39 @@ E: SOP "provides some degree of integrity" for DOM changes, what about COWL?
 
 E: Is your vision to co-exist or replace all existing security mechanisms?
 
-    COWL is explicitly designed to allow for an incremental deployment
-    path.  While prior work (e.g., [40]) discusses how a label system
-    can subsume the policies that can be implemented with today's SOP,
-    CSP, CORS, etc, COWL co-exists with these mechanisms, offering MAC
-    to pages which opt-in to this new functionality (summarized in
-    Section 3).
+  COWL is explicitly designed to allow for an incremental deployment
+  path.  While prior work (e.g., [40]) discusses how a label system
+  can subsume the policies that can be implemented with today's SOP,
+  CSP, CORS, etc., COWL co-exists with these mechanisms, offering MAC
+  to pages which opt-in to this new functionality (summarized in
+  Section 3).
 
 E: How do you address taint-accumulation?
 
-    In the case of compartments, the answer is two-fold.  First,
-    compartments in browsing contexts are relatively short-lived, after
-    which any raised labels go away.  Second, the ability to create
-    compartments means operations which raise labels can be isolated to
-    separate compartments. Good application design can avoid
-    accumulation of taint.
+  In the case of compartments, the answer is two-fold.  First,
+  compartments in browsing contexts are relatively short-lived, a
+  result of navigation.  Second, the ability to create compartments
+  means operations which raise labels can be isolated to separate
+  compartments. Good application design can avoid accumulation of
+  taint.
 
-    In the case of files, there is a simple design principle (seen in
-    prior systems HiStar [42] and Hails/LIO [11]) to avoid
-    taint-accumulation: the label associated with a file is immutable,
-    and writes which cannot flow to the label are rejected.
+  In the case of files, there is a simple design principle (seen in
+  prior systems HiStar [42] and Hails/LIO [11]) to avoid
+  taint-accumulation: the label associated with a file is immutable,
+  and writes which cannot flow to the label are rejected. (A recent
+  CSF paper shows that such systems are as expressive as those that
+  that allow label mutation.)
 
 A: What kind of objects can be labeled?
 
-    Blobs, which can include serialized JavaScript values (e.g.
-    as seen in postMessage).
+  Blobs, which can include serialized JavaScript values (e.g.
+  as seen in postMessage).
 
 A, B: How do you disallow the manual setting of label XHR header?
 
-    The XHR API has the option for users to add custom headers to the
-    request, as long as they are not a reserved header.  Label headers
-    are also considered reserved, disallowing their "manual" modification.
+  The XHR API has the option for users to add custom headers to the
+  request, as long as they are not a reserved header;  we modified the
+  XHR constructor to treat our header as reserved.
 
 B: What is the covert channel story for COWL?
 
