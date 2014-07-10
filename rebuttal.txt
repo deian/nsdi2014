@@ -65,11 +65,13 @@ applications in order for them to be secured by COWL?
   A compartment cannot communicate after getting tainted unless it
   has (or receives) the privilege to downgrade/declassify its label,
   as described in Section 3.2. Moreover, if the applications must
-  communicate after reading sensitive data it can do so by a-priori
-  creating multiple compartments (e.g., one to talk to the network
-  and the other to inspect the data).
+  communicate after reading sensitive data it can do so by (a-priori)
+  creating multiple compartments (e.g., one to that always
+  communicates with the network and the other for inspecting the
+  sensitive data).
 
-A: Will mashups with many libraries impose a requirement on developers to understand overly-complex policies?
+A: Will mashups with many libraries impose a requirement on developers
+to understand overly-complex policies?
 
   We acknowledge that programming with COWL definitely does require
   understanding COWL's primitives. However, our experience to date is
