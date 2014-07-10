@@ -98,9 +98,10 @@ B, D, E: What about integrity?
 
 E: SOP "provides some degree of integrity" for DOM changes, what about COWL?
 
-    In Section 3.2, we mention that a privilege is required to modify
-    the DOM.  Privileges are allocated in the same manner as traditional SOP,
-    so the integrity guarantees are the same.
+  In Section 3.2, we mention that a privilege is required to modify
+  the DOM (which has an integrity label corresponding to the
+  origin), and privileges are granted in the same manner as
+  traditional SOP.
 
 E: Is your vision to co-exist or replace all existing security mechanisms?
 
