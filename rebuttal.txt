@@ -18,10 +18,10 @@ D: How general is the label system?
 
 B: Is "no communication after tainting" what is required of applications?
 
-  If an application must communicate after reading sensitive data, it
-  can do so by (beforehand) creating multiple compartments.  (Of
-  course, this is unnecessary if it has or receives appropriate
-  privilege as described in Section 3.2.)
+  To communicate after reading sensitive data, an application may
+  create multiple compartments beforehand.  (Of course, this is
+  unnecessary if it has or receives appropriate privilege as described
+  in Section 3.2.)
 
 B, D, E: What about integrity?
 
