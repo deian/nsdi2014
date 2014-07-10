@@ -136,21 +136,21 @@ A, B: How do you disallow the manual setting of label XHR header?
 
 B: What is the covert channel story for COWL?
 
-    As mentioned in Section 3, COWL both restricts and relaxes the SOP.
-    When the SOP is restricted--i.e., no labeled XHR was used--the
-    question of covert channels is irrelevant,  since webpages do not
-    have direct access to any more sensitive data than they would have
-    had access to already.  This is the case for 3/4 example applications.
+  As mentioned in Section 3, COWL both restricts and relaxes the SOP.
+  When the SOP is restricted--i.e., no labeled XHR was used--the
+  question of covert channels is irrelevant,  since webpages do not
+  have direct access to any more sensitive data than they would have
+  had access to already.  This is the case for 3/4 example applications.
 
-    Labeled XHR allows access to sensitive data that would not be
-    accessible under SOP, so covert channels are a definite concern
-    here.  In Section 3.3, we discuss how clearance can be used to
-    restrict the sensitivity of data that can be read (and thus leaked
-    via covert channels), allowing access only to data a compartment
-    "needs to know." As also mentioned, to achieve the functionality of
-    third-party mashup sites, the status quo requires the user to give
-    up their password; COWL significantly improves this state of
-    affairs.
+  Labeled XHR allows access to sensitive data that would not be
+  accessible under SOP, so covert channels are a definite concern
+  here.  In Section 3.3, we discuss how clearance can be used to
+  restrict the sensitivity of data that can be read (and thus leaked
+  via covert channels), allowing access only to data a compartment
+  "needs to know." As also mentioned, to achieve the functionality of
+  third-party mashup sites, the status quo requires the user to give
+  up their password; COWL significantly improves this state of
+  affairs.
 
 B: Does the sharing of heap space for LWorker introduce new covert channels?
 
