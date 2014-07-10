@@ -161,7 +161,7 @@ A, C: What is the label check done when accessing DOM of compartment?
   The mechanism by which this occurs is dual to declassification,
   described in Section 3.2.
 
-D: What did you mean by ambient authority?
+D: What do you mean by ambient authority?
 
   Under the SOP, the notion of origin is always implicit: a page is
   loaded from a URL, and that compartment is forever associated with
@@ -169,34 +169,34 @@ D: What did you mean by ambient authority?
   implicit in the page. By contrast, under COWL, a compartment has
   explicit control over its label (and privilege).
 
-C: Why is the iframe and worker creation in Firefox faster for the labeled case?
+C: Why are iframe and worker creation in Firefox faster for the labeled case?
 
-  We believe this difference (14.5 ms unlabeled, 14.4 ms labeled) is
-  simply measurement noise.
+  We believe this difference (14.5 ms unlabeled, 14.4 ms labeled)
+  simply reflects these operations' distributions of running times.
 
 C: Why do you exhaust the call stack and is this limit set by the spec?
 
-  LWorkers run in the same context as the parent which spawns them,
-  so messaging is actually a function call which runs-to-completion.
+  LWorkers run in the same context as the parent that spawns them,
+  so messaging is actually a function call which runs to completion.
   The stack limit depends on the underlying JavaScript
   engine implementation and is not specified in the specification.
 
 C: Why did you use a "simplified version" of the encrypted document editor?
 
   It was unclear how to securely reimplement the application without
-  COWL, so we decided to be generous and implement a version with no
-  privacy guarantees, which one would expect to run faster (it utilized
-  no cryptographic operations).
+  COWL, so we decided to err on the side of an unduly harsh baseline by
+  implementing a baseline version with no privacy guarantees, which one would
+  expect to run faster (it uses no cryptographic operations).
 
 D:  Why is CSP too restrictive for the password checker example when
-it can be used to white-list origins?
+it can be used to whitelist origins?
 
-  There are actually two CSP policies one might consider.  A CSP
+  There are actually two CSP policies one might consider. A CSP
   policy which permits no origins is too restrictive because we can
-  never download the password regex database.  However, a CSP policy
+  never download the password regex database. However, a CSP policy
   which permits access to the database is too *permissive*.  Once you
   grant access to an origin, that access persists for the entire page,
-  even after the password checker has received the password: it could
+  even after the password checker has received the password; it could
   just send the password to the remote origin.
 
 D: Underlines, colors, bubbles?
@@ -204,4 +204,4 @@ D: Underlines, colors, bubbles?
   An underlined origin indicates that a compartment holds the
   privilege for that origin. We colored different origins differently
   for contrast. Spiked bubbles connote the raising of labels. We will
-  address these and other suggested presentations issues.
+  address these and other suggested presentation issues.
