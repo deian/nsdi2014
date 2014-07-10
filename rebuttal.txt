@@ -2,55 +2,54 @@
 
 B, D: What kinds of applications is COWL not sufficient for?
 
-    Underlying the design of COWL is the assumption that applications
-    need not mix data of different sensitivity in the same compartment
-    and continue communicating. Note, however, that because COWL
-    supports arbitrary nesting of compartments, one may introduce
-    nesting to "force" data of different sensitivity into distinct
-    compartments. If one is "porting" a legacy application to COWL,
-    this may be inconvenient for the programmer.  Moreover, since
-    inter-compartment communication in asynchronous, one might give up
-    the intuitive ease of synchrony within a single compartment when
-    compartmentalizing.
+  Underlying the design of COWL is the assumption that applications
+  need not mix data of different sensitivity in the same compartment
+  and continue communicating. Note, however, that because COWL
+  supports arbitrary nesting of compartments, one may introduce
+  nesting to "force" data of different sensitivity into distinct
+  compartments. If one is "porting" a legacy application to COWL,
+  this may be inconvenient for the programmer.  Moreover, since
+  inter-compartment communication in asynchronous, one might give up
+  the intuitive ease of synchrony within a single compartment when
+  compartmentalizing.
 
-    However, applications that require policies that do not fit the
-    lattice-label model may not be expressible using COWL. This
-    limitation is due to the chosen label model (discussed below).
+  However, applications that require policies that do not fit within
+  the lattice/label model may not be expressible. (See below.)
 
 B, D, E: What does COWL give up by taking a coarse-grained approach?
 
-    We touch on some of the trade-offs of coarse-grained vs.
-    fine-grained IFC in the related work section, but agree that this
-    discussion in the submission was directed at individual prior
-    systems rather than drawing conclusions about these two broad
-    approaches. Coarse-grained (compartment-granularity) IFC is much
-    easier to implement than fine-grained (object-granularity) IFC
-    tracking, as the former requires no changes to the JavaScript
-    execution engine, whereas the latter requires extensive changes to
-    propagate and check labels for every low-level JavaScript
-    operation. The coarse-grained approach also incurs far less
-    execution overhead: label-related processing occurs nearly
-    exclusively upon inter-compartment communication, rather than at
-    every step of a computation, in every compartment.
+  We touch on some of the trade-offs of coarse-grained vs.
+  fine-grained IFC in the related work section, but agree that this
+  discussion was directed at individual prior systems rather than
+  drawing conclusions about these two broad approaches.
+  Coarse-grained (compartment-granularity) IFC is much
+  easier to implement than fine-grained (object-granularity) IFC;
+  the former requires no changes to the JavaScript
+  execution engine, whereas the latter requires extensive changes to
+  propagate and check labels for every low-level JavaScript
+  operation. The coarse-grained approach also incurs far less
+  execution overhead: label-related processing occurs nearly
+  exclusively upon inter-compartment communication, rather than at
+  every step of a computation, in every compartment.
 
-    We conjecture (but have not yet proven) that coarse-grained and
-    fine-grained flow tracking are equally expressive, provided one
-    can introduce arbitrary nesting of compartments.  Even if this
-    equivalence holds in theory, in practice, it's unattractive for
-    the programmer to need to introduce deep nesting of compartments
-    to emulate fine-grained IFC (and presumably would perform worse
-    than fine-grained IFC, if you literally put compartments around
-    every individual object).
+  We conjecture (but have not yet proven) that coarse-grained and
+  fine-grained IFC are equally expressive, provided one can
+  introduce arbitrary nesting of compartments.  Even if this
+  equivalence holds in theory, in practice, it's unattractive for
+  the programmer to need to introduce deep nesting of compartments
+  to emulate fine-grained IFC (and presumably slower than
+  fine-grained IFC, if you literally put compartments around every
+  individual object).
 
-    Fine-grained IFC can require less programmer effort in some cases.
-    For example (as we briefly mention in the discussion of JSFlow),
-    when trying to confine an untrusted jQuery library in the same
-    page as the trusted application code and sensitive data, COWL
-    requires the programmer to explicitly partition the page into a
-    trusted compartment and untrusted compartment. (This is somewhat
-    reminiscent of least-privilege partitioning, in the style of okws
-    and Wedge.) However, the fine-grained approach lets jQuery remain
-    in the same compartment as the trusted code and sensitive data.
+  Fine-grained IFC can require less programmer effort in some cases.
+  For example (as we briefly mention in the related work discussion
+  of JSFlow), when trying to confine an untrusted jQuery library in
+  the same page as the trusted application code and sensitive data,
+  COWL requires the programmer to explicitly partition the page into
+  a trusted and untrusted compartment. (This is somewhat reminiscent
+  of least-privilege partitioning, in the style of OKWS and Wedge.)
+  However, the fine-grained approach lets jQuery remain in the same
+  compartment as the trusted code and sensitive data.
 
     We remark that both approaches are not mutually exclusive, i.e., it is
     possible to easily introduce compartments where fine-grained IFC is applied
@@ -61,40 +60,43 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
 
 D: How general is the label system?
 
-    As described in Section 3.1, we use the logic-based DCLabels of [28].  The
-    particular logic is propositional logic without negation, and it has been
-    proved to be as expressive as the well-established Decentralized Label Model
-    for IFC [20]. More expressive logics (e.g., first order logic as used by
-    NexusOS [SOSP '11]) can allow for richer policies than those permitted by
-    DCLabels. For instance, even allowing negation would permit more expressive
-    policies (e.g., "this labeled blob cannot be read by a.com, but can be read
-    by any other origin"). With DCLabels, such policies must be encoded by
-    "white-listing" all the permitted readers. We chose DCLabels because we
-    believe they correspond closely to web origins, and we thus believe that web
-    developers will find them intuitive.
+  As described in Section 3.1, we use the logic-based DCLabels of
+  [28]. The particular logic is propositional logic without negation and 
+  it has been proved to be as expressive as the well-established Decentralized Label Model
+  for IFC [20].
+  More expressive logics (e.g., first order logic) can allow for
+  richer policies than those permitted by DCLabels. For instance, even
+  allowing negation would permit more expressive policies such as
+  "this labeled blob cannot be read by a.com." With DCLabels, such
+  policies must be encoded by "white-listing" all the permitted
+  readers except a.com. We chose DCLabels because they correspond
+  closely to the existing web policies, and we thus believe that web
+  developers will find them intuitive.
+
 
 B: The tainted component does not need communication after initially
 obtaining its taint/private information. Is that what's required of
 applications in order for them to be secured by COWL?
 
-    Yes: this is the defining characteristic of floating label dynamic
-    information flow control systems.  However, as described in Section
-    3.2, privileges are an escape-valve which allow *trusted* code to
-    declassify sensitive information for communication; untrusted code
-    has no recourse, and rightly so!
+  A compartment cannot communicate after getting tainted unless it
+  has (or receives) the privilege to downgrade/declassify its label,
+  as described in Section 3.2. Moreover, if the applications must
+  communicate after reading sensitive data it can do so by a-priori
+  creating multiple compartments (e.g., one to talk to the network
+  and the other to inspect the data).
 
 A: Will mashups with many libraries impose a requirement on developers to understand overly-complex policies?
 
-    We acknowledge that programming with COWL definitely does require
-    understanding COWL's primitives. However, our experience to date
-    (as illustrated in the four example applications) is that a
-    relatively small set of canonical design patterns captures many of
-    the common web application (and mashup) behaviors. We believe that
-    a higher-level policy language could let developers express
-    intricate policies (e.g., that involve many libraries and mutual
-    distrust among them) in a straightforward way, and that a compiler
-    could then compile such policies into the COWL primitives. Such a
-    language and compiler are the subject of our future work.
+  We acknowledge that programming with COWL definitely does require
+  understanding COWL's primitives. However, our experience to date
+  (as illustrated in the four example applications) is that a
+  relatively small set of canonical design patterns captures many of
+  the common web application (and mashup) behaviors. We believe that
+  a higher-level policy language could let developers express
+  intricate policies (e.g., that involve many libraries and mutual
+  distrust among them) in a straightforward way, and that a compiler
+  could then compile such policies into the COWL primitives. Such a
+  language and compiler are the subject of our future work.
 
 ## Factual questions
 
@@ -117,7 +119,6 @@ E: SOP "provides some degree of integrity" for DOM changes, what about COWL?
 
 E: Is your vision to co-exist or replace all existing security mechanisms?
 
-    [keyword: vision]
     COWL is explicitly designed to allow for an incremental deployment
     path.  While prior work (e.g., [40]) discusses how a label system
     can subsume the policies that can be implemented with today's SOP,
@@ -194,24 +195,23 @@ B: Does the sharing of heap space for LWorker introduce new covert channels?
     unauthorized leakage of information between LWorkers is identical to
     that between iframes.
 
-A: What the label check done when accessing DOM of compartment?
+A: What is the label check done when accessing DOM of compartment?
 
-    Each compartment has distinct secrecy and integrity labels (though
-    the submission elides many of the details of integrity labels in
-    the interest of brevity). Suppose compartment A tries to modify
-    the DOM of compartment B. The label check is as follows: the
-    operation is allowed if compartment A's integrity label implies
-    compartment B's (the reverse implication to the label check for
-    secrecy, as we stated somewhat opaquely in footnote 8). If this
-    label check fails (as it would if compartment B’s label were
-    "public," as is typically the case), the operation is *still*
-    allowed if compartment A holds the privilege for the origin of
-    compartment B. In other words, "exercised" here signifies an
-    "override" of the integrity label check to allow a
-    cross-compartment DOM write when the writing compartment holds the
-    privilege for the origin of the written compartment. (Privilege
-    analogously affects secrecy label checks, as described in the
-    first two bullets in Section 3.2.)
+    In a footnote in Section 3.2, we mention that an integrity check is
+    involved in the label check for DOM modification.  Here are the
+    details: suppose compartment A tries to modify the DOM of
+    compartment B. With DClabels, this operation is allowed if
+    compartment A's current integrity label implies the integrity label
+    on the DOM.
+
+    Ordinarily, this label check would fail, because the current
+    integrity label of all compartments defaults to public (no integrity
+    guarantees), but the integrity label of a DOM defaults to its
+    origin.  However, if compartment A holds the privilege for
+    B, the operation would be allowed, the privilege overriding
+    the label check and endorsing a cross-compartment DOM write.
+    The mechanism by which this occurs is dual to declassification,
+    described in Section 3.2.
 
 D: What did you mean by ambient authority?
 
@@ -224,51 +224,34 @@ D: What did you mean by ambient authority?
 C: Why is the iframe and worker creation in Firefox faster for the labeled case?
 
     We believe this difference (14.5 ms unlabeled, 14.4 ms labeled) is
-    small enough to be explained by variability in the distribution of
-    completion times.
-
+    simply measurement noise.
 
 C: Why do you exchaust the call stack and is this limit set by the spec?
 
-    The number of stack frames depends on the underlying JavaScript
-    engine implementation (not the spec). The Firefox implementation
-    exhausted the call stack at 90 messages, since the LWorkers run in
-    the same context as the parent, so a message exchange is a
-    function call.
+    LWorkers run in the same context as the parent which spawns them,
+    so messaging is actually a function call which runs-to-completion.
+    The stack limit depends on the underlying JavaScript
+    engine implementation and is not specified in the specification.
 
 C: Why did you use a "simplified version" of the encrypted document editor?
 
-    The "simplified version" was the baseline for comparison (i.e.,
-    running in today's Firefox browser, without COWL). It wasn't clear
-    how to implement this application with the same privacy guarantees
-    in the baseline browser, so we implemented a version without any
-    privacy guarantees. As we would expect a version with any sort of
-    partial privacy to run more slowly (because of added cryptographic
-    operations), the "simplified version" if anything overstates the
-    performance penalty of the COWL version of the application.
+    It was unclear how to securely reimplement the application without
+    COWL, so we decided to be generous and implement a version with no
+    privacy guarantees, which one would expect to run faster (it utilized
+    no cryptographic operations).
 
 D:  Why is CSP too restrictive for the password checker example when it can be used to white-list origins?
 
-    It's correct that one could use CSP in a way that would allow the
-    password checker to communicate with an origin that hosts updated
-    regular expressions for weak passwords. However, CSP is a
-    discretionary access control mechanism: once you grant access to
-    communicate with an origin, that access persists for that
-    page. Thus, using CSP to specify that the password checker may
-    communicate with a remote origin would allow the checker to send
-    the user's passwords to that remote origin.
-
-## PRESENTATION 
-
-We will take the reviewers' comments on presentation into
-consideration and revise the writing to address them (e.g., C's
-comments on showing code for the checker, and explaining CSP in the
-style of the background, etc.).
+    There are actually two CSP policies one might consider.  A CSP
+    policy which permits no origins is too restrictive because we can
+    never download the password regex database.  However, a CSP policy
+    which permits access to the database is too *permissive*.  Once you
+    grant access to an origin, that access persists for the entire page,
+    even after the password checker has received the password: it could
+    just send the password to the remote origin.
 
 D: Underlines, colors, bubbles?
 
-    We unfortunately neglected to state in our submission that 
-    underlined origin indicates that a compartment holds the privilege for
-    that origin. We colored different origins differently for
-    contrast. In these examples, all spiked bubbles connote the
-    raising of labels.
+    An underlined origin indicates that a compartment holds the
+    privilege for that origin. We colored different origins differently
+    for contrast. Spiked bubbles connote the raising of labels.
