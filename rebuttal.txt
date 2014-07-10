@@ -78,10 +78,9 @@ applications in order for them to be secured by COWL?
 A: Will mashups with many libraries impose a requirement on developers to understand overly-complex policies?
 
   We acknowledge that programming with COWL definitely does require
-  understanding COWL's primitives. However, our experience to date
-  (as illustrated in the four example applications) is that a
-  relatively small set of canonical design patterns captures many of
-  the common web application (and mashup) behaviors. We believe that
+  understanding COWL's primitives. However, our experience to date is
+  that a relatively small set of canonical design patterns captures
+  many common web application (and mashup) behaviors. We believe that
   a higher-level policy language could let developers express
   intricate policies (e.g., that involve many libraries and mutual
   distrust among them) in a straightforward way, and that a compiler
