@@ -37,7 +37,7 @@ D: How general is the label system?
   richer policies than those permitted by DCLabels, and in principle,
   one could swap one of these in. However, DCLabels have the singular
   advantage of reflecting existing web policies very closely: to
-  support a more expressive logic, on would have to reimplement
+  support a more expressive logic, one would have to reimplement
   suitably generalized checks in the browser rather than reusing
   existing mechanisms.
 
