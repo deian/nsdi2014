@@ -181,24 +181,23 @@ B: Does the sharing of heap space for LWorker introduce new covert channels?
     unauthorized leakage of information between LWorkers is identical to
     that between iframes.
 
-A: What the label check done when accessing DOM of compartment?
+A: What is the label check done when accessing DOM of compartment?
 
-    Each compartment has distinct secrecy and integrity labels (though
-    the submission elides many of the details of integrity labels in
-    the interest of brevity). Suppose compartment A tries to modify
-    the DOM of compartment B. The label check is as follows: the
-    operation is allowed if compartment A's integrity label implies
-    compartment B's (the reverse implication to the label check for
-    secrecy, as we stated somewhat opaquely in footnote 8). If this
-    label check fails (as it would if compartment B’s label were
-    "public," as is typically the case), the operation is *still*
-    allowed if compartment A holds the privilege for the origin of
-    compartment B. In other words, "exercised" here signifies an
-    "override" of the integrity label check to allow a
-    cross-compartment DOM write when the writing compartment holds the
-    privilege for the origin of the written compartment. (Privilege
-    analogously affects secrecy label checks, as described in the
-    first two bullets in Section 3.2.)
+    In a footnote in Section 3.2, we mention that an integrity check is
+    involved in the label check for DOM modification.  Here are the
+    details: suppose compartment A tries to modify the DOM of
+    compartment B. With DClabels, this operation is allowed if
+    compartment A's current integrity label implies the integrity label
+    on the DOM.
+
+    Ordinarily, this label check would fail, because the current
+    integrity label of all compartments defaults to public (no integrity
+    guarantees), but the integrity label of a DOM defaults to its
+    origin.  However, if compartment A holds the privilege for
+    B, the operation would be allowed, the privilege overriding
+    the label check and endorsing a cross-compartment DOM write.
+    The mechanism by which this occurs is dual to declassification,
+    described in Section 3.2.
 
 D: What did you mean by ambient authority?
 
@@ -211,39 +210,31 @@ D: What did you mean by ambient authority?
 C: Why is the iframe and worker creation in Firefox faster for the labeled case?
 
     We believe this difference (14.5 ms unlabeled, 14.4 ms labeled) is
-    small enough to be explained by variability in the distribution of
-    completion times.
-
+    simply measurement noise.
 
 C: Why do you exchaust the call stack and is this limit set by the spec?
 
-    The number of stack frames depends on the underlying JavaScript
-    engine implementation (not the spec). The Firefox implementation
-    exhausted the call stack at 90 messages, since the LWorkers run in
-    the same context as the parent, so a message exchange is a
-    function call.
+    LWorkers run in the same context as the parent which spawns them,
+    so messaging is actually a function call which runs-to-completion.
+    The stack limit depends on the underlying JavaScript
+    engine implementation and is not specified in the specification.
 
 C: Why did you use a "simplified version" of the encrypted document editor?
 
-    The "simplified version" was the baseline for comparison (i.e.,
-    running in today's Firefox browser, without COWL). It wasn't clear
-    how to implement this application with the same privacy guarantees
-    in the baseline browser, so we implemented a version without any
-    privacy guarantees. As we would expect a version with any sort of
-    partial privacy to run more slowly (because of added cryptographic
-    operations), the "simplified version" if anything overstates the
-    performance penalty of the COWL version of the application.
+    It was unclear how to securely reimplement the application without
+    COWL, so we decided to be generous and implement a version with no
+    privacy guarantees, which one would expect to run faster (it utilized
+    no cryptographic operations).
 
 D:  Why is CSP too restrictive for the password checker example when it can be used to white-list origins?
 
-    It's correct that one could use CSP in a way that would allow the
-    password checker to communicate with an origin that hosts updated
-    regular expressions for weak passwords. However, CSP is a
-    discretionary access control mechanism: once you grant access to
-    communicate with an origin, that access persists for that
-    page. Thus, using CSP to specify that the password checker may
-    communicate with a remote origin would allow the checker to send
-    the user's passwords to that remote origin.
+    There are actually two CSP policies one might consider.  A CSP
+    policy which permits no origins is too restrictive because we can
+    never download the password regex database.  However, a CSP policy
+    which permits access to the database is too *permissive*.  Once you
+    grant access to an origin, that access persists for the entire page,
+    even after the password checker has received the password: it could
+    just send the password to the remote origin.
 
 ## PRESENTATION 
 
