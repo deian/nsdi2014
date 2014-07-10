@@ -144,7 +144,7 @@ B: Does the sharing of heap space for LWorker introduce new covert channels?
   unauthorized leakage of information between LWorkers is identical to
   that between iframes.
 
-A: What is the label check done when accessing DOM of compartment?
+A, C: What is the label check done when accessing DOM of compartment?
 
   In a footnote in Section 3.2, we mention that an integrity check is
   involved in the label check for DOM modification.  Here are the
@@ -189,7 +189,8 @@ C: Why did you use a "simplified version" of the encrypted document editor?
   privacy guarantees, which one would expect to run faster (it utilized
   no cryptographic operations).
 
-D:  Why is CSP too restrictive for the password checker example when it can be used to white-list origins?
+D:  Why is CSP too restrictive for the password checker example when
+it can be used to white-list origins?
 
   There are actually two CSP policies one might consider.  A CSP
   policy which permits no origins is too restrictive because we can
@@ -203,4 +204,5 @@ D: Underlines, colors, bubbles?
 
   An underlined origin indicates that a compartment holds the
   privilege for that origin. We colored different origins differently
-  for contrast. Spiked bubbles connote the raising of labels.
+  for contrast. Spiked bubbles connote the raising of labels. We will
+  address these and other suggested presentations issues.
