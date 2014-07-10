@@ -1,110 +1,80 @@
-We thank the reviewers for their helpful comments.  We've structured the
-rebuttal into two parts: the (short) first section addresses some
-high-level questions, and the second section addresses some factual
-questions about the paper.
-
-## High-level questions
+We thank the reviewers for their helpful comments. 
 
 B, D, E: What does COWL give up by being coarse-grained?
 
   We touch on some of the trade-offs of coarse-grained vs.
-  fine-grained IFC in the related work section, although the
-  discussion is focused on specific prior systems. Generally speaking,
-  coarse-grained IFC requires developers to give some thought to how
-  to compartmentalize a system to achieve desired security properties.
-  Fine-grained IFC can require less programmer effort: we imagine that
-  our jQuery example would be more natural in a fine-grained IFC
-  system.  However, both approaches are not mutually exclusive; one
-  could imagine using fine-grained IFC (e.g., JSFlow) within a
-  compartment
+  fine-grained IFC in the related work section, although focusing on
+  specific systems. For some applications (e.g., using jQuery with
+  trusted code and sensitive-data), fine-grained IFC systems (e.g.,
+  JFlow) may require less programmer effort. Coarse-grained IFC
+  systems typically require developers to think about
+  compartmentalization.  However, the approaches are not mutually
+  exclusive: one could imagine using JSFlow within a COWL compartment.
 
 D: How general is the label system?
 
-  As described in Section 3.1, we use the propositional logic-based
-  DCLabels of [28], which are as expressive as Myer's and Liskov's DLM
-  [20]. There are more expressive logics (e.g., first order logic)
-  that can allow for richer policies than those permitted by DCLabels,
-  and in principle, one could swap one of these in. However, DCLabels
+  As described in Section 3.1, we use DCLabels [28], which are as
+  expressive as Myers and Liskov's DLM [20]. There are more expressive
+  logics (e.g., first order logic) that allow for richer policies, and
+  in principle, could be used in place of DCLabels.  However, DCLabels
   have the singular advantage of reflecting existing web policies very
-  closely: to support a more expressive logic, one would have to
-  reimplement suitably generalized checks in the browser rather than
-  reusing existing mechanisms.
+  closely, allowing COWL to reuse existing mechanisms to enforce IFC.
 
-B: The tainted component does not need communication ... is that
-what's required of applications?
+B: Is "no communication after tainting" what is required of applications?
 
-  A compartment cannot communicate after getting tainted unless it
-  has (or receives) the privilege to downgrade/declassify its label,
-  as described in Section 3.2. Moreover, if an application must
-  communicate after reading sensitive data it can do so by (a priori)
-  creating multiple compartments (e.g., one to that always
-  communicates with the network and the other for inspecting
-  sensitive data).
-
-A: Will mashups with many libraries require the understanding of
-overly complex policies?
-
-  We acknowledge that programming with COWL definitely requires
-  understanding COWL's primitives. However, our experience to date is
-  that a relatively small set of canonical design patterns captures
-  many common web application (and mashup) behaviors.  We leave the
-  investigation of more case studies to future work.
-
-## Factual questions
+  If an application must communicate after reading sensitive data, it
+  can do so by (a priori) creating multiple compartments (e.g., one to
+  that always communicates with the network and the other for
+  inspecting sensitive data).  Moreover, a compartment can communicate
+  after reading sensitive data if has (or receives) the privilege to
+  downgrade its label (described in Section 3.2).
 
 B, D, E: What about integrity?
 
-  Each label contains an integrity component; the design of
-  integrity is complete and implemented, but was given short shrift
-  in the submission for reasons of brevity.  As suggested, we intend
-  to expand on this. 
+  Each label contains an integrity component; the design of integrity
+  is complete and implemented, but was given short shrift for reasons
+  of brevity. We will expand on this. 
 
-E: SOP "provides some degree of integrity" for DOM changes, what about COWL?
+E: SOP "provides some degree of integrity" for DOM mutation, what about COWL?
 
-  In Section 3.2, we mention that a privilege is required to modify
-  the DOM (which has an integrity label corresponding to the origin),
-  and privileges are granted in the same manner as under the SOP.
+  In COWL, a privilege is required to modify the DOM (which has an
+  integrity label corresponding to the origin), and privileges are
+  granted in the same manner as SOP (describe in Section 3.2)
 
 E: Is your vision to co-exist or replace all existing security mechanisms?
 
-  COWL is explicitly designed to allow an incremental deployment path.
-  While prior work (e.g., [40]) discusses how a label system can
-  subsume policies implemented with today's SOP, CSP, CORS, etc., COWL
-  co-exists with these mechanisms, offering MAC to pages which opt-in
-  to this new functionality (summarized in Section 3).
+  COWL is explicitly designed for incremental deployment.  While [40]
+  discusses how a label system can replace today's mechanisms (SOP,
+  CSP, etc.), COWL co-exists with these mechanisms, offering MAC to
+  pages which opt-in to this new functionality (summarized in Section 3).
 
 E: How do you address taint accumulation?
 
-  In the case of compartments, the answer is two-fold.  First,
-  compartments in browsing contexts are relatively short-lived, since
-  users navigate among pages. Second, the ability to create compartments
-  means operations which raise labels can be isolated in separate
-  compartments. Good application design can avoid accumulation of
-  taint.
+  Compartments: First, compartments in browsing contexts are
+  relatively short-lived (due to navigation).  Second, good
+  application design can avoid over-tainting, by placing operations
+  which raise the label can in separate compartments.
 
-  In the case of files, there is a simple design principle (seen in
-  prior systems like HiStar [42] and Hails/LIO [11]) to avoid
-  taint accumulation: the label associated with a file is immutable,
-  and writes which cannot flow to the label are rejected. (A recent
-  CSF paper shows that such systems are as expressive as those
-  that allow label mutation.)
+  Files: We explicitly disallow taint accumulation (as in HiStar [42]
+  and Hails/LIO [11]) by treating labels of files as immutable.  While
+  this disallows writing to a public file by a sensitive compartment,
+  a recent CSF paper shows that such systems are as not any less
+  expressive.
 
 A: What kind of objects can be labeled?
 
-  Blobs, which can include serialized JavaScript values (e.g.,
-  as seen in postMessage).
+  Blobs, which can include serialized JavaScript values.
 
-A, B: How do you disallow the manual setting of label XHR header?
+A, B: How do you disallow the manual setting of the label XHR header?
 
-  The XHR API has the option for users to add custom headers to the
-  request, as long as they are not reserved headers; we modified the
-  XHR constructor to treat this header as reserved.
+  We modified the XHR constructor to treat this header as reserved,
+  and ignore any user-provided label headers.
 
 B: What is the covert channel story for COWL?
 
   As mentioned in Section 3, COWL both restricts and relaxes the SOP.
   When the SOP is restricted--i.e., no labeled XHR was used--the
-  question of covert channels is irrelevant,  since webpages do not
+  question of covert channels is irrelevant, since webpages do not
   have direct access to any more sensitive data than they would have
   had access to already. This is the case for 3/4 example applications.
 
@@ -117,6 +87,14 @@ B: What is the covert channel story for COWL?
   third-party mashup sites, the status quo requires the user to give
   up their password; COWL significantly improves this state of
   affairs.
+
+D:  Why is CSP too restrictive for the password checker?
+
+  There are two CSP policies to consider.
+  - Permit no origins: too restrictive, cannot download the regex database.
+  - White-list origin: too permissive, the access persists for the
+    entire page, even after the password checker has received the
+    password; it could just send the password to the remote origin.
 
 B: Does the sharing of heap space for LWorkers introduce new covert channels?
 
@@ -145,13 +123,7 @@ A, C: What is the label check done when accessing DOM of compartment?
   The mechanism by which this occurs is dual to declassification,
   described in Section 3.2.
 
-D: What do you mean by ambient authority?
-
-  Under the SOP, the notion of origin is always implicit: a page is
-  loaded from a URL, and that compartment is forever associated with
-  that exact origin. By "ambient authority" we mean the origin is
-  implicit in the page. By contrast, under COWL, a compartment has
-  explicit control over its label (and privilege).
+-------
 
 C: Why are iframe and worker creation in Firefox faster for the labeled case?
 
@@ -172,16 +144,8 @@ C: Why did you use a "simplified version" of the encrypted document editor?
   implementing a baseline version with no privacy guarantees, which one would
   expect to run faster (it uses no cryptographic operations).
 
-D:  Why is CSP too restrictive for the password checker example when
-it can be used to whitelist origins?
 
-  There are actually two CSP policies one might consider. A CSP
-  policy which permits no origins is too restrictive because we can
-  never download the password regex database. However, a CSP policy
-  which permits access to the database is too *permissive*.  Once you
-  grant access to an origin, that access persists for the entire page,
-  even after the password checker has received the password; it could
-  just send the password to the remote origin.
+
 
 D: Underlines, colors, bubbles?
 
@@ -189,3 +153,20 @@ D: Underlines, colors, bubbles?
   privilege for that origin. We colored different origins differently
   for contrast. Spiked bubbles connote the raising of labels. We will
   address these and other suggested presentation issues.
+
+A: Will mashups with many libraries require the understanding of
+overly complex policies?
+
+  We acknowledge that programming with COWL definitely requires
+  understanding COWL's primitives. However, our experience to date is
+  that a relatively small set of canonical design patterns captures
+  many common web application (and mashup) behaviors.  We leave the
+  investigation of more case studies to future work.
+
+D: What do you mean by ambient authority?
+
+  Under the SOP, the notion of origin is always implicit: a page is
+  loaded from a URL, and that compartment is forever associated with
+  that exact origin. By "ambient authority" we mean the origin is
+  implicit in the page. By contrast, under COWL, a compartment has
+  explicit control over its label (and privilege).
