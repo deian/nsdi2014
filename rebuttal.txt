@@ -31,11 +31,11 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
 D: How general is the label system?
 
   As described in Section 3.1, we use the logic-based DCLabels of
-  [28], which has been proved in [20] to be as expressive as the
+  [28], which have been proved in [20] to be as expressive as the
   Decentralized Label Model.  In the literature, there are more
   expressive logics (e.g., first order logic) that can allow for
   richer policies than those permitted by DCLabels, and in principle,
-  one could swap one of these in. However, DCLabels have a singular
+  one could swap one of these in. However, DCLabels have the singular
   advantage of reflecting existing web policies very closely: to
   support a more expressive logic, on would have to reimplement
   suitably generalized checks in the browser rather than reusing
@@ -47,24 +47,23 @@ applications in order for them to be secured by COWL?
 
   A compartment cannot communicate after getting tainted unless it
   has (or receives) the privilege to downgrade/declassify its label,
-  as described in Section 3.2. Moreover, if the applications must
-  communicate after reading sensitive data it can do so by (a-priori)
+  as described in Section 3.2. Moreover, if an application must
+  communicate after reading sensitive data it can do so by (a priori)
   creating multiple compartments (e.g., one to that always
-  communicates with the network and the other for inspecting the
+  communicates with the network and the other for inspecting
   sensitive data).
 
 A: Will mashups with many libraries impose a requirement on developers
-to understand overly-complex policies?
+to understand overly complex policies?
 
-  We acknowledge that programming with COWL definitely does require
+  We acknowledge that programming with COWL definitely requires
   understanding COWL's primitives. However, our experience to date is
   that a relatively small set of canonical design patterns captures many
   common web application (and mashup) behaviors. For future work, we're
   interested in a higher-level policy language which could let
   developers express intricate policies (e.g., that involve many
   libraries and mutual distrust among them) in a straightforward way,
-  and that a compiler could then compile such policies into the COWL
-  primitives.
+  and that a compiler could then compile into the COWL primitives.
 
 ## Factual questions
 
@@ -79,43 +78,43 @@ E: SOP "provides some degree of integrity" for DOM changes, what about COWL?
 
   In Section 3.2, we mention that a privilege is required to modify
   the DOM (which has an integrity label corresponding to the origin),
-  and privileges are granted in the same manner as SOP.
+  and privileges are granted in the same manner as under the SOP.
 
-E: Is your vision to co-exist or replace all existing security mechanisms?
+E: Is your vision to co-exist with or replace all existing security mechanisms?
 
-  COWL is explicitly designed to allow for an incremental deployment
+  COWL is explicitly designed to allow an incremental deployment
   path.  While prior work (e.g., [40]) discusses how a label system
   can subsume the policies that can be implemented with today's SOP,
   CSP, CORS, etc., COWL co-exists with these mechanisms, offering MAC
   to pages which opt-in to this new functionality (summarized in
   Section 3).
 
-E: How do you address taint-accumulation?
+E: How do you address taint accumulation?
 
   In the case of compartments, the answer is two-fold.  First,
-  compartments in browsing contexts are relatively short-lived, a
-  result of navigation.  Second, the ability to create compartments
-  means operations which raise labels can be isolated to separate
+  compartments in browsing contexts are relatively short-lived, since
+  users navigate among pages. Second, the ability to create compartments
+  means operations which raise labels can be isolated in separate
   compartments. Good application design can avoid accumulation of
   taint.
 
   In the case of files, there is a simple design principle (seen in
-  prior systems HiStar [42] and Hails/LIO [11]) to avoid
-  taint-accumulation: the label associated with a file is immutable,
+  prior systems like HiStar [42] and Hails/LIO [11]) to avoid
+  taint accumulation: the label associated with a file is immutable,
   and writes which cannot flow to the label are rejected. (A recent
-  CSF paper shows that such systems are as expressive as those that
+  CSF paper shows that such systems are as expressive as those
   that allow label mutation.)
 
 A: What kind of objects can be labeled?
 
-  Blobs, which can include serialized JavaScript values (e.g.
+  Blobs, which can include serialized JavaScript values (e.g.,
   as seen in postMessage).
 
 A, B: How do you disallow the manual setting of label XHR header?
 
   The XHR API has the option for users to add custom headers to the
-  request, as long as they are not a reserved header;  we modified the
-  XHR constructor to treat our header as reserved.
+  request, as long as they are not reserved headers; we modified the
+  XHR constructor to treat this header as reserved.
 
 B: What is the covert channel story for COWL?
 
@@ -123,10 +122,10 @@ B: What is the covert channel story for COWL?
   When the SOP is restricted--i.e., no labeled XHR was used--the
   question of covert channels is irrelevant,  since webpages do not
   have direct access to any more sensitive data than they would have
-  had access to already.  This is the case for 3/4 example applications.
+  had access to already. This is the case for 3/4 example applications.
 
   Labeled XHR allows access to sensitive data that would not be
-  accessible under SOP, so covert channels are a definite concern
+  accessible under the SOP, so covert channels are a definite concern
   here.  In Section 3.3, we discuss how clearance can be used to
   restrict the sensitivity of data that can be read (and thus leaked
   via covert channels), allowing access only to data a compartment
@@ -135,7 +134,7 @@ B: What is the covert channel story for COWL?
   up their password; COWL significantly improves this state of
   affairs.
 
-B: Does the sharing of heap space for LWorker introduce new covert channels?
+B: Does the sharing of heap space for LWorkers introduce new covert channels?
 
   Our implementation of LWorkers repurposes V8 and SpiderMonkey's
   contexts and compartments, respectively. These primitives are already
