@@ -15,18 +15,8 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
   less programmer effort: we imagine that our jQuery example would be
   more natural in a fine-grained IFC system.
 
-  Still, the benefits of a coarse grained system are compelling, and we
-  conjecture that coarse-grained and fine-grained IFC are equally
-  expressive, provided one can use arbitrarily many compartments.  Of
-  course, even if this equivalence holds in theory, in practice, it's
-  unattractive for the programmer to need to introduce deep nesting of
-  compartments to emulate fine-grained IFC (and presumably slower than
-  fine-grained IFC, if you literally put compartments around every
-  individual object).
-
-  Both approaches are not mutually exclusive. One could imagine
-  introducing compartments where fine-grained IFC is applied instead
-  (e.g., JSFlow). This is an interesting direction for future work.
+  Both approaches are not mutually exclusive. One could imagine using
+  fine-grained IFC (e.g., JSFlow) within a compartment
 
 D: How general is the label system?
 
