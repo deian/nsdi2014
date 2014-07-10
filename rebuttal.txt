@@ -2,19 +2,19 @@
 
 B, D: What kinds of applications is COWL not sufficient for?
 
-    Underlying the design of COWL is the assumption that applications
-    need not mix data of different sensitivity in the same compartment
-    and continue communicating. Note, however, that because COWL
-    supports arbitrary nesting of compartments, one may introduce
-    nesting to "force" data of different sensitivity into distinct
-    compartments. If one is "porting" a legacy application to COWL,
-    this may be inconvenient for the programmer.  Moreover, since
-    inter-compartment communication in asynchronous, one might give up
-    the intuitive ease of synchrony within a single compartment when
-    compartmentalizing.
+  Underlying the design of COWL is the assumption that applications
+  need not mix data of different sensitivity in the same compartment
+  and continue communicating. Note, however, that because COWL
+  supports arbitrary nesting of compartments, one may introduce
+  nesting to "force" data of different sensitivity into distinct
+  compartments. If one is "porting" a legacy application to COWL,
+  this may be inconvenient for the programmer.  Moreover, since
+  inter-compartment communication in asynchronous, one might give up
+  the intuitive ease of synchrony within a single compartment when
+  compartmentalizing.
 
-    However, applications that require policies that do not fit within
-    the lattice/label model may not be expressible. (See below.)
+  However, applications that require policies that do not fit within
+  the lattice/label model may not be expressible. (See below.)
 
 B, D, E: What does COWL give up by taking a coarse-grained approach?
 
@@ -77,16 +77,16 @@ applications in order for them to be secured by COWL?
 
 A: Will mashups with many libraries impose a requirement on developers to understand overly-complex policies?
 
-    We acknowledge that programming with COWL definitely does require
-    understanding COWL's primitives. However, our experience to date
-    (as illustrated in the four example applications) is that a
-    relatively small set of canonical design patterns captures many of
-    the common web application (and mashup) behaviors. We believe that
-    a higher-level policy language could let developers express
-    intricate policies (e.g., that involve many libraries and mutual
-    distrust among them) in a straightforward way, and that a compiler
-    could then compile such policies into the COWL primitives. Such a
-    language and compiler are the subject of our future work.
+  We acknowledge that programming with COWL definitely does require
+  understanding COWL's primitives. However, our experience to date
+  (as illustrated in the four example applications) is that a
+  relatively small set of canonical design patterns captures many of
+  the common web application (and mashup) behaviors. We believe that
+  a higher-level policy language could let developers express
+  intricate policies (e.g., that involve many libraries and mutual
+  distrust among them) in a straightforward way, and that a compiler
+  could then compile such policies into the COWL primitives. Such a
+  language and compiler are the subject of our future work.
 
 ## Factual questions
 
