@@ -1,5 +1,3 @@
-We thank the reviewers for their helpful comments. 
-
 B, D, E: What does COWL give up by being coarse-grained?
 
   We touch on some of the trade-offs of coarse-grained vs.
@@ -63,7 +61,7 @@ E: How do you address taint accumulation?
 
 A: What kind of objects can be labeled?
 
-  Blobs, which can include serialized JavaScript values.
+  Blobs, which can include serialized objects.
 
 A, B: How do you disallow the manual setting of the label XHR header?
 
@@ -72,21 +70,15 @@ A, B: How do you disallow the manual setting of the label XHR header?
 
 B: What is the covert channel story for COWL?
 
-  As mentioned in Section 3, COWL both restricts and relaxes the SOP.
-  When the SOP is restricted--i.e., no labeled XHR was used--the
-  question of covert channels is irrelevant, since webpages do not
-  have direct access to any more sensitive data than they would have
-  had access to already. This is the case for 3/4 example applications.
+  When COWL restricts the SOP (no labeled XHR), code cannot leak more
+  than it can under the SOP.
 
-  Labeled XHR allows access to sensitive data that would not be
-  accessible under the SOP, so covert channels are a definite concern
-  here.  In Section 3.3, we discuss how clearance can be used to
-  restrict the sensitivity of data that can be read (and thus leaked
-  via covert channels), allowing access only to data a compartment
-  "needs to know." As also mentioned, to achieve the functionality of
-  third-party mashup sites, the status quo requires the user to give
-  up their password; COWL significantly improves this state of
-  affairs.
+  Since labeled XHR allows code to access data not permitted by the
+  SOP, covert channels are a concern here, and as discussed in Section
+  3.3, clearance can be set by the user to restrict the sensitivity of
+  data any compartment can read (and thus leak).  This is an
+  improvement over the status quo where user's are asked to give up
+  their password.
 
 D:  Why is CSP too restrictive for the password checker?
 
@@ -170,3 +162,10 @@ D: What do you mean by ambient authority?
   that exact origin. By "ambient authority" we mean the origin is
   implicit in the page. By contrast, under COWL, a compartment has
   explicit control over its label (and privilege).
+
+
+
+We thank the reviewers and apologize for not answering every question.
+We did our best to triage and devote the limited space to what we
+perceived as the questions the reviewers most wanted answered
+
