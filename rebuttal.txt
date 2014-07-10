@@ -51,12 +51,12 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
   However, the fine-grained approach lets jQuery remain in the same
   compartment as the trusted code and sensitive data.
 
-    We remark that both approaches are not mutually exclusive, i.e., it is
-    possible to easily introduce compartments where fine-grained IFC is applied
-    instead (e.g., JSFlow). This is an interesting direction for future work. On
-    the other hand, extending JSFlow to introduce coarse-grained IFC is more
-    challenging, e.g., JSFlow would (for instance) need to introduce the notion of
-    compartments.
+  We remark that both approaches are not mutually exclusive, i.e., it is
+  possible to easily introduce compartments where fine-grained IFC is applied
+  instead (e.g., JSFlow). This is an interesting direction for future work. On
+  the other hand, extending JSFlow to introduce coarse-grained IFC is more
+  challenging, e.g., JSFlow would (for instance) need to introduce the notion of
+  compartments.
 
 D: How general is the label system?
 
@@ -204,7 +204,7 @@ C: Why is the iframe and worker creation in Firefox faster for the labeled case?
     We believe this difference (14.5 ms unlabeled, 14.4 ms labeled) is
     simply measurement noise.
 
-C: Why do you exchaust the call stack and is this limit set by the spec?
+C: Why do you exhaust the call stack and is this limit set by the spec?
 
     LWorkers run in the same context as the parent which spawns them,
     so messaging is actually a function call which runs-to-completion.
