@@ -61,18 +61,18 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
 D: How general is the label system?
 
   As described in Section 3.1, we use the logic-based DCLabels of
-  [28]. The particular logic is propositional logic without negation and 
-  it has been proved to be as expressive as the well-established Decentralized Label Model
-  for IFC [20].
-  More expressive logics (e.g., first order logic) can allow for
-  richer policies than those permitted by DCLabels. For instance, even
-  allowing negation would permit more expressive policies such as
-  "this labeled blob cannot be read by a.com." With DCLabels, such
-  policies must be encoded by "white-listing" all the permitted
-  readers except a.com. We chose DCLabels because they correspond
-  closely to the existing web policies, and we thus believe that web
-  developers will find them intuitive.
-
+  [28]. The particular logic is propositional logic without negation
+  and it has been proved in [20] to be as expressive as the
+  Decentralized Label Model.  More expressive logics (e.g., first
+  order logic) can allow for richer policies than those permitted by
+  DCLabels. For instance, even allowing negation would permit more
+  expressive policies such as "this labeled blob cannot be read by
+  a.com." With DCLabels, such policies must be encoded by
+  "white-listing" all the permitted readers except a.com. We chose
+  DCLabels because they correspond closely to the existing web
+  policies, and we thus believe that web developers will find them
+  intuitive. (Of course, at the cost of not being able to express
+  these applications.)
 
 B: The tainted component does not need communication after initially
 obtaining its taint/private information. Is that what's required of
