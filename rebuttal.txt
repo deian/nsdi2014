@@ -9,9 +9,9 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
 
   We touch on some of the trade-offs of coarse-grained vs. fine-grained
   IFC in the related work section, although the discussion is focused on
-  specific prior systems.  Generally speaking, coarse-grained IFC
-  requires developers to give some though about how to compartmentalize
-  a system to achieve desired security.  Fine-grained IFC can require
+  specific prior systems. Generally speaking, coarse-grained IFC
+  requires developers to give some thought to how to compartmentalize
+  a system to achieve desired security properties. Fine-grained IFC can require
   less programmer effort: we imagine that our jQuery example would be
   more natural in a fine-grained IFC system.
 
@@ -24,7 +24,7 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
   fine-grained IFC, if you literally put compartments around every
   individual object).
 
-  Both approaches are not mutually exclusive, one could imagine
+  Both approaches are not mutually exclusive. One could imagine
   introducing compartments where fine-grained IFC is applied instead
   (e.g., JSFlow). This is an interesting direction for future work.
 
