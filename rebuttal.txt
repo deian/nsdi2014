@@ -1,7 +1,13 @@
+We thank the reviewers and apologize for not answering every question.
+We did our best to triage and devote the limited space to what we
+perceived as the questions the reviewers most wanted answered
+
+---
+
 B, D, E: What does COWL give up by being coarse-grained?
 
   We discuss coarse-grained vs. fine-grained IFC in the context of
-  specific systems in the related work section.  More generally,
+  specific systems in the related work section.  Generally speaking,
   coarse-grained systems require developers to think about
   compartmentalization; hence they may require more programmer effort
   for some applications (e.g., using jQuery with trusted code and
@@ -45,7 +51,7 @@ E: How do you address taint accumulation?
   Compartments: First, compartments in browsing contexts are
   relatively short-lived (due to navigation).  Second, good
   application design can avoid over-tainting, by placing operations
-  which raise the label can in separate compartments.
+  which raise the label in separate compartments.
 
   Files: We explicitly disallow taint accumulation (as in HiStar [42]
   and Hails/LIO [11]) by treating labels of files as immutable.  While
@@ -65,97 +71,36 @@ A, B: How do you disallow the manual setting of the label XHR header?
 B: What is the covert channel story for COWL?
 
   When COWL restricts the SOP (no labeled XHR), code cannot leak more
-  than it can under the SOP.
+  than it can under the SOP. (The case for 3/4 of our examples.)
 
-  Since labeled XHR allows code to access data not permitted by the
-  SOP, covert channels are a concern here, and as discussed in Section
-  3.3, clearance can be set by the user to restrict the sensitivity of
-  data any compartment can read (and thus leak).  This is an
-  improvement over the status quo where user's are asked to give up
-  their password.
+  However, since labeled XHR allows code to access data not permitted
+  by the SOP, covert channels are a concern here. As discussed in
+  Section 3.3, clearance can be set to restrict the sensitivity of
+  data a compartment can read (and thus leak).  This is an improvement
+  over the status quo where users are asked to give up their password.
 
 B: Does the sharing of heap space for LWorkers introduce new covert channels?
 
   Our implementation of LWorkers repurposes SpiderMonkey compartments,
   which are used for iframe isolation, hence, we believe the chance of
-  leakage to remain the same.
+  leakage to be no greater.
 
-A, C: What is the label check done when accessing DOM of compartment?
+A, C: What is the label check performed when accessing DOM of compartment?
 
-  In a footnote in Section 3.2, we mention that an integrity check is
-  involved in the label check for DOM modification.  Here are the
-  details: suppose compartment A tries to modify the DOM of
-  compartment B. With DClabels, this operation is allowed if
-  compartment A's current integrity label implies the integrity label
-  on the DOM.
+  We briefly mentioned that an integrity check is involved in the
+  label check for DOM modification.  Here are the details: suppose
+  compartment A tries to modify the DOM of compartment B. With
+  DClabels, this operation is allowed if compartment A's integrity
+  label implies the integrity label on B's DOM.
 
   Ordinarily, this label check would fail, because the current
   integrity label of all compartments defaults to public (no integrity
   guarantees), but the integrity label of a DOM defaults to its
-  origin.  However, if compartment A holds the privilege for
-  B, the operation would be allowed, the privilege overriding
-  the label check and endorsing a cross-compartment DOM write.
-  The mechanism by which this occurs is dual to declassification,
-  described in Section 3.2.
+  origin.  However, if compartment A holds the privilege for B, the
+  operation would be allowed, overriding the label check.
 
 D: Underlines, colors, bubbles?
 
   An underlined origin indicates that a compartment holds the
-  privilege for that origin. We colored different origins differently
-  for contrast. Spiked bubbles connote only the raising of labels.
-
--------
-
-C: Why are iframe and worker creation in Firefox faster for the labeled case?
-
-  We believe this difference (14.5 ms unlabeled, 14.4 ms labeled)
-  simply reflects these operations' distributions of running times.
-
-C: Why do you exhaust the call stack and is this limit set by the spec?
-
-  LWorkers run in the same context as the parent that spawns them,
-  so messaging is actually a function call which runs to completion.
-  The stack limit depends on the underlying JavaScript
-  engine implementation and is not specified in the specification.
-
-C: Why did you use a "simplified version" of the encrypted document editor?
-
-  It was unclear how to securely reimplement the application without
-  COWL, so we decided to err on the side of an unduly harsh baseline by
-  implementing a baseline version with no privacy guarantees, which one would
-  expect to run faster (it uses no cryptographic operations).
-
-
-D:  Why is CSP too restrictive for the password checker?
-
-  There are two CSP policies to consider.
-  - Permit no origins: too restrictive, cannot download the regex database.
-  - White-list origin: too permissive, the access persists for the
-    entire page, even after the password checker has received the
-    password; it could just send the password to the remote origin.
-
-
-
-A: Will mashups with many libraries require the understanding of
-overly complex policies?
-
-  We acknowledge that programming with COWL definitely requires
-  understanding COWL's primitives. However, our experience to date is
-  that a relatively small set of canonical design patterns captures
-  many common web application (and mashup) behaviors.  We leave the
-  investigation of more case studies to future work.
-
-D: What do you mean by ambient authority?
-
-  Under the SOP, the notion of origin is always implicit: a page is
-  loaded from a URL, and that compartment is forever associated with
-  that exact origin. By "ambient authority" we mean the origin is
-  implicit in the page. By contrast, under COWL, a compartment has
-  explicit control over its label (and privilege).
-
-
-
-We thank the reviewers and apologize for not answering every question.
-We did our best to triage and devote the limited space to what we
-perceived as the questions the reviewers most wanted answered
-
+  privilege for that origin. We colored different origins for
+  contrast. Bubbles only connote the raising of labels.
