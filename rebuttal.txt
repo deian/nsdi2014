@@ -37,7 +37,7 @@ D: How general is the label system?
   richer policies than those permitted by DCLabels, and in principle,
   one could swap one of these in. However, DCLabels have a singular
   advantage of reflecting existing web policies very closely: to
-  support a more expressive logic, on would have to reimplement
+  support a more expressive logic, one would have to reimplement
   suitably generalized checks in the browser rather than reusing
   existing mechanisms.
 
@@ -45,13 +45,12 @@ B: The tainted component does not need communication after initially
 obtaining its taint/private information. Is that what's required of
 applications in order for them to be secured by COWL?
 
-  A compartment cannot communicate after getting tainted unless it
-  has (or receives) the privilege to downgrade/declassify its label,
-  as described in Section 3.2. Moreover, if the applications must
+  A compartment cannot communicate after getting tainted unless it has
+  (or receives) the privilege to downgrade/declassify its label, as
+  described in Section 3.2. Moreover, if the applications must
   communicate after reading sensitive data it can do so by (a-priori)
-  creating multiple compartments (e.g., one to that always
-  communicates with the network and the other for inspecting the
-  sensitive data).
+  creating multiple compartments (e.g., one that always communicates
+  with the network and the other for inspecting the sensitive data).
 
 A: Will mashups with many libraries impose a requirement on developers
 to understand overly-complex policies?
