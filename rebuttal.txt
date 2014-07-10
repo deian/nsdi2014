@@ -5,7 +5,7 @@ questions about the paper.
 
 ## High-level questions
 
-B, D, E: What does COWL give up by taking a coarse-grained approach?
+B, D, E: What does COWL give up by being coarse-grained?
 
   We touch on some of the trade-offs of coarse-grained vs.
   fine-grained IFC in the related work section, although the
@@ -20,19 +20,18 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
 
 D: How general is the label system?
 
-  As described in Section 3.1, we use the logic-based DCLabels of
-  [28], which have been proved in [20] to be as expressive as the
-  Decentralized Label Model.  In the literature, there are more
-  expressive logics (e.g., first order logic) that can allow for
-  richer policies than those permitted by DCLabels, and in principle,
-  one could swap one of these in. However, DCLabels have the singular
-  advantage of reflecting existing web policies very closely: to
-  support a more expressive logic, one would have to reimplement
-  suitably generalized checks in the browser rather than reusing
-  existing mechanisms.
+  As described in Section 3.1, we use the propositional logic-based
+  DCLabels of [28], which are as expressive as Myer's and Liskov's DLM
+  [20]. There are more expressive logics (e.g., first order logic)
+  that can allow for richer policies than those permitted by DCLabels,
+  and in principle, one could swap one of these in. However, DCLabels
+  have the singular advantage of reflecting existing web policies very
+  closely: to support a more expressive logic, one would have to
+  reimplement suitably generalized checks in the browser rather than
+  reusing existing mechanisms.
 
 B: The tainted component does not need communication ... is that
-what's required of applications to be secured by COWL?
+what's required of applications?
 
   A compartment cannot communicate after getting tainted unless it
   has (or receives) the privilege to downgrade/declassify its label,
@@ -42,8 +41,8 @@ what's required of applications to be secured by COWL?
   communicates with the network and the other for inspecting
   sensitive data).
 
-A: Will mashups with many libraries impose a requirement on developers
-to understand overly complex policies?
+A: Will mashups with many libraries require the understanding of
+overly complex policies?
 
   We acknowledge that programming with COWL definitely requires
   understanding COWL's primitives. However, our experience to date is
@@ -66,14 +65,13 @@ E: SOP "provides some degree of integrity" for DOM changes, what about COWL?
   the DOM (which has an integrity label corresponding to the origin),
   and privileges are granted in the same manner as under the SOP.
 
-E: Is your vision to co-exist with or replace all existing security mechanisms?
+E: Is your vision to co-exist or replace all existing security mechanisms?
 
-  COWL is explicitly designed to allow an incremental deployment
-  path.  While prior work (e.g., [40]) discusses how a label system
-  can subsume the policies that can be implemented with today's SOP,
-  CSP, CORS, etc., COWL co-exists with these mechanisms, offering MAC
-  to pages which opt-in to this new functionality (summarized in
-  Section 3).
+  COWL is explicitly designed to allow an incremental deployment path.
+  While prior work (e.g., [40]) discusses how a label system can
+  subsume policies implemented with today's SOP, CSP, CORS, etc., COWL
+  co-exists with these mechanisms, offering MAC to pages which opt-in
+  to this new functionality (summarized in Section 3).
 
 E: How do you address taint accumulation?
 
