@@ -51,10 +51,19 @@ B, D, E: What does COWL give up by taking a coarse-grained approach?
   However, the fine-grained approach lets jQuery remain in the same
   compartment as the trusted code and sensitive data.
 
+    We remark that both approaches are not mutually exclusive, i.e., it is
+    possible to easily introduce compartments where fine-grained IFC is applied
+    instead (e.g., JSFlow). This is an interesting direction for future work. On
+    the other hand, extending JSFlow to introduce coarse-grained IFC is more
+    challenging, e.g., JSFlow would (for instance) need to introduce the notion of
+    compartments.
+
 D: How general is the label system?
 
   As described in Section 3.1, we use the logic-based DCLabels of
-  [28]. The particular logic is propositional logic without negation.
+  [28]. The particular logic is propositional logic without negation and 
+  it has been proved to be as expressive as the well-established Decentralized Label Model
+  for IFC [20].
   More expressive logics (e.g., first order logic) can allow for
   richer policies than those permitted by DCLabels. For instance, even
   allowing negation would permit more expressive policies such as
@@ -63,6 +72,7 @@ D: How general is the label system?
   readers except a.com. We chose DCLabels because they correspond
   closely to the existing web policies, and we thus believe that web
   developers will find them intuitive.
+
 
 B: The tainted component does not need communication after initially
 obtaining its taint/private information. Is that what's required of
@@ -94,7 +104,11 @@ B, D, E: What about integrity?
     Each label contains an integrity component; the design of
     integrity is complete and implemented, but was given short shrift
     in the submission for reasons of brevity.  As suggested, we intend
-    to expand on this.
+    to expand on this. 
+
+    We remark that we refer as integrity policy to the dual of confidentiality,
+    i.e., policies restricting how untrusted data reach security critical
+    operations. 
 
 E: SOP "provides some degree of integrity" for DOM changes, what about COWL?
 
