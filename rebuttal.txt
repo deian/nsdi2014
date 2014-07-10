@@ -121,36 +121,19 @@ E: Is your vision to co-exist or replace all existing security mechanisms?
     to pages which opt-in to this new functionality (summarized in
     Section 3).
 
-E: How do you address taint-accumulation for compartments and files?
+E: How do you address taint-accumulation?
 
-    First, compartments: Accumulation of labels has been described in the
-    context of previously proposed taint-tracking systems. Two design
-    features of COWL make such label accumulation less problematic for
-    COWL's compartments. First, COWL allows one to create compartments. If
-    a developer knows that a script needs to process sensitive data (i.e.,
-    raise its label), she can always elect to run that script in a
-    separate compartment (and thus confine the additional label to that
-    compartment). Second, COWL's support for labeled blobs allows a script
-    to receive messages of distinct sensitivity classes, *not* read their
-    payload, but inspect their labels. By doing so, a developer can then
-    intelligently decide when spawning a distinct compartment before
-    reading a payload is desirable (so as to avoid accumulating too much
-    taint). In addition, a compartment's lifetime spans only the period
-    during that a user remains on a page; all labels vanish when the user
-    navigates away from a page.
+    In the case of compartments, the answer is two-fold.  First,
+    compartments in browsing contexts are relatively short-lived, after
+    which any raised labels go away.  Second, the ability to create
+    compartments means operations which raise labels can be isolated to
+    separate compartments. Good application design can avoid
+    accumulation of taint.
 
-    Second, files: we do not believe that accumulation of many labels is
-    fundamental to local storage. While we have not yet codified a
-    complete design for local storage or implemented it, we envision that
-    under COWL, while a compartment raises its label before reading
-    sensitive data, a file would *not* simply raise its label for each
-    sensitivity class of data written to it. Instead, the labels on files
-    would be immutable (as in prior coarse-grained IFC systems, such as
-    HiStar [42] and Hails/LIO [11]); as shown in a recent CSF paper,
-    flow-insensitive systems (i.e., systems that consider object labels to
-    be immutable) can be used to encode flow-sensitive objects (i.e.,
-    objects whose labels change according to the sensitivity of data being
-    written to them).
+    In the case of files, there is a simple design principle (seen in
+    prior systems HiStar [42] and Hails/LIO [11]) to avoid
+    taint-accumulation: the label associated with a file is immutable,
+    and writes which cannot flow to the label are rejected.
 
 A: What kind of objects can be labeled?
 
