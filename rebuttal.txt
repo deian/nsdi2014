@@ -74,14 +74,6 @@ B: What is the covert channel story for COWL?
   improvement over the status quo where user's are asked to give up
   their password.
 
-D:  Why is CSP too restrictive for the password checker?
-
-  There are two CSP policies to consider.
-  - Permit no origins: too restrictive, cannot download the regex database.
-  - White-list origin: too permissive, the access persists for the
-    entire page, even after the password checker has received the
-    password; it could just send the password to the remote origin.
-
 B: Does the sharing of heap space for LWorkers introduce new covert channels?
 
   Our implementation of LWorkers repurposes SpiderMonkey compartments,
@@ -133,6 +125,14 @@ C: Why did you use a "simplified version" of the encrypted document editor?
   implementing a baseline version with no privacy guarantees, which one would
   expect to run faster (it uses no cryptographic operations).
 
+
+D:  Why is CSP too restrictive for the password checker?
+
+  There are two CSP policies to consider.
+  - Permit no origins: too restrictive, cannot download the regex database.
+  - White-list origin: too permissive, the access persists for the
+    entire page, even after the password checker has received the
+    password; it could just send the password to the remote origin.
 
 
 
