@@ -6,16 +6,15 @@ B, D, E: What does COWL give up by being coarse-grained?
   compartmentalization; hence they may require more programmer effort
   for some applications (e.g., using jQuery with trusted code and
   sensitive-data).  We also note coarse- and fine-grained mechanisms
-  are not mutually exclusive: one could imagine using JSFlow within a
-  COWL compartment.
+  are not mutually exclusive: one could use JSFlow within a COWL
+  compartment.
 
 D: How general is the label system?
 
   As described in Section 3.1, we use DCLabels [28], which are as
-  expressive as the DLM [20]. There are more expressive logics (e.g.,
-  first order logic) that allow for richer policies.  However,
-  DCLabels reflect existing web policies closely, allowing COWL to
-  reuse existing mechanisms to enforce IFC.
+  expressive as the DLM [20] but less expressive as, say, first order
+  logic.  DCLabels reflect existing web policies closely, allowing
+  COWL to reuse existing mechanisms to enforce IFC.
 
 B: Is "no communication after tainting" what is required of applications?
 
