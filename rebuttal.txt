@@ -101,21 +101,16 @@ A: Will mashups with many libraries impose a requirement on developers to unders
 
 B, D, E: What about integrity?
 
-    Each label contains an integrity component; the design of
-    integrity is complete and implemented, but was given short shrift
-    in the submission for reasons of brevity.  As suggested, we intend
-    to expand on this. 
-
-    We remark that we refer as integrity policy to the dual of confidentiality,
-    i.e., policies restricting how untrusted data reach security critical
-    operations. 
+  Each label contains an integrity component; the design of
+  integrity is complete and implemented, but was given short shrift
+  in the submission for reasons of brevity.  As suggested, we intend
+  to expand on this. 
 
 E: SOP "provides some degree of integrity" for DOM changes, what about COWL?
 
   In Section 3.2, we mention that a privilege is required to modify
-  the DOM (which has an integrity label corresponding to the
-  origin), and privileges are granted in the same manner as
-  traditional SOP.
+  the DOM (which has an integrity label corresponding to the origin),
+  and privileges are granted in the same manner as SOP.
 
 E: Is your vision to co-exist or replace all existing security mechanisms?
 
