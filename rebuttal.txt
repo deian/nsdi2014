@@ -2,61 +2,38 @@
 
 B, D, E: What does COWL give up by taking a coarse-grained approach?
 
-  We touch on some of the trade-offs of coarse-grained vs.
-  fine-grained IFC in the related work section, but agree that this
-  discussion was directed at individual prior systems rather than
-  drawing conclusions about these two broad approaches.
-  Coarse-grained (compartment-granularity) IFC is much
-  easier to implement than fine-grained (object-granularity) IFC;
-  the former requires no changes to the JavaScript
-  execution engine, whereas the latter requires extensive changes to
-  propagate and check labels for every low-level JavaScript
-  operation. The coarse-grained approach also incurs far less
-  execution overhead: label-related processing occurs nearly
-  exclusively upon inter-compartment communication, rather than at
-  every step of a computation, in every compartment.
+  We touch on some of the trade-offs of coarse-grained vs. fine-grained
+  IFC in the related work section, although the discussion is focused on
+  specific prior systems.  Generally speaking, coarse-grained IFC
+  requires developers to give some though about how to compartmentalize
+  a system to achieve desired security.  Fine-grained IFC can require
+  less programmer effort: we imagine that our jQuery example would be
+  more natural in a fine-grained IFC system.
 
-  We conjecture (but have not yet proven) that coarse-grained and
-  fine-grained IFC are equally expressive, provided one can
-  introduce arbitrary nesting of compartments.  Even if this
-  equivalence holds in theory, in practice, it's unattractive for
-  the programmer to need to introduce deep nesting of compartments
-  to emulate fine-grained IFC (and presumably slower than
+  Still, the benefits of a coarse grained system are compelling, and we
+  conjecture that coarse-grained and fine-grained IFC are equally
+  expressive, provided one use arbitrarily many compartments.  Of
+  course, even if this equivalence holds in theory, in practice, it's
+  unattractive for the programmer to need to introduce deep nesting of
+  compartments to emulate fine-grained IFC (and presumably slower than
   fine-grained IFC, if you literally put compartments around every
   individual object).
 
-  Fine-grained IFC can require less programmer effort in some cases.
-  For example (as we briefly mention in the related work discussion
-  of JSFlow), when trying to confine an untrusted jQuery library in
-  the same page as the trusted application code and sensitive data,
-  COWL requires the programmer to explicitly partition the page into
-  a trusted and untrusted compartment. (This is somewhat reminiscent
-  of least-privilege partitioning, in the style of OKWS and Wedge.)
-  However, the fine-grained approach lets jQuery remain in the same
-  compartment as the trusted code and sensitive data.
-
-  We remark that both approaches are not mutually exclusive, i.e., it is
-  possible to easily introduce compartments where fine-grained IFC is applied
-  instead (e.g., JSFlow). This is an interesting direction for future work. On
-  the other hand, extending JSFlow to introduce coarse-grained IFC is more
-  challenging, e.g., JSFlow would (for instance) need to introduce the notion of
-  compartments.
+  Both approaches are not mutually exclusive, one could imagine
+  introducing compartments where fine-grained IFC is applied instead
+  (e.g., JSFlow). This is an interesting direction for future work.
 
 D: How general is the label system?
 
-  As described in Section 3.1, we use the logic-based DCLabels of
-  [28]. The particular logic is propositional logic without negation
-  and it has been proved in [20] to be as expressive as the
-  Decentralized Label Model.  More expressive logics (e.g., first
-  order logic) can allow for richer policies than those permitted by
-  DCLabels. For instance, even allowing negation would permit more
-  expressive policies such as "this labeled blob cannot be read by
-  a.com." With DCLabels, such policies must be encoded by
-  "white-listing" all the permitted readers except a.com. We chose
-  DCLabels because they correspond closely to the existing web
-  policies, and we thus believe that web developers will find them
-  intuitive. (Of course, at the cost of potentially not being able to
-  express these applications.)
+  As described in Section 3.1, we use the logic-based DCLabels of [28],
+  which has been proved in [20] to be as expressive as the Decentralized
+  Label Model.  In the literature, there are more expressive logics
+  (e.g., first order logic) can allow for richer policies than those
+  permitted by DCLabels, and in principle, one could swap one of these
+  in. However, DCLabels have a singular advantage of reflecting existing
+  web policies very closely: to support a more expressive logic, on
+  would have to reimplement suitably generalized checks in the browser
+  rather than reusing existing mechanisms.
 
 B: The tainted component does not need communication after initially
 obtaining its taint/private information. Is that what's required of
@@ -75,13 +52,13 @@ to understand overly-complex policies?
 
   We acknowledge that programming with COWL definitely does require
   understanding COWL's primitives. However, our experience to date is
-  that a relatively small set of canonical design patterns captures
-  many common web application (and mashup) behaviors. We believe that
-  a higher-level policy language could let developers express
-  intricate policies (e.g., that involve many libraries and mutual
-  distrust among them) in a straightforward way, and that a compiler
-  could then compile such policies into the COWL primitives. Such a
-  language and compiler are the subject of our future work.
+  that a relatively small set of canonical design patterns captures many
+  common web application (and mashup) behaviors. For future work, we're
+  interested in a higher-level policy language which could let
+  developers express intricate policies (e.g., that involve many
+  libraries and mutual distrust among them) in a straightforward way,
+  and that a compiler could then compile such policies into the COWL
+  primitives.
 
 ## Factual questions
 
