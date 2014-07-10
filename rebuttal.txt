@@ -41,9 +41,8 @@ D: How general is the label system?
   suitably generalized checks in the browser rather than reusing
   existing mechanisms.
 
-B: The tainted component does not need communication after initially
-obtaining its taint/private information. Is that what's required of
-applications in order for them to be secured by COWL?
+B: The tainted component does not need communication ... is that
+what's required of applications to be secured by COWL?
 
   A compartment cannot communicate after getting tainted unless it
   has (or receives) the privilege to downgrade/declassify its label,
