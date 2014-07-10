@@ -85,12 +85,9 @@ D:  Why is CSP too restrictive for the password checker?
 
 B: Does the sharing of heap space for LWorkers introduce new covert channels?
 
-  Our implementation of LWorkers repurposes V8 and SpiderMonkey's
-  contexts and compartments, respectively. These primitives are already
-  used to isolate iframes of different origins to ensure that they
-  operate on disjoint sub-heaps. Hence, we believe the chance of
-  unauthorized leakage of information between LWorkers is identical to
-  that between iframes.
+  Our implementation of LWorkers repurposes SpiderMonkey compartments,
+  which are used for iframe isolation, hence, we believe the chance of
+  leakage to remain the same.
 
 A, C: What is the label check done when accessing DOM of compartment?
 
@@ -109,6 +106,12 @@ A, C: What is the label check done when accessing DOM of compartment?
   the label check and endorsing a cross-compartment DOM write.
   The mechanism by which this occurs is dual to declassification,
   described in Section 3.2.
+
+D: Underlines, colors, bubbles?
+
+  An underlined origin indicates that a compartment holds the
+  privilege for that origin. We colored different origins differently
+  for contrast. Spiked bubbles connote only the raising of labels.
 
 -------
 
@@ -133,13 +136,6 @@ C: Why did you use a "simplified version" of the encrypted document editor?
 
 
 
-
-D: Underlines, colors, bubbles?
-
-  An underlined origin indicates that a compartment holds the
-  privilege for that origin. We colored different origins differently
-  for contrast. Spiked bubbles connote the raising of labels. We will
-  address these and other suggested presentation issues.
 
 A: Will mashups with many libraries require the understanding of
 overly complex policies?
