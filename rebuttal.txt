@@ -13,58 +13,56 @@ B, D: What kinds of applications is COWL not sufficient for?
     the intuitive ease of synchrony within a single compartment when
     compartmentalizing.
 
-    However, applications that require policies that do not fit the
-    lattice-label model may not be expressible using COWL. This
-    limitation is due to the chosen label model (discussed below).
+    However, applications that require policies that do not fit within
+    the lattice/label model may not be expressible. (See below.)
 
 B, D, E: What does COWL give up by taking a coarse-grained approach?
 
-    We touch on some of the trade-offs of coarse-grained vs.
-    fine-grained IFC in the related work section, but agree that this
-    discussion in the submission was directed at individual prior
-    systems rather than drawing conclusions about these two broad
-    approaches. Coarse-grained (compartment-granularity) IFC is much
-    easier to implement than fine-grained (object-granularity) IFC
-    tracking, as the former requires no changes to the JavaScript
-    execution engine, whereas the latter requires extensive changes to
-    propagate and check labels for every low-level JavaScript
-    operation. The coarse-grained approach also incurs far less
-    execution overhead: label-related processing occurs nearly
-    exclusively upon inter-compartment communication, rather than at
-    every step of a computation, in every compartment.
+  We touch on some of the trade-offs of coarse-grained vs.
+  fine-grained IFC in the related work section, but agree that this
+  discussion was directed at individual prior systems rather than
+  drawing conclusions about these two broad approaches.
+  Coarse-grained (compartment-granularity) IFC is much
+  easier to implement than fine-grained (object-granularity) IFC;
+  the former requires no changes to the JavaScript
+  execution engine, whereas the latter requires extensive changes to
+  propagate and check labels for every low-level JavaScript
+  operation. The coarse-grained approach also incurs far less
+  execution overhead: label-related processing occurs nearly
+  exclusively upon inter-compartment communication, rather than at
+  every step of a computation, in every compartment.
 
-    We conjecture (but have not yet proven) that coarse-grained and
-    fine-grained flow tracking are equally expressive, provided one
-    can introduce arbitrary nesting of compartments.  Even if this
-    equivalence holds in theory, in practice, it's unattractive for
-    the programmer to need to introduce deep nesting of compartments
-    to emulate fine-grained IFC (and presumably would perform worse
-    than fine-grained IFC, if you literally put compartments around
-    every individual object).
+  We conjecture (but have not yet proven) that coarse-grained and
+  fine-grained IFC are equally expressive, provided one can
+  introduce arbitrary nesting of compartments.  Even if this
+  equivalence holds in theory, in practice, it's unattractive for
+  the programmer to need to introduce deep nesting of compartments
+  to emulate fine-grained IFC (and presumably slower than
+  fine-grained IFC, if you literally put compartments around every
+  individual object).
 
-    Fine-grained IFC can require less programmer effort in some cases.
-    For example (as we briefly mention in the discussion of JSFlow),
-    when trying to confine an untrusted jQuery library in the same
-    page as the trusted application code and sensitive data, COWL
-    requires the programmer to explicitly partition the page into a
-    trusted compartment and untrusted compartment. (This is somewhat
-    reminiscent of least-privilege partitioning, in the style of okws
-    and Wedge.) However, the fine-grained approach lets jQuery remain
-    in the same compartment as the trusted code and sensitive data.
+  Fine-grained IFC can require less programmer effort in some cases.
+  For example (as we briefly mention in the related work discussion
+  of JSFlow), when trying to confine an untrusted jQuery library in
+  the same page as the trusted application code and sensitive data,
+  COWL requires the programmer to explicitly partition the page into
+  a trusted and untrusted compartment. (This is somewhat reminiscent
+  of least-privilege partitioning, in the style of OKWS and Wedge.)
+  However, the fine-grained approach lets jQuery remain in the same
+  compartment as the trusted code and sensitive data.
 
 D: How general is the label system?
 
-    As described in Section 3.1, we use the logic-based DCLabels of
-    [28].  The particular logic is propositional logic without
-    negation. More expressive logics (e.g., first order logic as used
-    by NexusOS [SOSP '11]) can allow for richer policies than those
-    permitted by DCLabels. For instance, even allowing negation would
-    permit more expressive policies (e.g., "this labeled blob cannot
-    be read by a.com, but can be read by any other origin"). With
-    DCLabels, such policies must be encoded by "white-listing" all the
-    permitted readers. We chose DCLabels because we believe they
-    correspond closely to web origins, and we thus believe that web
-    developers will find them intuitive.
+  As described in Section 3.1, we use the logic-based DCLabels of
+  [28]. The particular logic is propositional logic without negation.
+  More expressive logics (e.g., first order logic) can allow for
+  richer policies than those permitted by DCLabels. For instance, even
+  allowing negation would permit more expressive policies such as
+  "this labeled blob cannot be read by a.com." With DCLabels, such
+  policies must be encoded by "white-listing" all the permitted
+  readers except a.com. We chose DCLabels because they correspond
+  closely to the existing web policies, and we thus believe that web
+  developers will find them intuitive.
 
 B: The tainted component does not need communication after initially
 obtaining its taint/private information. Is that what's required of
@@ -106,7 +104,6 @@ E: SOP "provides some degree of integrity" for DOM changes, what about COWL?
 
 E: Is your vision to co-exist or replace all existing security mechanisms?
 
-    [keyword: vision]
     COWL is explicitly designed to allow for an incremental deployment
     path.  While prior work (e.g., [40]) discusses how a label system
     can subsume the policies that can be implemented with today's SOP,
