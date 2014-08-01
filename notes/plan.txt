@@ -59,19 +59,19 @@ endorsing a cross-compartment DOM write.
 We'll clarify the text here to note that we such headers are filtered
 by our modified XHR constructor.
 
-4. The paragraph on "clearances" does not really belong to the section
+4. The paragraph on "clearance" does not really belong to the section
 labeled "XMLHttpRequest".
 
 The interesting part about clearance relates to the use of the labeled
 XHR, but since clearance is "first class" it makes sense to separate
-it from XHR.
+it from XHR. We intend to do this.
 
 5. "I am wondering whether in practice using mashups composed of lots
 of different libraries can lead to a proliferation of complex policies
 about which the developers may have trouble reasoning."
 
 This is an interesting question to address in the expanded discussion
-and we intend to do so.  Developers definitely need to understanding
+and we intend to do so.  Developers definitely need to understand
 COWL's primitives when using them. However, our experience to date is
 that a relatively small set of canonical design patterns captures many
 common web application (and mashup) behaviors. If space permits, we
@@ -91,8 +91,8 @@ applications in order for them to be secured by COWL?
 We will clarify that if an applications must communicate after reading
 sensitive data it can do so by (a-priori) creating multiple
 compartments (e.g., one to that always communicates with the network
-and the other for inspecting the sensitive data) or acquire (or have)
-the privilege to downgrade/declassify its label.
+and the other for inspecting the sensitive data) or acquire (if it
+doesn't alreayd have) the privilege to downgrade/declassify its label.
 
 2. I suggest removing all footnotes about integrity and adding a
 separate section. (Also raised by reviewers D and E)
@@ -104,7 +104,7 @@ rate of information leak via covert channels?
 
 We briefly discussed this at the end of section 3 and 3.3, but since
 we plan to extract clearance into its own section, treating covert
-channels here in this single section seems more appropriate.
+channels in this section seems more appropriate.
 
 The details: When the SOP is restricted--i.e., no labeled XHR was
 used--the question of covert channels is irrelevant, since webpages do
@@ -124,10 +124,10 @@ of affairs.
 channels?
 
 We'll add a note in the implementation section to clearly highlight
-that since our implementation LWorkers repurposes V8 and
-SpiderMonkey's contexts and compartments, respectively, we believe the
-chance of unauthorized leakage of information between LWorkers to be
-no worse than that of iframes.
+that since our implementation of LWorkers repurposes V8 contexts and
+SpiderMonkey compartments we believe the chance of unauthorized
+leakage of information between LWorkers to be no worse than that of
+iframes.
 
 Reviewer C
 --------------------------------------------------------------
@@ -146,8 +146,7 @@ CSP and CORS in this style?
 Yes. We will do so.
 
 3. Table 2: some unexpected speedups are not explained, such as "New
-iframe - Firefox - labeled" and "New worker - Firefox -
-unlabeled[c]."
+iframe - Firefox - labeled" and "New worker - Firefox - unlabeled[c]."
 
 We will update the explanation of the table to note that this
 difference (14.5 ms unlabeled, 14.4 ms labeled) is small enough to be
@@ -162,13 +161,12 @@ which runs-to-completion.  The stack limit depends on the underlying
 JavaScript engine implementation and is not specified in the
 specification.
 
-
 5. Why did you use a "simplified version" of the encrypted document
 editor?
 
-We will update the measurements section to clarify this.  It was
-unclear how to securely re-implement the application without COWL, so
-we decided to be generous and implement a version with no privacy
+We will update the measurements section to note that it was unclear
+how to securely re-implement the application without COWL, so we
+decided to be generous and implement a version with no privacy
 guarantees, which one would expect to run faster (it utilized no
 cryptographic operations).
 
@@ -195,22 +193,24 @@ has explicit control over its label (and privilege).
 restrictive?  From what I understand, CSP allows one to explicitly
 whitelist origins the compartment can talk to.
 
-This misunderstanding may have due to our explanation of what we
-expect form a password checker. (Rigid may be a better word.) We will
-clarify this and discuss the two CSP policies one might consider: a
-CSP policy which permits no origins, and one which permits access to
-the database.  The former is too is too restrictive because we can
-never download the password regex database; the latter is is too
-*permissive*, once you grant access to an origin, that access persists
-for the entire page, even after the password checker has received the
-password: it could just send the password to the remote origin.
+This misunderstanding may be due to our explanation of what
+functionality and security properties are expected of the password
+checker.  (Using a word like 'inflexible' instead of 'restrictive' may
+also help.) We will clarify this and discuss the two CSP policies one
+might consider: a CSP policy which permits no origins, and one which
+permits access to the database.  The former is too is too restrictive
+because we can never download the password regex database; the latter
+is is too *permissive*, once you grant access to an origin, that
+access persists for the entire page, even after the password checker
+has received the password: it could just send the password to the
+remote origin.
 
 Reviewer E
 --------------------------------------------------------------
 
 1. How do you address taint-accumulation?
 
-In our related-work improvements, when comparing coarse-grained and
+In our related work improvements, when comparing coarse-grained and
 fine-grained systems we will address the issue of over-tainting. Our
 answer is two-fold.  First, compartments in browsing contexts are
 relatively short-lived, a result of navigation.  Second, the ability
@@ -242,7 +242,9 @@ an incremental deployment path in the backwards-compatibility section.
 While in our prior work [40] we discussed how a label system can
 subsume the policies that can be implemented with today's SOP, CSP,
 CORS, etc., COWL co-exists with these mechanisms, offering MAC to
-pages which opt-in to this new functionality.
+pages which opt-in to this new functionality. This confusion may have
+been, in part, due to the fact that we only mentioned [40]; we hope to
+further clarify this by comparing with [40].
 
 3. What does COWL give up by taking a coarse-grained approach?
 (Also raised by B and D.)
