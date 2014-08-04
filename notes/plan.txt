@@ -1,7 +1,4 @@
-Hi Mihai,
-
-Sorry for the delay with this. At a high level, we have roughly three
-things that we wish to do:
+At a high level, we have roughly three things that we wish to do:
 
 1. Add a section introducing integrity and adjust the text to reflect
    its treatment in COWL.
@@ -14,18 +11,6 @@ things that we wish to do:
    we want to discuss the trade-offs due to the chosen label model, the
    coarse granularity, and difficulty of policy
    specification/compartmentalization.
-
-We intend to revise the paper so that the exposition naturally
-addresses the reviewers' questions and critiques. We summarize the
-reviewers' questions (in order) and critiques below, and sketch brief
-responses, which we will seamlessly integrate into the presentation of
-COWL.
-
-Please let us know what you think.
-
-Thanks,
-Deian
-
 
 
 Reviewer A
@@ -270,3 +255,22 @@ around every individual object).
 Both approaches are not mutually exclusive, one could imagine 
 introducing compartments where fine-grained IFC is applied instead 
 (e.g., JSFlow). This is an interesting direction for future work.
+
+--------------------------------------------------------------
+--------------------------------------------------------------
+
+Untrusted Third-Party Library: we should bring about the idea of
+authority. It's important for a page to be able to drop its privileges
+to talk to the network for this to work. Hence control over "amient
+authority" is another requirement of the confinement system.
+
+Alternative approach to sec 3:
+
+- MAC in the browser
+  - (MAC)                             labeled contexts
+  - (symmetric confinement)           labeled blobs & postMessage
+  - (hierarchical confinement)        lworkers
+  - (explicit control over authority) privileges
+- Loosening the SOP
+  -                                   lxhr
+  - (addressing covert channels)      clearance
