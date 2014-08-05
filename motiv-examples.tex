@@ -121,27 +121,28 @@ To limit the damage of cross-site scripting (XSS) attacks, wherein
 malicious code is injected into a page, developers can tighten-down
 the SOP with content security policy (CSP)~\cite{csp}.
 %
-With CSP, developers set various directives, white-listing
-origins from where different content (images, scripts, etc.) can be
-loaded.
+With CSP, developers set various directives, white-listing origins
+from where different content (images, scripts, etc.) can be loaded.
 %
-This has the additional consequence of restricting to whom data can be
-leaked through content loading.
+This has the consequence of restricting to whom data can be leaked
+through content loading.
 %
-Moreover, certain CSP directives are used to explicitly limit data
-exfiltration.
+Other CSP directives limit data exfiltration through other
+communication channels.
 %
-For example, the \texttt{connect-src} can be used to white-list
-origins that the page is allowed to perform XHR requests to.
+For example, the \texttt{connect-src} directive can be used to
+white-list the origins that the page is allowed to perform XHR
+requests to.
 
 Unfortunately, CSP cannot be used to restrict certain channels such as
 inter-compartment messaging (e.g., via \js|postMessage|) or leaks due
 to navigation.
 %
-Worse yet, CSP policies are static, i.e., they cannot change through
-the lifetime of a page, and ``write-only,'' i.e., one context cannot
-inspect the CSP of another to, for instance, decide if it wishes to
-share sensitive data with it.
+Worse yet, CSP policies are static, i.e., policies cannot change
+through the lifetime of a page (e.g., if the page wishes to no longer
+communicate with certain hosts), and ``write-only,'' i.e., one context
+cannot inspect the policy of another context to, for instance, decide
+if it wishes to share sensitive data with it.
 
 \subsection{Motivating Examples}
 \label{sec:motivating-examples}
@@ -170,18 +171,22 @@ ease with which na\"{\i}ve web developers can introduce leaks of
 sensitive data in applications.
 
 A more skilled web developer could today host the checker script on
-her {\em own} server and have that server specify a content security
-policy (CSP)~\cite{csp} for the page that disallows scripts within the
-page from initiating XHRs to any other origins. But this discretionary
-access control policy is {\em too} restrictive, in that it precludes
-useful operations by the checker script, e.g., retrieving an updated
-set of regular expressions describing weak passwords from a remote
-server (essentially, ``updating'' the checker's functionality). Doing
-so requires communicating with a remote origin other than that of the
-top-level page.\footnote{Unfortunately, even permitting communication
-  with the top-level page's same origin is risky---a malicious script
-  could then write the password to a public page at that same origin,
-  in a {\em self-exfiltration attack}~\cite{Yip:2009:PBS,selfex}.}
+her {\em own} server and have that server specify a CSP policy for the
+page.
+%
+Unfortunately, a CSP policy that disallows scripts within the page
+from initiating XHRs to any other origins is \emph{too} inflexible, in
+that it precludes useful operations by the checker script, e.g.,
+retrieving an updated set of regular expressions describing weak
+passwords from a remote server (essentially, ``updating'' the
+checker's functionality). Doing so requires communicating with a
+remote origin.
+%
+Yet, a CSP policy that permits such communication event with the
+top-level page's same origin is \emph{too} permissive: a malicious
+script could carry out a \emph{self-exfiltration
+attack}~\cite{Yip:2009:PBS,selfex}, and write the password to a public
+page at that trusted origin.
 
 The key insight is that it is entirely safe and useful for an untrusted script to
 communicate with remote origins {\em before} it obtains sensitive
