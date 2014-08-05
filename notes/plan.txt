@@ -261,8 +261,8 @@ introducing compartments where fine-grained IFC is applied instead
 
 Untrusted Third-Party Library: we should bring about the idea of
 authority. It's important for a page to be able to drop its privileges
-to talk to the network for this to work. Hence control over "amient
-authority" is another requirement of the confinement system.
+to talk to the network for this to work. Hence control over "ambient
+authority" is another requirement for the confinement system.
 
 Alternative approach to sec 3:
 
@@ -273,7 +273,11 @@ Alternative approach to sec 3:
   - (explicit control over authority) privileges
 - Loosening the SOP
   -                                   lxhr
+  - (addressing covert channels)      clearance
   Make a note that clearane is used to address covert channels.
   It's standard, the only interesting thing is that user's have
   control over it.
   Forward reference discussion section on covert channels.
+
+- "putting it all together"
+  - full API
