@@ -274,6 +274,10 @@ Alternative approach to sec 3:
 - Loosening the SOP
   -                                   lxhr
   - (addressing covert channels)      clearance
+  Make a note that clearane is used to address covert channels.
+  It's standard, the only interesting thing is that user's have
+  control over it.
+  Forward reference discussion section on covert channels.
 
 - "putting it all together"
   - full API
