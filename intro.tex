@@ -43,10 +43,10 @@ Unfortunately, in the status-quo web browser security architecture,
 one must often sacrifice privacy to achieve flexibility, and
 vice-versa. The central reason that flexibility and privacy are at
 odds in the status quo is that the mechanisms today's browsers rely on
-for providing privacy---the SOP, Content Security Policies
+for providing privacy---the SOP, Content Security Policy
 (CSP)~\cite{csp}, and Cross-Origin Resource Sharing
-(CORS)~\cite{cors13}---are all forms of discretionary access control
-(DAC). DAC has the brittle character of either denying or granting
+(CORS)~\cite{cors13}---are all forms of discretionary access control.
+DAC has the brittle character of either denying or granting
 untrusted code (e.g., a library written by a third party) access to
 data. In the former case, the untrusted JavaScript might {\em need}
 the sensitive data to implement the desired application

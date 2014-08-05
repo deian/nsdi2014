@@ -19,7 +19,8 @@ offer a brief refresher on status-quo browser privacy polices.
 % and a sketch of the labeling mechanism that
 %forms the core of our system, \sys{}.
 
-\subsection{Contexts and the Same-Origin Policy}
+\subsection{Browser Privacy Policies}
+%%Contexts and the Same-Origin Policy}
 \label{sec:backgd}
 
 \paragraph{Browsing contexts}
@@ -56,7 +57,7 @@ of a resource URL.\footnote{For brevity, we elide the protocol and
   port from URLs throughout, and assume that they are respectively
   \js|https| and \js|443|.}
 
-The {\em same-origin policy} (SOP) specifies that resources of an
+The {\em same-origin policy} specifies that resources of an
 origin should only be readable by content from the same
 origin~\cite{rfc6454, googlehandbook, VanKesteren2012}.  Browsers
 ensure that code executing in an \https{a.com} context can only
@@ -119,7 +120,7 @@ status quo, a developer should only send sensitive data using
 \paragraph{Content Security Policy}
 To limit the damage of cross-site scripting (XSS) attacks, wherein
 malicious code is injected into a page, developers can tighten-down
-the SOP with content security policy (CSP)~\cite{csp}.
+the SOP with CSP~\cite{csp}.
 %
 With CSP, developers set various directives, white-listing origins
 from where different content (images, scripts, etc.) can be loaded.
@@ -127,22 +128,36 @@ from where different content (images, scripts, etc.) can be loaded.
 This has the consequence of restricting to whom data can be leaked
 through content loading.
 %
-Other CSP directives limit data exfiltration through other
-communication channels.
+Other CSP directives explicitly limit data exfiltration.
 %
-For example, the \texttt{connect-src} directive can be used to
-white-list the origins that the page is allowed to perform XHR
-requests to.
+For example, the \texttt{connect-src} directive is used to white-list
+the origins that a page is allowed to communicate with via XHR.
 
 Unfortunately, CSP cannot be used to restrict certain channels such as
 inter-compartment messaging (e.g., via \js|postMessage|) or leaks due
 to navigation.
 %
 Worse yet, CSP policies are static, i.e., policies cannot change
-through the lifetime of a page (e.g., if the page wishes to no longer
-communicate with certain hosts), and ``write-only,'' i.e., one context
-cannot inspect the policy of another context to, for instance, decide
-if it wishes to share sensitive data with it.
+through the lifetime of a page (e.g., if the page wishes to drop
+communication privileges with certain hosts), and transparent, i.e., a
+context cannot inspect the policy of another context (e.g., to decide
+if it wishes to share sensitive data with it).
+
+\paragraph{Cross-Origin Resource Sharing}
+To achieve more flexibility, CORS~\cite{cors13} extends the XHR object
+to provide developers with a means for loosening the SOP.
+%
+Specifically, with CORS, code can read cross-origin resources 
+(retrieved via XHR) if the remote host supplies a CORS header
+white-listing the (requesting) origin, alongside the resource.
+%
+(Recall that the SOP would not otherwise allow code to inspect a
+cross-origin response.)
+%
+Unfortunately, CORS only gives a host control over the origins that
+are allowed to read a resource---once access is granted, they have no
+control over what cross-origin code can do with the data.
+
 
 \subsection{Motivating Examples}
 \label{sec:motivating-examples}
