@@ -130,6 +130,9 @@ also explain CSP and CORS in this style?
 
 Yes. We will do so.
 
+d9121df41403d9fe242f4a11f7055ea033529fc1
+eef754ab196266fddfa5da0341576bfe2127f32a
+
 3. Table 2: some unexpected speedups are not explained, such as "New
 iframe - Firefox - labeled" and "New worker - Firefox - unlabeled[c]."
 
@@ -174,7 +177,7 @@ associated with that exact origin. By "ambient authority" we mean the
 origin is implicit in the page. By contrast, under COWL, a compartment
 has explicit control over its label (and privilege).
 
-3. In the password checker example (pg. 3), why is CSP too
+[DONE] 3. In the password checker example (pg. 3), why is CSP too
 restrictive?  From what I understand, CSP allows one to explicitly
 whitelist origins the compartment can talk to.
 
@@ -189,6 +192,8 @@ is is too *permissive*, once you grant access to an origin, that
 access persists for the entire page, even after the password checker
 has received the password: it could just send the password to the
 remote origin.
+
+eef754ab196266fddfa5da0341576bfe2127f32a
 
 Reviewer E
 --------------------------------------------------------------
