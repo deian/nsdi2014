@@ -38,12 +38,13 @@
 %\SetWatermarkColor{red}
 
 \newcommand{\tocite}[1]{\Red{\cite{#1}}}
-%\newcommand{\toref}[1]{\Red{XX}}
-\let\toref\ref
+\newcommand{\toref}[1]{\Red{\ref{#1}}}
+%\let\toref\ref
 %\newcommand{\https}[1]{\texttt{\small https://#1}}
 \newcommand{\https}[1]{\texttt{\small #1}}
 \newcommand{\para}[1]{\vspace*{.5ex}\noindent {\bf #1}}
 \newcommand{\subpara}[1]{\vspace*{.5ex}\noindent {\it #1}}
+\newcommand{\lcors}{LCORS}
 
 %\newenvironment{CompactItemize}%
 %  {\begin{list}{$\triangleright$}%
@@ -168,7 +169,7 @@ Protecting Users by Confining JavaScript with \sys
 \input{apps}
 \input{implementation}
 \input{eval}
-%\input{discussion}
+\input{discussion}
 \input{related}
 \input{conclusion}
 

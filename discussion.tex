@@ -2,41 +2,96 @@
 \label{sec:discussion}
 
 In this section we discuss various design trade-offs, the limitations
-in \sys{} that arise as result of these trade-offs, and our approach
-to addressing some of these limitation in future work.
+of \sys{} that arise as result of these trade-offs, and future work
+directions for addressing some of these limitations.
 
 
-\subsection{Covert channels}
-\label{sec:discussion:covert}
+\paragraph{Covert Channels}
+In an ideal confinement system, it would always be safe to let untrusted
+code compute on sensitive data.
+%
+Unfortunately, real-world systems such as browsers typically have
+\emph{covert} channels which malicious code may exploit to exfiltrate
+sensitive data.
+%
+Since our implementations of COWL modify existing browsers, we do not
+protect against covert channel attacks.
+%
+Indeed, malicious code can leverage covert channels already present in
+the browser to leak sensitive information.
+%
+For instance, a malicious compartment may exploit rendering durations,
+as in~\tocite{}, to leak sensitive data to a less-tainted compartment
+which may, in turn, exfiltrate the data to a remote host.
+%
+Importantly, however, COWL does not introduce new covert channels--our
+implementations re-purpose existing (software-based) browser isolation
+mechanisms (V8 contexts and SpiderMonkey compartments) to enforce MAC
+policies.
+%
+Moreover, these MAC policies are generally more restricting than
+existing browser policies: they prevent unauthorized data exfiltration
+through \emph{overt} channels and, in effect, force malicious code to
+resort to using covert channels.
 
-Part of our future work entails the development of a W3C
-specification detailing the \sys{} system.
-%
-Hence, we must consider the effects of covert channels in such a
-system.
-%
-To this end, we divide our system into two designs:
-%
-we refer to the system as described in
-Section~\ref{sec:system} as the \emph{flexible design};
-and, the subset without the labeled XHR object of
-Section~\ref{sec:system:mashup} is referred to as the
-\emph{conservative design}.
 
-Though the conservative \sys{} design enables new kinds of
-applications by eliminating full trust in any single individual
-component, \sys{} strictly imposes more restrictions on code than the
-SOP.
+COWL only relaxes existing policies with \lcors.
 %
-Consequently, attackers that leverage covert channels, which are
-introduced by races to shared resources, such as caches, schedulers,
-etc. to leak information in a browser with \sys{} will leak at most as
-much information as a version of the browser without confinement.
+As described in Section~\toref{}, a compartment can use \lcors{} to
+read cross-origin XHR responses otherwise not be permitted by the SOP
+or (potentially) even CORS.
 %
-Nevertheless, we note that outside of introducing the notion of
-clearance, which restricts the kinds of data a piece of code can
-access and thus leak, we do not address covert channels in this work. 
-\todo{ds}{Note on lass pass an other benefiting from \sys}
+Of course, COWL confines such code and restricts its ability to
+communicate once it inspects a response.
+%
+But, nevertheless, if the code is malicious it may potentially leak the
+sensitive information through a covert channel.
+ 
+At first this may appear as new risk.
+%
+However, we remark that \lcors{} is user controlled (e.g., the user
+must explicitly allow \https{mint.com} to read \https{amazon.com} and
+\https{chase.com} data), and code reading cross-origin data is
+subject to MAC (e.g., \https{mint.com} will arbitrarily exfiltrate
+the \https{amazon.com} or \https{chase.com} data after reading it).
+%
+This is in contrast to the approaches used by existing mash-up such as
+\https{mint.com} which ask users for their passwords.
+%
+Indeed, COWL is a strict improvement over existing approaches: when
+deciding to trust a mashup integrator such as \https{mint.com} they
+are only trusting the app to not leak their data through covert
+channels.
+
+
+\Red{HERE}
+\todo{ds}{mashups that care about user privacy yet themselves rely on
+third party code can use clearance to privilege seprate their code and
+ensure that this third party code cannot access data it does not need}
+
+
+%
+As mentioned in Section~\ref{sec:system}, \sys{} fully implements the
+notion of clearance, previously developed in
+~\cite{efstathopoulos:asbestos, Zeldovich:2006, stefan:2011:flexible,
+Breeze13}, as a way to restrict what data piece of code can read and
+thus exfiltrate.
+%
+The default clearance is \emph{user-controlled}; a user can thus disable
+labeled XHR by configuring the clearance of a page to be just
+its origin.
+%
+A user can also selectively enable labeled XHR on specific sites; a
+mash-up would ask the user to raise its clearance accordingly.
+%
+Importantly, raising the clearance does \emph{not} give a mash-up free reign:
+the code is still confined.
+%
+It can only exfiltrate data via a covert channel while the user
+is on the web site---a strict improvement over existing mash-ups which
+\emph{ask for your password}.
+
+%%%%
 
 %
 % \todo{}{it's important for us to note that we do not address covert
@@ -46,88 +101,9 @@ access and thus leak, we do not address covert channels in this work.
 % at a low bit rate)}
 
 
-The labeled XHR object can be used by arbitrary code to read cross-origin
-data, at the cost of giving up arbitrary communication capabilities
-when inspecting the response.
-%
-Unfortunately, this allows code to leak a bit by not terminating.
-%
-For example, to leak one bit of \https{bank.ch} data, \https{evil.com}
-solely needs to create a labeled worker within which the labeled XHR
-is used to read bank data.
-%
-In the parent, code periodically sends a request to \https{evil.com},
-while in the labeled worker (which is no longer allowed to communicate
-arbitrarily) loops forever if the bit is set.
-%
-This, unfortunately, blocks the event loop and prevents further
-request to \https{evil.com}, thereby leaking the bit.
-\todo{all}{can we just remove this paragraph?}
 
-
-At first glance, it may appear that executing labeled workers
-in separate threads would remove this termination covert
-channel, as previously observed in~\cite{stefan:addressing-covert}. 
-%
-Unfortunately, this approach is not be feasible in current web browser
-implementations; both Firefox and Chrome bound the number of worker
-threads to five\todo{ds}{check latest}, as to avoid denial of service
-attacks that create a large number of threads.
-%
-And, imposing such a limit on the number of threads
-reintroduces a variant of the above attack.
-%
-While using light-weight threads as used in~\cite{stefan:addressing-covert},
-hierarchical- and instruction-based
-schedulers~\cite{stefan:2013:eliminating,buiras2013library}, and predicative
-mitigation techniques~\cite{askarov:termination-insensitive} is promising, we do
-not expect browsers to be amendable to such heavy changes in the near
-future.
-%
-Instead, simple heuristics may be more practical since the browser,
-in the case of Firefox, and tab, in Chrome's case, hang when an
-attacker exploits the termination covert channel.
-\todo{all}{can we just remove this paragraph?}
-
-Nevertheless, since the labeled XHR constructor allows code to access
-data not otherwise permitted by the SOP, we recognize that exposing
-the labeled XHR to arbitrary code is dangerous.
-%
-In the interim, this construct is useful when considering extensions,
-which currently access cross-origin data without any restrictions or
-confinement---our constructor can be used to impose some restrictions
-on what extensions can do once they read cross-origin data.
-%
-\todo{ds}{maybe not on service workers}
-%
-It is worth remarking that the conservative \sys{} already improves
-the state of the art in web security, and we thus leave the
-investigation of covert channel bandwidths and practicality in
-exploiting these channels in the browser as future work.
-
-\subsection{DC Labels and Lattice-based Policies}
+\paragraph{DC Labels and Lattice-based Policies}
 \label{sec:discussion:lattice}
-
-The implementation of \sys{} is tied to DC labels.
-%
-This design decision has several consequences.
-%
-First, developers must familiarize themselves with labels to express
-security policies on their data.
-%
-However, we believe that the encoding of web policies maps naturally
-to DC labels and though simple, the evaluation in
-Hails~\cite{giffin:2012:hails}, and our experience implementing diverse
-applications with \sys{} supports this conjecture.
-%
-We further remark that \sys{} conceptually provides developers with
-the ability to dynamically set CSP directives, and only share data
-with browsing contexts if their directives impose a more strict
-policy; with the increase usage of CSP, this minimizes the additional
-knowledge developers need to pick up to set correct policies.
-%
-Nevertheless, we leave a more extensive analysis of policy
-specification to future work.
  
 Second, and more importantly, \sys{} only enforces latticed-based
 policies, i.e., DC labels dictate where information can be
@@ -137,7 +113,7 @@ Although this captures a wide-set of policies, it does not capture all
 possible confinement policies.
 %
 For instance, lattice-based policies are not suitable for scenarios in
-which a circular flows of information is permitted~\cite{Badger:1995}.
+which a circular flows of information is desired~\cite{Badger:1995}.
 %
 Though we could have taken an approach, as in DCS~\cite{Akhawe2013},
 to allow policies to be in the form of developer-provided code, we
@@ -145,6 +121,7 @@ believe that the trade-off for DC labels' simplicity---that of simply
 specifying which origins are allowed to read a piece of
 data---outweighs the ability to specify arbitrarily policies and the
 accompanying complexities.
+
 
 
 \subsection{Policy-granularity}
