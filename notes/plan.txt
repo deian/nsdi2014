@@ -84,7 +84,7 @@ separate section. (Also raised by reviewers D and E)
 
 We strongly agree.
 
-3. Is COWL safe from covert channels? Or does COWL merely limit the
+[DONE] 3. Is COWL safe from covert channels? Or does COWL merely limit the
 rate of information leak via covert channels?
 
 We briefly discussed this at the end of section 3 and 3.3, but since
@@ -105,7 +105,10 @@ functionality of third-party mashup sites, the status quo requires the
 user to give up their password; COWL significantly improves this state
 of affairs.
 
-4. Does the sharing of heap space for LWorker introduce new covert
+e13479dfd75953f6b25b82ca207b91165ebbe062
+e19fec4096412a2abebfad10deb574f4fa884623
+
+[DONE] 4. Does the sharing of heap space for LWorker introduce new covert
 channels?
 
 We'll add a note in the implementation section to clearly highlight
@@ -113,6 +116,9 @@ that since our implementation of LWorkers repurposes V8 contexts and
 SpiderMonkey compartments we believe the chance of unauthorized
 leakage of information between LWorkers to be no worse than that of
 iframes.
+
+e13479dfd75953f6b25b82ca207b91165ebbe062
+e19fec4096412a2abebfad10deb574f4fa884623
 
 Reviewer C
 --------------------------------------------------------------
