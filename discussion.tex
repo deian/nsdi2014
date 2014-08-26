@@ -59,37 +59,31 @@ This is in contrast to the approaches used by existing mash-up such as
 \https{mint.com} which ask users for their passwords.
 %
 Indeed, COWL is a strict improvement over existing approaches: when
-deciding to trust a mashup integrator such as \https{mint.com} they
+deciding to trust a mashup integrator such as \https{mint.com} users
 are only trusting the app to not leak their data through covert
 channels.
 
-
-\Red{HERE}
-\todo{ds}{mashups that care about user privacy yet themselves rely on
-third party code can use clearance to privilege seprate their code and
-ensure that this third party code cannot access data it does not need}
-
-
+Trustworthy developers can further leverage COWL's support for
+\emph{clearance} when compartmentalizing their application to ensure
+that only code that actually relies on \lcors{} can access
+cross-origin responses.
 %
-As mentioned in Section~\ref{sec:system}, \sys{} fully implements the
-notion of clearance, previously developed in
-~\cite{efstathopoulos:asbestos, Zeldovich:2006, stefan:2011:flexible,
-Breeze13}, as a way to restrict what data piece of code can read and
-thus exfiltrate.
+Clearance is a label that serves as an upper bound on the (current)
+label of a compartment and since the current label is adjusted
+according to the sensitivity of the data being read, code cannot read
+(and thus leak) data labeled above the clearance.
 %
-The default clearance is \emph{user-controlled}; a user can thus disable
-labeled XHR by configuring the clearance of a page to be just
-its origin.
+Hence, apps like \https{mint.com} can assign a ``low'' clearance to
+third-party libraries that they do not trust to keep (e.g.,
+\https{chase.com}) data confidential.
 %
-A user can also selectively enable labeled XHR on specific sites; a
-mash-up would ask the user to raise its clearance accordingly.
+In turn, these libraries, even if they are malicious, will not be able
+to leak such data through covert channels.
 %
-Importantly, raising the clearance does \emph{not} give a mash-up free reign:
-the code is still confined.
-%
-It can only exfiltrate data via a covert channel while the user
-is on the web site---a strict improvement over existing mash-ups which
-\emph{ask for your password}.
+While COWL fully implements clearance, we do not discuss it further;
+our treatment of it is standard and follows directly
+from~\cite{efstathopoulos:asbestos, Zeldovich:2006,
+stefan:2011:flexible, Breeze13}.
 
 %%%%
 
