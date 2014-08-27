@@ -31,19 +31,30 @@ offer a brief refresher on status-quo browser privacy polices.
 %\includegraphics[scale=0.35]{setting.pdf}
 \end{center}
 \vspace{-10pt}
-\caption{\label{fig:primer-browser-arch} Browser architecture.}
+\caption{\label{fig:primer-browser-arch} Browser
+architecture.\todo{ds}{update with fig that shows DAC}}
 \vspace{-10pt}
 \end{figure}
-As shown in Figure~\ref{fig:primer-browser-arch}, a web page
-consists of content and JavaScript code.  A \emph{browsing context}
-presents a page's content to the user, and JavaScript code accesses
-content within the page through the \emph{Document Object Model
-  (DOM)}~\cite{html5}. Browsing contexts may be nested (e.g., by using
-iframes). They also may read and write persistent storage (e.g.,
-cookies) and issue network requests (either implicitly in page content
-that references a URL retrieved over the network, or explicitly in
-JavaScript, through invoking the \xhr{} (XHR) constructor).  Some
-contexts such as Web Workers run JavaScript but do not have a
+Figure~\ref{fig:primer-browser-arch} highlights the main components of
+the current web security architecture.
+%
+Core to this is architecture is the notion of \emph{browsing
+contexts}, i.e., pages and frames.
+%
+A browsing context encapsulates presentable content and a JavaScript
+execution environment (heap and code) that interacts with content
+through the \emph{Document Object Model (DOM)}~\cite{html5}.
+%
+Browsing contexts may be nested (e.g., by using iframes).
+%
+They also may read and write persistent storage (e.g., cookies), issue
+network requests (either implicitly in page content that references a
+URL retrieved over the network, or explicitly in JavaScript, using the
+\xhr{} (XHR) constructor), and communicate with other contexts
+(IPC-style via \js|postMessage|, or, in certain cases, by sharing
+DOM objects).
+%
+Some contexts such as Web Workers run JavaScript but do not have a
 DOM. We use the term \emph{compartment} to refer to both browsing
 contexts and workers when the more precise meaning is not relevant.
 

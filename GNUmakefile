@@ -47,7 +47,10 @@ PS2PDF    = GS_OPTIONS=-sPAPERSIZE=letter ps2pdf -sPAPERSIZE=letter -dEmbedAllFo
 endif
 BIBTEX    = bibtex -min-crossrefs=1000
 
-all: $(BASE).pdf
+all: $(BASE)-crop.pdf
+
+$(BASE)-crop.pdf: $(BASE).pdf
+	pdfcrop --margins 15 $(BASE).pdf
 
 ifeq ($(PDF),pdf)
 %.pdf %.tex: %.fig
