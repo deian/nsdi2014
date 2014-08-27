@@ -55,8 +55,9 @@ URL retrieved over the network, or explicitly in JavaScript, using the
 DOM objects).
 %
 Some contexts such as Web Workers run JavaScript but do not have a
-DOM. We use the term \emph{compartment} to refer to both browsing
-contexts and workers when the more precise meaning is not relevant.
+DOM. We use the terms \emph{contexts} and \emph{compartment}
+interchangeably to refer to both browsing contexts and workers when
+the more precise meaning is not relevant.
 
 \paragraph{Origins and the Same-Origin Policy}
 Since different authors may contribute components within a page,
@@ -64,9 +65,8 @@ today's status quo browsers impose a security policy on interactions
 among components. Policies are expressed in terms of \emph{origins}.
 An origin is a source of authority encoded by the protocol (e.g.,
 \js|https|), domain name (e.g., \js|fb.com|), and port (e.g., \js|443|)
-of a resource URL.\footnote{For brevity, we elide the protocol and
-  port from URLs throughout, and assume that they are respectively
-  \js|https| and \js|443|.}
+of a resource URL. For brevity, we elide the protocol and
+port from URLs throughout.
 
 The {\em same-origin policy} specifies that resources of an
 origin should only be readable by content from the same
@@ -84,62 +84,35 @@ The SOP does not, however, prevent code from disclosing data to
 foreign origins. For example, code executing in an \https{a.com}
 context can trivially disclose data to \https{b.com} by using XHR to
 perform a network request; the SOP only prevents the code from
-inspecting responses to such XHR requests, but does not impose any
-restrictions on sending such requests.
+inspecting responses to such cross-origin XHR requests, but does not
+impose any restrictions on sending such requests.
 Similarly, code can exfiltrate data by encoding it in the path of a
 URL whose origin is \https{b.com}, and setting the \js|src| property
 of an \js|img| element to this URL.
 
-% More generally, the ability to embed content from an arbitrary origin
-% can also be used to communicate data back into the page and ``bypass''
-% the SOP's goal of disallowing cross-origin reads.
-% %
-% This is possible because most content is not completely opaque. 
-% %
-% For example, images can encode data in properties such as width and
-% height (which are always readable), scripts can encode data in their
-% execution sequence (as done by JSON-P~\cite{jsonp}), etc.
-% %
-
-% The popularization of JSON-P and other ad-hoc cross-origin
-% communication methods, (notably, those relying on \js|window.name| and
-% \js|window.location|~\cite{thidpartyjs}), has lead to the introduction
-The HTML5 \js|postMessage| API~\cite{webmessaging}
-allows code in different compartments to exchange
-messages, as shown in Figure~\ref{fig:primer-browser-arch}.
-%
-% Given a foreign-origin DOM window object \js|win|, the
-% \js|postMessage| method can be invoked on it to send the
-% foreign origin a message: \js|win.postMessage(message, destOrigin)|.
-% %
-% Since browsing contexts can be navigated, to prevent man-in-the-middle
-% attacks~\cite{barth2009securing}, a second argument
-% \js|destOrigin| is used to specify the intended origin of the message.
-%
-Unfortunately, a sending compartment has no control over what a
-receiving compartment can do with the received data. Hence in the
-status quo, a developer should only send sensitive data using
-\js|postMessage| if she trusts the foreign origin.
-%
-% in Section~\ref{sec:system:iframe}, we describe how \sys{} precisely
-% allows code to impose restrictions on where the foreign-origin can
-% disseminate data received via \js|postMessage|, removing this need for
-% complete trust.
-
-%\paragraph{Labels}
-
 \paragraph{Content Security Policy}
-To limit the damage of cross-site scripting (XSS) attacks, wherein
-malicious code is injected into a page, developers can tighten-down
-the SOP with CSP~\cite{csp}.
+
+To improve user privacy developers can use CSP to impose additional
+policies on a context.
 %
-With CSP, developers set various directives, white-listing origins
-from where different content (images, scripts, etc.) can be loaded.
+Specifically, with CSP, developers can set various directives to
+restrict the origins from where different content (images, scripts,
+etc.) may be loaded~\cite{csp}.
 %
-This has the consequence of restricting to whom data can be leaked
-through content loading.
+While the initial intent of this was to address cross-site scripting
+(XSS) attacks by limiting code to be loaded from trustworthy sources,
+CSP evolved to address a broader class of privacy issues, including
+(explicit) exfiltration.
 %
-Other CSP directives explicitly limit data exfiltration.
+For instance, the fine-grained control over resource loading has the
+dual purpose of restricting to whom data can be leaked through content
+loading.
+%
+(If a page is restricted to only including images from \https{b.com},
+it can only leak data through image loading to this (i.e.,
+\https{b.com}) origin.)
+%
+Other CSP directives have the sole role of preventing leaks.
 %
 For example, the \texttt{connect-src} directive is used to white-list
 the origins that a page is allowed to communicate with via XHR.
@@ -148,27 +121,56 @@ Unfortunately, CSP cannot be used to restrict certain channels such as
 inter-compartment messaging (e.g., via \js|postMessage|) or leaks due
 to navigation.
 %
-Worse yet, CSP policies are static, i.e., policies cannot change
-through the lifetime of a page (e.g., if the page wishes to drop
-communication privileges with certain hosts), and transparent, i.e., a
-context cannot inspect the policy of another context (e.g., to decide
-if it wishes to share sensitive data with it).
-
-\paragraph{Cross-Origin Resource Sharing}
-To achieve more flexibility, CORS~\cite{cors13} extends the XHR object
-to provide developers with a means for loosening the SOP.
+This, however, is not a fundamental limitation of CSP and indeed
+within the scope of future versions of the specification~\tocite{}.
 %
-Specifically, with CORS, code can read cross-origin resources 
-(retrieved via XHR) if the remote host supplies a CORS header
+More fundamentally, CSP policies are 1) \emph{static}, i.e., policies
+cannot change through the lifetime of a page (e.g., a page cannot drop
+communication privileges with certain hosts); and 2)
+\emph{inaccessible}: JavaScript code cannot inspect the CSP policy of
+its context, or the policy of another context when, for instance,
+deciding to share sensitive data with the latter party.
+
+\paragraph{postMessage \& Cross-Origin Resource Sharing}
+
+Within the confines of the browser, the HTML5 \js|postMessage|
+API~\cite{webmessaging} gives developers the flexibility of
+implementing applications that can exchange messages between
+cross-origin compartments, as shown in Figure~\ref{fig:primer-browser-arch}.
+%
+When sending a message the intended origin of the message must be
+specified to ensure that an arbitrary context cannot read the message.
+%
+Otherwise, a malicious attacker may be able to carry out a
+man-in-the-middle attack by navigating the context to whom the message
+was destined for to a page they control (wherein they read the
+message)~\cite{barth2009securing}.
+
+Similar to th \js|postMessage| API, CORS~\cite{cors13} gives
+developers the flexibility of implementing applications that can read
+data from a cross-origin server.
+%
+Specifically, with CORS, code can read cross-origin resources,
+retrieved via XHR, if the remote host supplies a CORS header
 white-listing the (requesting) origin, alongside the resource.
 %
-(Recall that the SOP would not otherwise allow code to inspect a
-cross-origin response.)
+Recall that the SOP would not otherwise allow code to inspect a
+cross-origin response.
+ 
+Unfortunately both, the \js|postMessage| intended origin, and CORS 
+solely implement discretionary access control.
 %
-Unfortunately, CORS only gives a host control over the origins that
-are allowed to read a resource---once access is granted, they have no
-control over what the cross-origin code can do with the data.
-
+In the former case, a sending compartment can control the origin that
+that is allowed to received the message, but has no control over what
+the receiving context can do with the received data.
+%
+In the latter case, a host host can control the origins that are
+allowed to read the resource, but once access is granted, they have no
+control over what the cross-origin compartment can do with the data.
+%
+Hence in the status quo, a developer should only send sensitive data
+to a cross-origin compartment if she completely trusts the foreign
+origin.
 
 \subsection{Motivating Examples}
 \label{sec:motivating-examples}
