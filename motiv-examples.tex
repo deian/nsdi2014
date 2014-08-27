@@ -138,15 +138,15 @@ API~\cite{webmessaging} gives developers the flexibility of
 implementing applications that can exchange messages between
 cross-origin compartments, as shown in Figure~\ref{fig:primer-browser-arch}.
 %
-When sending a message the intended origin of the message must be
-specified to ensure that an arbitrary context cannot read the message.
+When sending a message, the sender can specify intended origin of the
+to ensure that an arbitrary context cannot read the message.
 %
-Otherwise, a malicious attacker may be able to carry out a
-man-in-the-middle attack by navigating the context to whom the message
-was destined for to a page they control (wherein they read the
-message)~\cite{barth2009securing}.
+%% Otherwise, a malicious attacker may be able to carry out a
+%% man-in-the-middle attack by navigating the context to whom the message
+%% was destined for to a page they control (wherein they read the
+%% message)~\cite{barth2009securing}.
 
-Similar to th \js|postMessage| API, CORS~\cite{cors13} gives
+Similar to the \js|postMessage| API, CORS~\cite{cors13} gives
 developers the flexibility of implementing applications that can read
 data from a cross-origin server.
 %
@@ -154,19 +154,16 @@ Specifically, with CORS, code can read cross-origin resources,
 retrieved via XHR, if the remote host supplies a CORS header
 white-listing the (requesting) origin, alongside the resource.
 %
-Recall that the SOP would not otherwise allow code to inspect a
+Recall that the SOP would otherwise disallow code from inspecting a
 cross-origin response.
  
 Unfortunately both, the \js|postMessage| intended origin, and CORS 
 solely implement discretionary access control.
 %
-In the former case, a sending compartment can control the origin that
-that is allowed to received the message, but has no control over what
-the receiving context can do with the received data.
-%
-In the latter case, a host host can control the origins that are
-allowed to read the resource, but once access is granted, they have no
-control over what the cross-origin compartment can do with the data.
+They give the sending compartment or server control over the origins
+that are allowed to read the resource/message, but once access is
+granted, they have no control over what the cross-origin compartment
+can do with the data.
 %
 Hence in the status quo, a developer should only send sensitive data
 to a cross-origin compartment if she completely trusts the foreign
