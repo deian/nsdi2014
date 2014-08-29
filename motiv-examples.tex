@@ -207,12 +207,15 @@ passwords from a remote server (essentially, ``updating'' the
 checker's functionality). Doing so requires communicating with a
 remote origin.
 %
-Yet, a CSP policy that permits such communication event with the
-top-level page's same origin is \emph{too} permissive: a malicious
-script could carry out a \emph{self-exfiltration
-attack}~\cite{Yip:2009:PBS,selfex}, and write the password to a public
-page at that trusted origin.
+Yet, a CSP policy that permits such communication, even with the
+top-level page's same origin, is \emph{too} permissive: a malicious
+script could potentially carry out a \emph{self-exfiltration attack}
+and write the password to a public part of a trusted
+origin~\cite{Yip:2009:PBS, selfex}.
 
+This trade-off between flexibility and privacy, while inherent to
+CSP, need not be fundamental to the web model.
+%
 The key insight is that it is entirely safe and useful for an untrusted script to
 communicate with remote origins {\em before} it obtains sensitive
 data. We note, then, the requirement of a confinement mechanism that
@@ -238,8 +241,8 @@ has not yet observed sensitive data is denoted \js|public|; however, when it
 wishes to incorporate sensitive data, the compartment \emph{raises} its
 label (at the cost of being more restricted in where it can write). Here, a top-level page at
 \js|fb.com| encapsulates a password-checker script from a third-party
-origin within a worker. Each compartment has a
-distinct current label. First, in step (1), the checker script is free
+origin in a new compartment. The label of the new compartment is
+initially \js|public|. First, in step (1), the checker script is free
 to download updated regular expressions from an arbitrary remote
 origin. In step (2), the top-level page sends the user's password to
 the checker script's worker using \js|postMessage|; the password is
@@ -257,8 +260,8 @@ inspects the password.
 When the label is raised, \sys{} atomically denies the context further
 access to the network in step (3).
 %
-However, the checker script is then free to compute the result, which
-it returns via \js|postMessage| to the top-level page in step (4); the
+However, the checker script is free to compute the result, which
+it then returns via \js|postMessage| to the top-level page in step (4); the
 result carries the label \js|fb.com| to reflect that the sender may be
 sending data derived from sensitive data owned by \js|fb.com|.
 % bk: unneeded to clutter this first simple example with the below, as
@@ -300,10 +303,18 @@ other} than \js|gdocs.com|. And \js|nsa.gov|'s cryptography library
 does not trust \js|gdocs.com| with the cleartext document---it would
 like to confine \js|gdocs.com|'s editor script to prevent
 exfiltration of the cleartext document to \js|gdocs.com| (or to any
-other origin). This simple use case highlights the need for {\em
+other origin).
+%
+This simple use case highlights the need for {\em
   symmetric confinement:} when two mutually distrusting scripts from
 different origins communicate, {\em each must be able to confine the
   other's further use of data it provides.}
+%
+%% XXX ds: want to use "at the end of the day;" too colloquial?
+Moreover, since it is in the interest of both parties to actually
+store the encrypted document, it is important for the confinement
+system to support {\em declassification}: \js|gdoc.com| should be
+allowed to store encrypted documents provided by \js|nsa.gov|.
 
 %% brings up the requirement of *symmetric* confinement: two mutually
 %% distrusting origins each confine the other.
@@ -321,26 +332,27 @@ exposed to her bank or vice-versa, nor to any other remote
 party. Today, if one of the two providers implements the mashup, its
 application code must bypass the SOP to allow sharing of data across
 origin boundaries, e.g., by communicating between iframes with
-\js|postMessage|. This approach forfeits robust confinement: one
+\js|postMessage| or setting a permissive CORS policy.
+This approach forfeits robust confinement: one
 origin sends sensitive data to the other, after which the receiving
 origin may exfiltrate that sensitive data at will. Alternatively, a
 third-party developer may wish to implement and offer this mashup
 application. But users of such a {\em third-party mashup} give up
-their privacy, as again today's browser enforces no policy that
+their privacy, usually by simply handing off credentials, as again today's browser enforces no policy that
 confines the sensitive data the mashup's code observes within the
 browser. To enable third-party mashups that do not sacrifice the
 user's privacy, we note again the need for an untrusted script to be
 able to issue requests to multiple remote origins (e.g., Amazon and
 the bank), but to lose the privilege to communicate over the network
-once it has read the responses from those origins.\footnote{The
+once it has read the responses from those origins.\footnote{\Red{MOVE: The
   desired semantics here can be subtle. Once a third-party script
   communicates with a \emph{second} origin, should it retain the
   ability to communicate with the origin from which it \emph{first}
   read sensitive data? In some cases, allowing such communication
   would create the risk of cross-site request
   forgery~\cite{CSRF}. We explain the correct semantics in detail in
-  Section~\ref{sec:labeled-xhr}.} Here, too, MAC-based confinement
-  meets this need.
+  Section~\ref{sec:labeled-xhr}.}} Here, too, MAC-based confinement
+  addresses the shortcomings of DAC. %meets this need.
 
 \paragraph{Untrusted Third-Party Library}
 Web application developers today make extensive use of third-party
@@ -361,8 +373,14 @@ code) as untrusted. The trusted code can then communicate with remote
 origins and inject sensitive data into the untrusted page, but the
 untrusted page (including jQuery) cannot communicate with remote
 origins (and thus cannot exfiltrate sensitive data within the
-untrusted page). Once more, MAC-based confinement intuitively seems to
-fit this scenario well. We note further that any {\em library} author
+untrusted page).
+%% Once more, MAC-based confinement intuitively seems to
+%% fit this scenario well.
+This highlights the need for a confinement system that supports
+{\em delegation}: a page should be allowed to both, deem another
+script trustworthy, and, at any point, deem itself untrustworthy.
+
+We note further that any {\em library} author
 may wish to reuse functionality from another untrusted
 library. Accordingly, to allow the broadest reuse of code, the browser
 should support {\em hierarchical confinement}---the primitives for
@@ -410,14 +428,21 @@ illustrate the need for robust yet flexible confinement for untrusted
 code in browsers. To summarize, these applications would appear to be
 well served by a confinement system that:
 \begin{CompactItemize}
-\item Applies mandatory access control (MAC);
-\item Supports {\em symmetric confinement,} i.e., permits two principals to {\em
+%\item Applies mandatory access control (MAC);
+\item Is {\em symmetric,} i.e., it permits two principals to {\em
     mutually} distrust one another, and each prevent the other from
   exfiltrating its data;
-\item Allows {\em hierarchical confinement,} i.e., permits principal
+\item Is {\em hierarchical, } i.e., it permits principal
   $A$ to confine code from principal $B$ that processes $A$'s data,
   while principal $B$ can independently confine code from principal
   $C$ that processes $B$'s data, etc.
+\item Supports {\em declassification,} i.e., it allows principal $A$
+  to declassify data sensitive to $A$ (but, of course, not $B$);
+\item Supports {\em delegation,} i.e., it allows principal $A$
+  to grant another principal the ability to ``speak, '' i.e., 
+  declassify and delegate, on its behalf, and revoke its own ability
+  to do so.
+  %% XXX ds: don't like "revoke its ability do do so"
 \end{CompactItemize}
 In the next section, we describe \sys{}, a new confinement system that
 satisfies these design goals.

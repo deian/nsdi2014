@@ -49,6 +49,9 @@ BIBTEX    = bibtex -min-crossrefs=1000
 
 all: $(BASE).pdf
 
+crop: $(BASE).pdf
+	pdfcrop --margins 15 $(BASE).pdf
+
 ifeq ($(PDF),pdf)
 %.pdf %.tex: %.fig
 	fig2dev -L pdftex -p1 $< > $*.pdf
