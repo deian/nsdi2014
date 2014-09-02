@@ -293,3 +293,21 @@ Alternative approach to sec 3:
 
 - "putting it all together"
   - full API
+
+For secrecy, authority means you can punch out of confinement
+For integrity, I own a channel
+
+What is privilege? A compartment is allowed to DO something.  For secrecy, in a MAC system, you can violate confinement: literally, "you can send something to someone so that they will not be confined when they get it".
+
+For Section 2, we don't need the protocol: "both secrecy and integrity involve the notion of privilege. For any system to ".
+Then in section 3 will transition (saying it's a pain)
+
+discipline/punish/authority
+
+A common approach, and one that we adopt, is to divide a software system into compartment, and then to achieve secrecy and integrity, one must reason about the *privileges* that these [Seltzer] compartments have. A privilege, broadly speaking, refers to the ability to execute an operation of some type (e.g. reads, writes).
+
+What does privilege mean for secrecy and integrity, in the context of MAC?  Well, recall in MAC, you have confinement: if compartment A sends sensitive info to B, by default B can't leak that sensitive information to unauthorized parties.  Privilege means that the ability to send information that is exempted from this restriction (specifically, send information to another compartment, while still allowing B to leak it anywhere.)  For integrity, if we have communicating parties A and B, and A has the privilege to do so, then B receives it.
+
+New idea: two gets across, you need MAC and you need secrecy and integrity and /authority/
+
+Authority implies trust?  Programmers need to control what compartments can disseminate and modify information.  Broadly speaking, these are privileges: the ability to do these things.
