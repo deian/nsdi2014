@@ -42,18 +42,6 @@ application example in Figure~\ref{fig:checker}.
   COWL-enabled browser, we use the terms compartment, browsing
   context, and labeled browsing context interchangeably.
 
-  A labeled browsing context may be granted one or more {\em
-    privileges.} A privilege authorizes scripts within a context to
-  execute certain operations whose abuse would permit the release of
-  sensitive information to unauthorized parties. For example, {\em
-    declassification} of sensitive data strips the data's label, after
-  which any scripts in other compartments sent that unlabeled data
-  will not be confined therein. In COWL we express privilege in terms
-  of origins. The crown icon in the left compartment in
-  Figure~\ref{fig:checker} denotes that this compartment holds the
-  privilege to execute these certain operations on data labeled with
-  the origin {\tt fb.com}.
-
 When one browsing context sends sensitive information to
   another, {\em labeled communication} allows the sending context to
   confine the potentially untrusted code within the receiving
@@ -63,6 +51,20 @@ When one browsing context sends sensitive information to
   Section~\ref{sec:motivating-examples}. In Figure~\ref{fig:checker},
   the arrows between compartments indicate labeled communication,
   where a subscript on the communicated data denotes the data's label.
+
+  A labeled browsing context may be granted one or more {\em
+    privileges.} A privilege authorizes scripts within a context to
+  execute certain operations whose abuse would permit the release of
+  sensitive information to unauthorized parties. For example, a script
+  can use its privileges to {\em declassify} messages it receives from
+  another context to avoid being overly-confined. In COWL we express
+  privilege in terms of origins. The crown icon in the left
+  compartment in Figure~\ref{fig:checker} denotes that this
+  compartment holds the privilege to execute these certain operations
+  on data labeled with the origin {\tt fb.com}. (In this example, the
+  {\tt fb.com} compartment uses its privilege to remain unconstrained
+  by declassifying the checker response labeled {\tt fb.com}.)
+
 
 We now describe these three constructs in greater detail.
 
