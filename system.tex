@@ -33,7 +33,7 @@ application example in Figure~\ref{fig:checker}.
 %
 
 {\em Labeled browsing contexts} enforce MAC-based confinement of
-  JavaScript at the granularity of a browsing context (e.g., a frame
+  JavaScript at the granularity of a browsing context (e.g., a worker
   or iframe). The rectangular frames in Figure~\ref{fig:checker} are
   labeled browsing contexts. As contexts may be nested, labeled
   browsing contexts allow hierarchical confinement, whose importance
@@ -81,23 +81,42 @@ We now describe these three constructs in greater detail.
 % with existing mechanisms.)
 
 
-\subsection{Labeled Compartments}
-Labels as used to restrict communication. Relate to hierarchical
-confinement; compartments may be nested to arbitrary depth.
-- Labeled blobs. Tie back to comparison with postMessage.
-\paragraph{Confining Pages and Workers}
+\subsection{Labeled Browsing Contexts}
+\label{sec:system:contexts}
+COWL applications are partitioned into multiple labeled contexts.
+%
+Labeled contexts naturally extend existing browser contexts (which
+are used to isolate iframes, pages, etc.) with MAC \emph{labels}.
+%
+These labels are used to restrict how information can flow between
+contexts, usually in addition to the restrictions imposed by existing
+policies such as the SOP.
+
+Following~\cite{yang:2013:towards}, a label
+
+%% Compartments are labeled.
+%% Labels dictate where information can flow
+%% Labels have the form ...
+%% 
+%% Information flows ...
+
 \paragraph{LWorkers}
 - Relate to hierarchical confinement.
 - Labeled DOM. Tie back to jQuery example.
 
-\subsection{Privileges}
-Relate to declassification and delegation.
+\paragraph{Pages, iframes, workers}
 
 \subsection{Labeled Communication}
+\label{sec:system:communication}
 BK: labeled communication encompasses both labeled XHR and labeled
 CORS between server and client. Provide symmetric confinement.
 
 Tie back to third-party mashup example.
+
+\subsection{Privileges}
+\label{sec:system:privileges}
+Relate to declassification and delegation.
+
 
 %%In this section, we describe the \sys{} system.
 %%%
