@@ -1,0 +1,7 @@
+BK: I think Section 2 has grown too long. Can we give two-sentence high-level
+summaries of CSP and CORS, and just cite the (very nice) text on them in the
+HotOS paper? The browser background before we get into motivating examples is
+now a full page, and that's too long. By the time we're done with our examples,
+it's nearly page 6! This cannot work for holding a reader's interest.
+(Compare: at what point in paper did section 3 start in submitted version?)
+
