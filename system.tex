@@ -1,9 +1,87 @@
-\section{The \sys{} confinement system}
+\section{The \sys{} Confinement System}
 \label{sec:system}
 
+The COWL confinement system augments today's web browser with three
+primitives, all of which appear in the simple password-checker
+application example in Figure~\ref{fig:checker}.
+% need to introduce "structural" primitives (ones that are visible in
+% figures for example apps):
+%
+% labeled browsing contexts: in Figure 2. the central construct in
+% COWL. they introduce MAC-based confinement to the browser. And they
+% support hierarchical confinement, which is essential to allowing
+% nesting of untrusted libraries (as described in section ...).
+
+% privilege: in Figure 2 (though not used in example). in a MAC-based
+% confinement system, certain operations are dangerous because
+% untrusted code could use them to cause the release of sensitive
+% information to unauthorized parties. for example, declassification
+% of sensitive data strips the data's label, after which that data
+% will not be confined within other compartments running potentially
+% untrusted code that processes it. In COWL we term the authorization to execute
+% such dangerous operations privilege, and express privilege in terms
+% of origins.
+
+% labeled communication: in Figure 2 (focus in that example chiefly on
+% inter-context communication).  IPC between browsing contexts carries
+% labeled data, so that when one compartment sends another sensitive
+% data, it may confine the potentially untrusted code within the other
+% compartment. This explicitly carrying of labels in IPC allows
+% symmetric confinement, which is essential to building applications
+% that compose scripts that are mutually distrusting, as described in
+% section ....
+%
+
+{\em Labeled browsing contexts} enforce MAC-based confinement of
+  JavaScript at the granularity of a browsing context (e.g., a frame
+  or iframe). The rectangular frames in Figure~\ref{fig:checker} are
+  labeled browsing contexts. As contexts may be nested, labeled
+  browsing contexts allow hierarchical confinement, whose importance
+  for supporting nesting of untrusted libraries we discussed in
+  Section~\ref{sec:motivating-examples}. Throughout this paper, when describing a
+  COWL-enabled browser, we use the terms compartment, browsing
+  context, and labeled browsing context interchangeably.
+
+  A labeled browsing context may be granted one or more {\em
+    privileges.} A privilege authorizes scripts within a context to
+  execute certain operations whose abuse would permit the release of
+  sensitive information to unauthorized parties. For example, {\em
+    declassification} of sensitive data strips the data's label, after
+  which any scripts in other compartments sent that unlabeled data
+  will not be confined therein. In COWL we express privilege in terms
+  of origins. The crown icon in the left compartment in
+  Figure~\ref{fig:checker} denotes that this compartment holds the
+  privilege to execute these certain operations on data labeled with
+  the origin {\tt fb.com}.
+
+When one browsing context sends sensitive information to
+  another, {\em labeled communication} allows the sending context to
+  confine the potentially untrusted code within the receiving
+  context. Explicitly carrying labels in this fashion allows symmetric
+  confinement, whose importance in building applications that compose
+  mutually distrusting scripts we articulated in
+  Section~\ref{sec:motivating-examples}. In Figure~\ref{fig:checker},
+  the arrows between compartments indicate labeled communication,
+  where a subscript on the communicated data denotes the data's label.
+
+We now describe these three constructs in greater detail.
+
+% need to state that MAC system and all primitives related to it are
+% opt-in (and somewhere, how the developer opts in--what is the
+% incantation?). Point is that we coexist alongside status quo
+% browser, so we don't break any existing pages. It may be that
+% incremental deployability is important enough to articulate as a
+% goal in section 2. (we can potentially footnote that in our prior
+% workshop paper, we explored how to implement all of today's browser
+% security primitives in COWL-like primitives---a clean-slate
+% approach that subsumed and improved on the status quo. here we take
+% the complementary approach of prioritizing backward compatibility
+% with existing mechanisms.)
+
+
 \subsection{Labeled Compartments}
-Labels as used to restrict communication. Relate to symmetric
-confinement.
+Labels as used to restrict communication. Relate to hierarchical
+confinement; compartments may be nested to arbitrary depth.
 - Labeled blobs. Tie back to comparison with postMessage.
 \paragraph{Confining Pages and Workers}
 \paragraph{LWorkers}
@@ -13,7 +91,10 @@ confinement.
 \subsection{Privileges}
 Relate to declassification and delegation.
 
-\subsection{LCORS}
+\subsection{Labeled Communication}
+BK: labeled communication encompasses both labeled XHR and labeled
+CORS between server and client. Provide symmetric confinement.
+
 Tie back to third-party mashup example.
 
 %%In this section, we describe the \sys{} system.
