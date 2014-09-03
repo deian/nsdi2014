@@ -5,3 +5,6 @@ now a full page, and that's too long. By the time we're done with our examples,
 it's nearly page 6! This cannot work for holding a reader's interest.
 (Compare: at what point in paper did section 3 start in submitted version?)
 
+need to discuss how page developer can whitelist third-party origin with MAC,
+but if user is worried about covert channels, *user* has ultimate choice of
+whether to allow third-party origin access to an origin's data.
