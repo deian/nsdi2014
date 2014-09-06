@@ -88,56 +88,61 @@ COWL applications are partitioned into multiple labeled contexts.
 Labeled contexts naturally extend existing browser contexts (which
 are used to isolate iframes, pages, etc.) with MAC \emph{labels}.
 %
-These labels are used to restrict how information can flow between
-contexts, usually in addition to the restrictions imposed by existing
-policies such as the SOP.
+The context label is the security policy on all the data within the
+context, which COWL enforces by restricting the flow of information
+to/from other contexts and servers.
+%% in addition to the restrictions imposed by existing DAC policies such
+%% as the SOP.
 
 Following~\cite{yang:2013:towards, stefan:2011:dclabels}, a label is a
-pair of boolean formulas over origins, specifying secrecy and
-integrity restrictions.
+pair of boolean formulas: a \emph{secrecy} formula specifying which
+origins are allowed to read the data, and an \emph{integrity} formula
+specifying which origins can write it.
 %
-The secrecy formula of a context label indicates the
-sensitivity of the data in the compartment, while the integrity
-formula indicates its trustworthiness.
+For example, data labeled \dcLabel{\https{amazon.com} $\lor$
+\https{chase.com}}{\https{amazon.com}}
+can be only read by Amazon or Chase, and modified by Amazon.
 %
-For example, the label \dcLabel{\https{amazon.com} $\land$
-\https{chase.com}}{\https{amazon.com} $\lor$ \https{chase.com}}
-specifies that the context may contain data that is sensitive to both
-\https{amazon.com} and \https{chase.com}, and, that the compartment
-may have been influenced by data from one (or both) of these origins.
+Amazon may use this label to allow a Chase mashup to read
+user purchases.
 %
-Indeed, the integrator's compartment for the third-party mashup of
-Section~\ref{sec:motivating-examples} will have such a label after
-reading the Amazon and bank XHR responses.
+On the other hand, the label on data produced by the third-party
+mashup integrator of Section~\ref{sec:motivating-examples} after
+reading the purchases and statements will be
+\dcLabel{\https{amazon.com} $\land$
+\https{chase.com}}{\https{mint.com}}.
 %
-In the rest of the paper, we focus on secrecy and simplify notation by
-excluding the integrity formula; we include integrity explicitly when
-it is non-obvious.
+The secrecy component specifies that the data may be sensitive to both
+parties, and without their consent (see
+Section~\ref{sec:system:privileges}), can only be read by the user;
+the integrity component, on the other hand, restricts Mint code to
+modifying the results.
+ 
+COWL enforces label policies in a mandatory fashion by only allowing a
+context to communicate with other contexts or servers whose labels are
+at least as restricting.
+%
+Intuitively, when a context wishes to send a message, the target must
+not allow additional origins to read the data (preserving secrecy);
+dually, the source context must not be writable by origins not
+otherwise trusted by the target, i.e., the source must be at least as
+trustworthy as the target.
+%
+For example, a context labeled
+\dcLabel{\https{amazon.com}}{\https{mint.com}} can send messages to
+one labeled \dcLabel{\https{amazon.com} $\land$
+\https{chase.com}}{\https{mint.com}}, since the latter is guaranteed
+to preserves the privacy of \https{amazon.com} (and
+\https{chase.com}).
+%
+However, communication in the inverse direction is not possible since
+the privacy of \https{chase.com} may be violated.
+%
+In the rest of the paper, we limit our discussion to secrecy and only
+comment on integrity where relevant; the interested reader is referred
+to~\cite{stefan:2011:dclabels} for a complete description of the label
+model.
 
-When a compartment wishes to send a message to another compartment or
-server, we check if the target label $l'$ logically implies the source
-label $l$.
-%
-Intuitively, this requires that the security of the destination be as strong as original security policy, i.e., that the target label \emph{subsumes} the source label.\footnote{If the communication is bidirectional, e.g.\ mutation of a shared DOM, then both the target and source must imply each other.}
-%
-We also refer to the target label as \emph{higher} (as in ``higher security'') than the source label.
-%
-For example, to read the contents of a labeled blob, we must check that
-the label of the compartment subsumes the label of the blob.
-%
-In the password checker, the labeled blob containing the password (2)
-cannot be read by a publicly labeled worker (corresponding to the
-logical formula ``true''), because ``true'' does not imply
-``\https{fb.com}''.
-%
-However, once the worker raises its label to ``\https{fb.com}'', the
-logical implication holds trivially.
-
-%% Compartments are labeled.
-%% Labels dictate where information can flow
-%% Labels have the form ...
-%% 
-%% Information flows ...
 
 \paragraph{LWorkers}
 - Relate to hierarchical confinement.
