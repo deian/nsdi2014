@@ -143,6 +143,43 @@ comment on integrity where relevant; the interested reader is referred
 to~\cite{stefan:2011:dclabels} for a complete description of the label
 model.
 
+A context can freely \emph{raise} its label, i.e., change its label to
+any label that is more restricting, in order to receive message
+from otherwise prohibited contexts.
+%
+Of course, in raising its label to read more sensitive data (from
+another context) the context is also more restricted in where it can
+write.
+%
+For example, a Mint context labeled
+\dcLabel{\https{amazon.com}}{\https{mint.com}} can raise its label to
+\dcLabel{\https{amazon.com} $\land$
+\https{chase.com}}{\https{mint.com}} to read bank statements, but
+cannot thereafter communicate with Amazon (or, for that matter, any
+other) servers.
+
+Much like existing browsing contexts can create sub-compartments
+(e.g., in the form of iframe, pages, or worker), COWL allow a labeled
+context to create additional labeled contexts.
+%
+For example, in the password checker example of
+Section~\ref{sec:motivating-examples} we create a child context to
+execute the untrusted script in.
+%
+Newly created contexts implicitly inherit the current label of their
+parent.
+%
+COWL, however, allows the parent to override this and specify---at
+creation time---the child's initial current label (which must be at
+least as restricting as the parent's label).
+%
+This ability to create new contexts and imposing a raised initial
+label precisely satisfies our design goal of a hierarchical system.
+
+There are two kinds of contexts that a COWL application can create.
+%
+-pages, iframes, workers
+-labeled workers (+dom)
 
 \paragraph{LWorkers}
 - Relate to hierarchical confinement.
@@ -152,6 +189,23 @@ model.
 
 \subsection{Labeled Communication}
 \label{sec:system:communication}
+Since COWL always enforces a label check when a context sends
+messages, the design describe thus far is already symmetric: a source
+context can impose restrictions on a target context by raising its
+label (or the label of a child context) and only then send the desired
+messages; to read the messages, the target context must confine itself
+by raising the context label.
+%
+Unfortunately, this approach of (ab)using the context label to impose
+restrictions on a target context is cumbersome.
+%
+(Consider the case where a context wishes to impose different
+restrictions according to the message or target context.)
+%
+Hence, we introduce labeled blobs as a way of labeling communication
+messages.
+
+
 BK: labeled communication encompasses both labeled XHR and labeled
 CORS between server and client. Provide symmetric confinement.
 
