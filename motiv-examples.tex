@@ -35,15 +35,16 @@ offer a brief refresher on status-quo browser privacy polices.
 architecture.\todo{ds}{update with fig that shows DAC}}
 \vspace{-10pt}
 \end{figure}
-Figure~\ref{fig:primer-browser-arch} highlights the main components of
+Figure~\ref{fig:primer-browser-arch} depicts the basic building blocks of
 the current web security architecture.
 %
-Core to this is architecture is the notion of \emph{browsing
-contexts}, i.e., pages and frames.
+%% Core to this design is the notion of \emph{browsing
+%% contexts}, i.e., pages and frames.
 %
-A browsing context encapsulates presentable content and a JavaScript
-execution environment (heap and code) that interacts with content
-through the \emph{Document Object Model (DOM)}~\cite{html5}.
+A \emph{browsing context} (e.g., a page or frame) encapsulates
+presentable content and a JavaScript execution environment (heap and
+code) that interacts with content through the \emph{Document Object
+  Model (DOM)}~\cite{html5}.
 %
 Browsing contexts may be nested (e.g., by using iframes).
 %
@@ -54,10 +55,10 @@ URL retrieved over the network, or explicitly in JavaScript, using the
 (IPC-style via \js|postMessage|, or, in certain cases, by sharing
 DOM objects).
 %
-Some contexts such as Web Workers run JavaScript but do not have a
-DOM. We use the terms \emph{contexts} and \emph{compartment}
-interchangeably to refer to both browsing contexts and workers when
-the more precise meaning is not relevant.
+Some contexts such as Web Workers~\cite{workers} run JavaScript but do not instantiate a
+DOM. We use the terms \emph{context} and \emph{compartment}
+interchangeably to refer to both browsing contexts and workers, except when
+the more precise meaning is relevant.
 
 \paragraph{Origins and the Same-Origin Policy}
 Since different authors may contribute components within a page,
