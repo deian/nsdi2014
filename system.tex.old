@@ -1,0 +1,365 @@
+%% %%In this section, we describe the \sys{} system.
+%% %%%
+%% %%As mentioned previously, the basic unit of confinement in \sys{}---a
+%% %%compartment---corresponds to a JavaScript execution context, e.g.\@ a
+%% %%browser tab, an iframe on a page, or even a Web Worker~\cite{workers}.
+%% 
+%% \sys{} builds on the existing web security model by using compartments
+%% as the basic unit of isolation and mediating communication between 
+%% the compartments and external servers.
+%% %
+%% %
+%% The two basic changes to the existing compartment model are as follows.
+%% %
+%% First, \sys{} associates each compartment with a MAC label.
+%% %
+%% The compartment label (Section~\ref{sec:labels}), indicates the
+%% sensitivity of the data in the compartment; this label is used to
+%% dictate where information can flow.\footnote{Conceptually, the notion
+%% of labels extends to network end-points, i.e., web servers.}
+%% %
+%% %
+%% %%In the case of browsing context, \emph{DOM label}, is further used to
+%% %%indicate the sensitivity of the DOM.
+%% %
+%% Second, \sys{} makes the ambient authority of an origin explicit, with
+%% privileges (Section~\ref{sec:privileges}).
+ 
+\sys{} uses these labels and privileges to restrict the
+kind of messages and requests which are permitted to flow to other
+compartments and web servers, respectively.
+%
+However, since \sys{} re-purposes existing notions of compartments, we
+must mediate existing communication mechanisms to ensure confinement.
+%
+(This is subtle when considering browsing contexts, which can use
+different parts of the DOM API to exfiltrate data.)
+%
+The communication channels we interpose on include:
+%
+{\tt postMessage},
+cross-compartment DOM objects,
+content loading (via {\tt img} tags, CSS, etc.),
+form submission,
+XMLHttpRequest,
+navigation, and
+browser storage (cookies and local storage).
+%% \begin{CompactItemize}
+%%     \item {\tt postMessage},
+%%     \item Cross-compartment DOM objects,
+%%     \item Content loading (via {\tt img} tags, CSS, etc.),
+%%     \item Form submission,
+%%     \item XMLHttpRequest,
+%%     \item Navigation, and
+%%     \item Browser storage (cookies and local storage).
+%% \end{CompactItemize}
+
+However, this interposition maintains backwards-compatibility with
+existing web policies.
+%
+Indeed, unless a compartment chooses to use \sys{} (e.g., by using our
+API or communicating with a \sys{}-enabled compartment) the policy
+imposed should be SOP.
+%
+Consequently, \sys{} policies are applied on top of the old
+same-origin policy for existing browser APIs; this allows developers
+to apply more restrictive policies than SOP\@.
+%
+However, to relax the same-origin policy, \sys{} also introduces
+variants of these APIs---namely labeled XHR
+(Section~\ref{sec:labeled-xhr}).\footnote{Relaxing the same-origin
+  policy in a way that's secure and maintains backwards-compatibility
+  is subtle, and we directly address this issue in
+Section~\ref{sec:labeled-xhr}}
+
+To provide developers with a means for privilege-separating
+\js|<script>|'s, which always execute with the privilege of the page,
+\sys{} also provides a new unit of confinement: a \emph{lightweight worker}
+(LWorker)
+%
+LWorkers are compartments without a DOM, similar to existing Workers,
+but, unlike normal Workers, execute in the same thread as their
+parent.
+%
+When they are used to access DOMs (e.g., when confining jQuery) of
+their parent (something that cannot be done with traditional Web
+Workers) we call them ``DOM workers.''
+
+%%The security policy of a container consists of three components:
+%%
+%%\begin{itemize}
+%%    \item A current label (Section~\ref{sec:labels}), which indicates the
+%%        sensitivity of the data in the container,
+%%    \item A DOM label, which indicates the sensitivity of the DOM if the
+%%        container is associated with one, and
+%%    \item A set of privileges , which
+%%        dicates what authority the compartment's code has to
+%%        \emph{relax} policy requirements.
+%%%   \item A clearance (Section~\ref{sec:clearance}), which imposes a
+%%%       limit on the sensitivity of the data in the container.
+%%\end{itemize}
+
+\subsection{Labels}
+\label{sec:labels}
+
+The \emph{current compartment label} is the security policy which protects all data associated with the compartment or
+web site, specifying what origins can read the data.
+%
+An additional \emph{DOM label} specifically protects the DOM associated
+with a compartment, if it has one.
+%
+Individual objects can also be labeled: \sys{}
+introduces opaque \emph{labeled blobs} for this purpose.
+%
+Labeled blobs are primarily used to label \js|postMessage| messages
+(otherwise they would take the label of the compartment).
+%
+The particular labels that are used in \sys{} are \emph{DC labels},
+presented in~\cite{stefan:2011:dclabels}.
+%
+We chose DC labels, much like Hails~\cite{giffin:2012:hails} and
+Breeze~\cite{Breeze13}, because they have a simple
+semantics while being as expressive as the labels used by other practical
+confinement systems~\cite{GenLabels}.
+%
+%In this section, we briefly describe DC labels. %; an interested
+%reader should see~\cite{stefan:2011:dclabels} for more details.
+
+A privacy label (henceforth just label) is a boolean formula over
+origins.%
+%
+\footnote{
+  Our system also handles \emph{integrity}, but for simplicity we
+  omit it from the main text, commenting on it in footnotes when
+  appropriate.  Integrity is dual to secrecy, i.e., the logical
+  implication is run the other direction.
+}
+%
+When a compartment wishes to send a message to another compartment or
+server, we check if the target label $l'$ logically implies the source
+label $l$.
+%
+Intuitively, this requires that the security of the destination be as strong as original security policy, i.e., that the target label \emph{subsumes} the source label.\footnote{If the communication is bidirectional, e.g.\ mutation of a shared DOM, then both the target and source must imply each other.}
+%
+We also refer to the target label as \emph{higher} (as in ``higher security'') than the source label.
+%
+For example, to read the contents of a labeled blob, we must check that
+the label of the compartment subsumes the label of the blob.
+%
+In the password checker, the labeled blob containing the password (2)
+cannot be read by a publicly labeled worker (corresponding to the
+logical formula ``true''), because ``true'' does not imply
+``\https{fb.com}''.
+%
+However, once the worker raises its label to ``\https{fb.com}'', the
+logical implication holds trivially.
+
+%Reworded version: Intuitively, an entity is allowed to receive data that is at most as
+%sensitive as its label, i.e., the entity's label always \js|subsumes|
+%the label of the data it can receive, preserving the latter's privacy.
+%   \Red{maybe something about how this makes it first
+%   class: the fact that policies are preserved means that if a library has
+%   sub-libraries, they will get the appropriate policy enforced}
+%
+%Why is a label represented as a boolean formula rather than simply
+%as a set of origins?
+%%
+%As it turns out, both conjunctions (``and'')
+%and disjunctions (``or'') are useful for specifying security policies.
+%%
+%Informally, a conjunction describes what origins contributed sensitive data
+%to the compartment, while a disjunction describes what origins are allowed
+%to read the data.
+%%
+%% EZY: Unfortunately, I can't use the password checker here because
+%% the labels are too simple
+%A compartment with the label ``\https{bank.ch} and \https{amazon.com}''
+%may contain sensitive data from both sites, so it cannot send data to
+%\https{bank.ch}, as doing so might leak private information from
+%\https{amazon.com} (and vice versa).
+%%
+%Conversely, a compartment labeled ``\https{bank.ch} or \https{amazon.com}''
+%could send data to either website; however, it could not receive any
+%messages from either origin---it might have originally been public data
+%whose sensitivity was raised so that no other site could read it.
+
+How is the current label initially determined?
+%
+\sys{} extends the API of iframes and workers so that when they are
+created, a particular current label can be assigned to it (which
+must subsume the parent's label).  Otherwise, new containers implicitly
+inherit the label of its parent.\footnote{Perceptive readers may now be wondering how
+the password checker arranged to create a publicly labeled worker
+when its label was \https{fb.com}.  In fact, doing so is not possible
+to do so without privileges (Section~\ref{sec:privileges}).}
+%
+For web pages with no parent, we look for a {\tt Document-label} header which
+specifies the initial label, defaulting to public (i.e., no extra
+restrictions) when this header is not present.
+%
+The DOM label of a compartment is more stringent: it is set such that
+only compartments with the privilege (Section~\ref{sec:privileges}) for the origin can write to
+it.\footnote{This is done by setting the integrity label to the origin.}
+
+After creation, a compartment can freely \emph{raise} its label, i.e.,
+change its label to any label which subsumes it, in order to read more
+sensitive data (from another compartment) but not vice versa.
+%
+This leads to a common interpretation of labels as ``taint;'' as
+a compartment receives data from more sources, it accumulates more
+origins on account of raising its label to read the received data.
+
+\subsection{Privileges}
+\label{sec:privileges}
+
+% Description of privileges
+A \emph{privilege} is an object, representing an origin, which confers
+the authority to relax policy requirements with respect to this origin.
+%
+A compartment is associated with a set of privileges.
+%
+While privileges can be used in a variety of ways, their basic mechanism
+is quite simple:  whenever a compartment with a privilege $p$ performs a
+label check, instead of checking that $l'$ implies $l$, we check that
+$l'$ and $p$ implies $l$~\cite{stefan:2011:dclabels}.
+
+There are three primary use-cases for privileges:
+
+\begin{CompactItemize}
+    \item A privilege can be used to \emph{declassify} private
+        information without raising the current label.  For example, we
+        could downgrade ``\https{amazon.com}'' labeled data to
+        ``public''.
+
+    \item A privilege can be used to lower the current label of
+        a compartment (or a compartment that is being created).
+        This is how privileges are used
+        in the password checker: the untrusted worker was created
+        with a current label of ``public'' by exercising the
+        \https{fb.com} privilege in the main web site.  Conceptually, we
+        are declassifying \emph{all} of the data associated with the
+        compartment.
+
+    \item A privilege must be exercised to edit the DOM
+        of another compartment.\footnote{This is because the current
+        integrity label of a compartment generally public, which
+        without the privilege is insufficient to permit writes.}
+\end{CompactItemize}
+
+In \sys{}, privileges are \emph{implicitly} exercised: if a compartment
+has a privilege, it will always attempt to use it.
+%
+Importantly, however, code can retrieve and drop its privileges; this
+allows programmers to wrap functions, such as \js|postMessage|, to
+enforce a model wherein privileges must be explicitly exercised.
+%
+In addition, labeled blobs can be useful for avoiding privilege
+exercise, by requiring that the \emph{target} compartment (which may
+not have the privilege) do an additional label check.
+%
+In the password checker, the main
+page must do precisely this, as it has the \https{fb.com} privilege.
+%
+Without labeling the password, it could accidentally leak the password
+to a publicly labeled worker.
+
+% Initial privileges and privilege creation
+By default, a browsing context has the privilege corresponding to the
+page origin; this context can drop the privilege if it is not
+needed or spawn other containers sans privilege to run untrusted code.
+%
+While privileges for existing origins cannot be created, a privilege can
+be created for a fresh origin, i.e., an origin which does not correspond
+any actual web site, but which is guaranteed to be unique.
+%
+A fresh origin is often used to run code under full isolation, since any
+compartment labeled with the fresh origin cannot communicate with any
+other compartment without exercising the corresponding privilege.
+%
+Importantly, any code can allocate a fresh origin and its corresponding privilege: this
+makes isolation an egalitarian security mechanism: an untrusted library
+can use this mechanism to isolate a sub-library that it itself
+may not trust~\cite{Zeldovich:2006}.
+
+\subsection{Labeled XMLHttpRequest}
+\label{sec:labeled-xhr}
+
+In the previous sections, we described the general design principles
+behind the security policies on compartments.
+%
+In this section, we concretely describe the implication of these
+policies on one particular API function: XMLHttpRequest (XHR).
+%
+XHR is an interesting because: (1) the added \sys{} policy checks are
+representative of those of other web browser APIs, (2) the API
+interacts with servers, so it is important to explain how HTTP headers are
+handled, and (3) the variant of this API called \emph{labeled XHR} is
+the only component of \sys{} which relaxes the same-origin policy.
+
+A traditional XHR request is composed of two parts: a write to an
+external origin (sending the request), and then a read from the external
+origin (reading the response, which may be restricted under the
+same-origin policy).
+%
+\sys{} adds two new checks: before initiating a
+request, we check to see if the label of the origin subsumes the label
+of compartment, and if the reader attempts to read the request, we check
+to see if the label of the compartment subsumes the label of the response
+(which may be explicitly labeled with the {\tt Document-label} header).
+
+If the server is IFC enabled, it may be interested in the current label
+of the compartment which initiated the request, to determine the
+sensitivity\footnote{And integrity. In fact, mostly integrity.} of the request.
+%
+Thus, the XHR request is also labeled with a {\tt Document-label} header.
+%
+(These headers are also applied to loaded content and form submissions.)
+%
+We extended the send function of XHR to also accept labeled blobs,
+which explicitly specify the transmitted label header (and disallow
+JavaScript from manually setting this header).
+
+Since normal XHR always checks the same-origin policy, it would be
+useful to provide \emph{labeled XHR} which relaxes this requirement.\footnote{As a small note, we still enforce other browser security policies such as CSP.}
+%
+Intuitively, a safe way to relax the same-origin policy is to allow
+cross-origin code to read the result of a response, as long as it
+commits to performing no further communication.
+%
+This must include communication to the \emph{same} origin, since these requests
+carry the risk of self-exfiltration~\cite{selfex} and cross-site request
+forgery~\cite{CSRF}.
+%
+To fulfill this requirement, labeled XHR returns its result as a labeled
+blob, protected with a server-specified label that defaults to a \emph{fresh}
+origin (Section~\ref{sec:privileges}).
+%
+A server that is protected against self-exfiltration and cross-site
+request forgery using end-to-end labels can relax this requirement by
+only labeling a result with its own origin.
+
+In an ideal confinement system, it would always be safe to let untrusted
+code compute on sensitive data.
+%
+Unfortunately, practical systems typically have covert channels which
+may be exploited to leak sensitive data.
+%
+Hence, keeping with HiStar~\cite{Zeldovich:2006},
+Hails~\cite{giffin:2012:hails}, and Breeze~\cite{Breeze13}, we associate
+a \emph{clearance} with every compartment: the compartment is not
+allowed to raise its label higher than the clearance or raise its
+clearance without an appropriate privilege.
+%
+The default clearance is \emph{user-controlled}; a user can thus disable
+labeled XHR by configuring the clearance of a page to be just
+its origin.
+%
+A user can also selectively enable labeled XHR on specific sites; a
+mash-up would ask the user to raise its clearance accordingly.
+%
+Importantly, raising the clearance does \emph{not} give a mash-up free reign:
+the code is still confined.
+%
+It can only exfiltrate data via a covert channel while the user
+is on the web site---a strict improvement over existing mash-ups which
+\emph{ask for your password}.
