@@ -169,6 +169,9 @@ execute the untrusted script in.
 Newly created contexts implicitly inherit the current label of their
 parent.
 %
+(For backwards compatibility with the SOP, the initial label of a
+top-level context, i.e., a page, is public.) 
+%
 COWL, however, allows the parent to override this and specify---at
 creation time---the child's initial current label (which must be at
 least as restricting as the parent's label).
@@ -176,16 +179,31 @@ least as restricting as the parent's label).
 This ability to create new contexts and imposing a raised initial
 label precisely satisfies our design goal of a hierarchical system.
 
-There are two kinds of contexts that a COWL application can create.
+There are two kinds of contexts available to COWL applications.
 %
--pages, iframes, workers
--labeled workers (+dom)
+First, applications can be partitioned as usual: using top-level
+pages, iframes, workers, etc.
+%
+Indeed COWL applications are just standard web applications that
+additionally use the COWL API.
+%
+Importantly, however, we must mediate all pre-existing communication
+channels---even more subtle channels exposed through the DOM
+API---according to the context label, to ensure confinement.
+%
+For example, our implementation interposes on:
+%
+\js|postMessage|,
+same-origin cross-compartment DOM object access,
+content loading (via {\tt img} tags, CSS, etc.),
+form submission,
+use of the \js|XMLHttpRequest| object,
+navigation, and
+browser storage (cookies and local storage).
 
 \paragraph{LWorkers}
 - Relate to hierarchical confinement.
 - Labeled DOM. Tie back to jQuery example.
-
-\paragraph{Pages, iframes, workers}
 
 \subsection{Labeled Communication}
 \label{sec:system:communication}
@@ -215,33 +233,35 @@ Tie back to third-party mashup example.
 \label{sec:system:privileges}
 Relate to declassification and delegation.
 
+\break
 
-%%In this section, we describe the \sys{} system.
-%%%
-%%As mentioned previously, the basic unit of confinement in \sys{}---a
-%%compartment---corresponds to a JavaScript execution context, e.g.\@ a
-%%browser tab, an iframe on a page, or even a Web Worker~\cite{workers}.
 
-\sys{} builds on the existing web security model by using compartments
-as the basic unit of isolation and mediating communication between 
-the compartments and external servers.
-%
-%
-The two basic changes to the existing compartment model are as follows.
-%
-First, \sys{} associates each compartment with a MAC label.
-%
-The compartment label (Section~\ref{sec:labels}), indicates the
-sensitivity of the data in the compartment; this label is used to
-dictate where information can flow.\footnote{Conceptually, the notion
-of labels extends to network end-points, i.e., web servers.}
-%
-%
-%%In the case of browsing context, \emph{DOM label}, is further used to
-%%indicate the sensitivity of the DOM.
-%
-Second, \sys{} makes the ambient authority of an origin explicit, with
-privileges (Section~\ref{sec:privileges}).
+%% %%In this section, we describe the \sys{} system.
+%% %%%
+%% %%As mentioned previously, the basic unit of confinement in \sys{}---a
+%% %%compartment---corresponds to a JavaScript execution context, e.g.\@ a
+%% %%browser tab, an iframe on a page, or even a Web Worker~\cite{workers}.
+%% 
+%% \sys{} builds on the existing web security model by using compartments
+%% as the basic unit of isolation and mediating communication between 
+%% the compartments and external servers.
+%% %
+%% %
+%% The two basic changes to the existing compartment model are as follows.
+%% %
+%% First, \sys{} associates each compartment with a MAC label.
+%% %
+%% The compartment label (Section~\ref{sec:labels}), indicates the
+%% sensitivity of the data in the compartment; this label is used to
+%% dictate where information can flow.\footnote{Conceptually, the notion
+%% of labels extends to network end-points, i.e., web servers.}
+%% %
+%% %
+%% %%In the case of browsing context, \emph{DOM label}, is further used to
+%% %%indicate the sensitivity of the DOM.
+%% %
+%% Second, \sys{} makes the ambient authority of an origin explicit, with
+%% privileges (Section~\ref{sec:privileges}).
  
 \sys{} uses these labels and privileges to restrict the
 kind of messages and requests which are permitted to flow to other
