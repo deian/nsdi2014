@@ -181,17 +181,18 @@ label precisely satisfies our design goal of a hierarchical system.
 
 There are two kinds of contexts available to COWL applications.
 %
-First, applications can be partitioned as usual: using top-level
+First, applications can be partitioned as usual, using top-level
 pages, iframes, workers, etc.
 %
 Indeed COWL applications are just standard web applications that
 additionally use the COWL API.
 %
-Importantly, however, we must mediate all pre-existing communication
-channels---even more subtle channels exposed through the DOM
-API---according to the context label, to ensure confinement.
+Importantly, however, all pre-existing communication channels---even
+subtle channels exposed through the evolving DOM API---must be
+mediated according to the context label to ensure confinement.
 %
-For example, our implementation interposes on:
+For example, our implementation modifies existing browsing contexts to
+mediate:
 %
 \js|postMessage|,
 same-origin cross-compartment DOM object access,
