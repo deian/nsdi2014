@@ -162,13 +162,23 @@ For example, a Mint context labeled
 \https{chase.com}}{\https{mint.com}} to read bank statements; of
 course, this is at the cost of giving up its ability to communicate
 with Amazon (or, for that matter, any other) servers.
+%
+When creating a new context, code can impose an upper-bound
+on the context label to ensure the untrusted code cannot raise it
+label and read data above this \emph{clearance}.
+%
+Since our notion of clearance is
+standard~\cite{efstathopoulos:asbestos, Zeldovich:2006,
+stefan:2011:flexible, Breeze13}, our brief treatment of it is limited
+to Section~\ref{sec:discussion}, where we discuss covert channels.
 
-COWL allow a labeled context to create additional labeled contexts,
+As noted, COWL allows a labeled context to create additional labeled contexts,
 much like existing browsing contexts can create sub-compartments
 in the form of iframes, workers, etc.
 %
 This is crucial for compartmentalizing a system in a hierarchical
-fashion, placing code of different trustworthiness in separate contexts.
+fashion, where code of different trustworthiness is placed in
+a separate context.
 %
 For example, in the password checker example of
 Section~\ref{sec:motivating-examples} we create a child context in
@@ -292,8 +302,7 @@ sending messages to its parent.
 
 \paragraph{LabeledXHR}
 
-BK: labeled communication encompasses both labeled XHR and labeled
-CORS between server and client. Provide symmetric confinement.
+- 
 
 Tie back to third-party mashup example.
 
