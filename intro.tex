@@ -2,14 +2,14 @@
 \label{sec:intro}
 
 Web applications have proliferated because it is so easy for
-developers to reuse components of existing ones.  While component
-reuse in the venerable desktop software model typically takes the form
-of libraries, the reusable components in web applications are not
-limited to just JavaScript library code---they further include
-network-accessible content and services. Such reuse is
-ubiquitous. jQuery, a widely used JavaScript library, is included in
-and used by 78\% of the Quantcast top-10,000 web sites, and over 59\%
-of the Quantcast top-million web sites~\cite{quantcast}.
+developers to reuse components of existing ones. While component reuse
+in the venerable desktop software model typically occurs for libraries,
+the reusable components in web applications are not limited to just
+JavaScript library code---they further include network-accessible
+content and services. Such reuse is ubiquitous. jQuery, a widely used
+JavaScript library, is included in and used by over 77\% of the
+Quantcast top-10,000 web sites, and 59\% of the Quantcast top-million
+web sites~\cite{quantcast}.
 
 The resulting model is one in which web developers cobble together
 multiple JavaScript libraries, web-based content, and web-based
@@ -176,12 +176,14 @@ jQuery library, an encrypted cloud-based document editor, and a
 third-party mashup, none of which can be implemented in a way that
 preserves the user's privacy in the status-quo web security
 architecture. These examples drive the design requirements for \sys{},
-particularly MAC with {\em symmetric and hierarchical confinement.}
-Symmetric confinement allows {\em mutually} distrusting principals
-each to pass sensitive data to the other, and confine the other's use
-of the passed sensitive data. And hierarchical confinement allows any
-developer to confine code she does not trust, and confinement to be
-nested to arbitrary depths.
+particularly MAC with {\em symmetric and hierarchical confinement} and
+{\em delegation.}  Symmetric confinement allows {\em mutually}
+distrusting principals each to pass sensitive data to the other, and
+confine the other's use of the passed sensitive data. Hierarchical
+confinement allows any developer to confine code she does not trust,
+and confinement to be nested to arbitrary depths. And delegation
+allows a developer explictly to confer the privileges of one execution
+context explicitly on a separate execution context.
 %
 % To offer the greatest flexibility to web application developers, the
 % means of confinement should further be \emph{first class,} in that any
@@ -220,15 +222,15 @@ secure versions of the four motivating applications.
 Our contributions include:
 
 \begin{CompactItemize}
-\item We characterize four case-study web applications
-  (Section~\ref{sec:motivating-examples}) for which today's browser security
-  architecture cannot provide privacy.
+\item We characterize the shared needs of four case-study web applications
+  (Section~\ref{sec:motivating-examples}) for which today's browser
+  security architecture cannot provide privacy.
 %strong 
 \item We describe the design of the \sys{} label-based MAC system
   for web browsers (Section~\ref{sec:system}), which meets the
   requirements of the four case-study web applications.
 \item We describe designs of the four case-study web applications atop
-  \sys.
+  \sys (Section~\ref{sec:apps}).
 \item We describe implementations of \sys{}
   (Section~\ref{sec:implementation}) for the Firefox and Chromium
   open-source browsers; our evaluation (Section~\ref{sec:eval})
