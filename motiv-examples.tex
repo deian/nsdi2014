@@ -81,7 +81,7 @@ host's origin is \https{a.com}.
 %% In general, the SOP isolates code in one page from accessing client-
 %% and server-side data associated with another origin.
  
-The SOP does not, however, prevent code from disclosing data to
+The SOP does not, however, prevent code from \emph{disclosing} data to
 foreign origins. For example, code executing in an \https{a.com}
 context can trivially disclose data to \https{b.com} by using XHR to
 perform a network request; the SOP only prevents the code from
