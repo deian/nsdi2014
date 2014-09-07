@@ -184,15 +184,17 @@ least as restricting as the parent's label) to confine it further.
 
 There are two kinds of contexts that COWL applications can create.
 %
-First, since COWL applications are simply regular web applications
-that additionally use the COWL API, an application can create standard
-(but labeled) contexts in the form of pages, iframes, workers, etc.
+First, an application can create standard (but labeled) contexts in
+the form of pages, iframes, workers, etc.
 %
-Importantly, however, all pre-existing communication channels---even
-subtle channels exposed through the evolving DOM API---must be
-mediated according to the context label to ensure confinement.
+Indeed, this is possible because COWL applications are just regular
+web applications that additionally use the COWL API and abide by MAC.
 %
-In Section~\ref{sec:implementation} we expand on how COWL does this.
+Importantly, to enforce MAC, COWL must mediate all the pre-existing
+communication channels---even subtle and implicit channels, such as
+content loading---according to the context label.
+%
+In Section~\ref{sec:implementation} we describe how COWL does this.
  
 \paragraph{LWorkers}
 - Relate to hierarchical confinement.
