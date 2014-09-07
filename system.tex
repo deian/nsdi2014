@@ -128,6 +128,11 @@ dually, the source context must not be writable by origins not
 otherwise trusted by the target, i.e., the source must be at least as
 trustworthy as the target.
 %
+We say the target label ``subsumes'' the source label.\footnote{
+  If the communication is bidirectional, e.g., accessing a
+cross-context (but same-iring) DOM, then both the target and source
+must subsume each other.}
+%
 For example, a context labeled
 \dcLabel{\https{amazon.com}}{\https{mint.com}} can send messages to
 one labeled \dcLabel{\https{amazon.com} $\land$
@@ -152,8 +157,8 @@ another context) the context is also more restricted in where it can
 write.
 %
 For example, a Mint context labeled
-\dcLabel{\https{amazon.com}}{\https{mint.com}} can raise its label to
-\dcLabel{\https{amazon.com} $\land$
+\dcLabelS{\https{amazon.com}}{\https{mint.com}} can raise its label to
+\dcLabelS{\https{amazon.com} $\land$
 \https{chase.com}}{\https{mint.com}} to read bank statements; of
 course, this is at the cost of giving up its ability to communicate
 with Amazon (or, for that matter, any other) servers.
@@ -188,17 +193,36 @@ First, an application can create standard (but labeled) contexts in
 the form of pages, iframes, workers, etc.
 %
 Indeed, this is possible because COWL applications are just regular
-web applications that additionally use the COWL API and abide by MAC.
+web applications that additionally use the COWL API and abide by MAC,
+in addition to existing web security policies.
 %
 Importantly, to enforce MAC, COWL must mediate all the pre-existing
 communication channels---even subtle and implicit channels, such as
 content loading---according to the context label.
 %
 In Section~\ref{sec:implementation} we describe how COWL does this.
- 
-\paragraph{LWorkers}
-- Relate to hierarchical confinement.
-- Labeled DOM. Tie back to jQuery example.
+
+Second, COWL applications can create light-weight labeled contexts
+in the form of \emph{labeled workers (LWorkers)}.
+%
+Similar to normal workers~\cite{workers}, the API exposed to LWorkers is
+minimal; the LWorker global only contains constructs for communicating
+with the parent, the XHR constructor, and the COWL API.
+%
+Unlike normal workers, which execute in separate threads, an LWorker
+executes in the same thread as its parent, sharing the event loop.
+%
+This has the added benefit of allowing the parent to give the child
+(labeled) access to its DOM, any access of which is treated as both a
+read and a write.
+%
+Such ``DOM workers,'' are used by our third-party library example when
+isolating the trusted application code, which needs access to the DOM,
+form the untrusted jQuery library.
+%
+In general, LWorkers simplify the isolation and confinement of scripts
+(e.g. the password strength checker) which would otherwise run in a
+shared context, as loaded with \js|<script>| tags.
 
 \Red{MOVE to implementation:\\
 For example, our implementation modifies existing browsing contexts to
