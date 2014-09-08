@@ -290,6 +290,10 @@ Equally important, the receiver can delay inspecting a sensitive
 message until it is ready to raise its label and be more restricted in
 where it can write.
 %
+(Or alternatively, it can serve as an intermediary and pass the
+labeled Blob to yet another context, a pattern we found useful when
+considering ``high'' integrity message.)
+%
 For example, in the password checker example of
 Section~\ref{sec:motivating-examples} we label the password
 \https{fb.com} before sending it to the untrusted checker.
@@ -297,11 +301,6 @@ Section~\ref{sec:motivating-examples} we label the password
 The latter has the flexibility of communicating arbitrarily until it
 unlabels the password, at which point it will be constrained to
 sending messages to its parent.
-%
-Finally, such labeled communication enables another useful design
-pattern: contexts can use labeled Blobs to send ``high-integrity''
-data via a untrusted intermediary contexts.
-%%XXX(ds): is this too much detail that is not clear?
 
 
 
