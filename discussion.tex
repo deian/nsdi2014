@@ -105,18 +105,29 @@ Second, and more importantly, \sys{} only enforces latticed-based
 policies, i.e., DC labels dictate where information can be
 disseminated.
 %
-Although this captures a wide-set of policies, it does not capture all
-possible confinement policies.
+DC labels are comparable in expressiveness to the \emph{Decentralized Label
+Model}~\cite{GenLabels}(DLM)\footnote{DLM secrecy policies can be encoded as DC
+  labels when no principals hierarchy is considered.} but less expressive than first
+order logic. Nevertheless, they closely reflect existing web policies---allowing
+COWL to reuse CSP 
+to enforce them.
 %
-For instance, lattice-based policies are not suitable for scenarios in
-which a circular flows of information is desired~\cite{Badger:1995}.
+
+%Although DC labels captures a wide-set of policies, it does not capture 
+%all possible confinement policies.
 %
-Though we could have taken an approach, as in DCS~\cite{Akhawe2013},
-to allow policies to be in the form of developer-provided code, we
-believe that the trade-off for DC labels' simplicity---that of simply
-specifying which origins are allowed to read a piece of
-data---outweighs the ability to specify arbitrarily policies and the
-accompanying complexities.
+%For instance, 
+Although lattice-based policies capture a wide-set of confinement practices, 
+they 
+%Lattice-based policies 
+are not suitable for scenarios in which a circular flows of information is
+desired~\cite{Badger:1995}.
+%
+Although we could have taken an approach similar to DCS~\cite{Akhawe2013}, where
+policies are given in the form of developer-provided code, we believe that the
+trade-off for DC labels' simplicity---that of simply specifying which origins
+are allowed to read a piece of data---outweighs the ability to specify
+arbitrarily policies and the accompanying complexities.
 
 }
 
