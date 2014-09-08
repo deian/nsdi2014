@@ -97,15 +97,17 @@ information to and from other contexts and servers.
 %% in addition to the restrictions imposed by existing DAC policies such
 %% as the SOP.
 
-Following~\cite{yang:2013:towards, stefan:2011:dclabels}, a label is a
-pair of boolean formulas: a \emph{secrecy} formula specifying which
-origins may read a context's data, and an \emph{integrity} formula
-specifying which origins may write it.
+As we have proposed previously~\cite{yang:2013:towards,
+  stefan:2011:dclabels}, a label is a pair of boolean formulas: a
+\emph{secrecy} formula specifying which origins may read a context's
+data, and an \emph{integrity} formula specifying which origins may
+write it.
 %
 For example, only Amazon or Chase may read data labeled
 \dcLabel{\https{amazon.com} $\lor$
-  \https{chase.com}}{\https{amazon.com}}, and only Amazon may
-modify it.
+  \https{chase.com}}{\https{amazon.com}}, and only Amazon may modify
+it.\footnote{$\lor$ and $\land$ denote disjunction and conjunction. A
+  comma separates the secrecy and integrity formulas.}
 %
 Amazon could assign this label to its order history page to allow a
 Chase-hosted mashup to read the user's purchases.
@@ -142,16 +144,16 @@ label.\footnote{ If communication is bidirectional, e.g., when a
 For example, a context labeled
 \dcLabel{\https{amazon.com}}{\https{mint.com}} can send messages to
 one labeled \dcLabel{\https{amazon.com} $\land$
-\https{chase.com}}{\https{mint.com}}, since the latter is guaranteed
-to preserves the privacy of \https{amazon.com} (and
+\https{chase.com}}{\https{mint.com}}, since the latter is trusted
+to preserve the privacy of \https{amazon.com} (and
 \https{chase.com}).
 %
 However, communication in the reverse direction is not possible since
 it may violate the privacy of \https{chase.com}.
 %
 In the rest of this paper, we limit our discussion to secrecy and only
-comment on integrity where relevant; the interested reader is referred
-to~\cite{stefan:2011:dclabels} for a complete description of the label
+comment on integrity where relevant; we refer the interested reader
+to~\cite{stefan:2011:dclabels} for a full description of the label
 model.
 
 A context can freely \emph{raise} its label, i.e., change its label to
@@ -227,8 +229,8 @@ Second, a COWL application can create lightweight labeled contexts in
 the form of \emph{labeled workers (LWorkers)}.
 %
 Like normal workers~\cite{workers}, the API exposed to LWorkers is
-minimal; its global only contains constructs for communicating
-with the parent, the XHR constructor, and the COWL API.
+compact; its global only contains constructs for communicating with
+the parent, the XHR constructor, and the COWL API.
 %
 Unlike normal workers, which execute in separate threads, an LWorker
 executes in the same thread as its parent, sharing its event loop.
@@ -261,8 +263,9 @@ restrictions on a target context is cumbersome.
 (Consider the case where a context wishes to impose different
 restrictions according to the message or target context.)
 
+\paragraph{Labeled Blobs}
 To address this issue, COWL allows code to heterogeneously label
-messages using labeled Blobs.
+messages using \emph{labeled Blobs.}
 %
 A labeled Blob encapsulates a serialized immutable object, of type
 Blob~\cite{html5}, and the label protecting it.
@@ -312,7 +315,7 @@ The latter has the flexibility of communicating arbitrarily until it
 unlabels the password, at which point it will be constrained to
 sending messages to its parent.
 
-\subsubsection{Labeled XHR}
+\paragraph{Labeled XHR}
 \label{sec:system:labeled-xhr}
 The ability of a context to impose confinement restrictions on
 another naturally extends to servers, when using the XHR constructor.
