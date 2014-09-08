@@ -176,9 +176,10 @@ policies---naturally reducing over-approximations in the enforcement.
 % might reduce the number of false alarms. 
 % simplifies the implementation of certain applications. 
 %
-For instance, JSFlow can associate a label with a password object
-to ensure that potentially malicious code within the browsing context
-cannot leak it arbitrarily.
+For instance, JSFlow can associate a label for every object in 
+the browsing context to ensure that potentially malicious code 
+%within the browsing context
+cannot leak data arbitrarily. 
 %
 In \sys{}, such fine-grained labeling can be mimic by restructuring the
 application (as opposed to simply associating a label with an object).
