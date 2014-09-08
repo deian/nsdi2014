@@ -118,24 +118,26 @@ specifying which origins are allowed to read a piece of
 data---outweighs the ability to specify arbitrarily policies and the
 accompanying complexities.
 
-
+}
 
 \paragraph{Policy-granularity}
 
 \sys{} associates a label with a compartment, or (informally) browsing
 context.
 %
-This is in contrast to systems such as JSFlow~\cite{Hedin:2012} and
-FlowFox~\cite{DeGroef:2012}, which, rely on fine-grained labeling.
+This is in contrast to systems such as JSFlow~\cite{Hedin:2012}, 
+% and FlowFox~\cite{DeGroef:2012}
+% FlowFox is not fine-grained, but rather coarse-grained
+which rely on fine-grained labeling.
 %
 Inspired by the HiStar~\cite{Zeldovich:2006} and
-LIO~\cite{stefan:2011:flexible} confinement systems, we took a coarse-grained
-approach because of three cor reasons.
+LIO~\cite{stefan:2011:flexible,stefan:addressing-covert} confinement systems, we took a coarse-grained
+approach because of three core reasons.
 %
 First, policies on the web are specified in terms of origins which
 interact at the granularity of browsing contexts in the browser.
 %
-Hence, developers already compartmentalize applications at this
+Observer that developers already compartmentalize applications at this
 granularity---\sys{} simply provides developers with the stronger
 guarantee of confinement.
 %
@@ -166,15 +168,21 @@ especially since browsers already need to do so to enforce the SOP.
 %% (e.g., CSP) to enforce confinement, while exposing the system in a
 %% modular fashion as a new DOM API; 
 
-However, the ability to associate labels with individual objects
-simplifies the implementation of certain applications. 
+On the other hand, fine-grained labeling, i.e., the ability to associate labels with
+individual objects, allows for a more precise propagation of
+policies---naturally reducing over-approximations in the enforcement. 
+% , which
+% could 
+% might reduce the number of false alarms. 
+% simplifies the implementation of certain applications. 
 %
-For instance, JSFlow can associate a label with a password object
-to ensure that potentially malicious code within the browsing context
-cannot leak it arbitrarily.
+For instance, JSFlow can associate a label for every object in 
+the browsing context to ensure that potentially malicious code 
+%within the browsing context
+cannot leak data arbitrarily. 
 %
-In \sys{}, such fine-grained labeling requires restructuring the
-application (as opposed to simply associating a label with an object)
+In \sys{}, such fine-grained labeling can be mimic by restructuring the
+application (as opposed to simply associating a label with an object).
 %
 Concretely, we must partition the application such that
 heterogeneously labeled objects/DOM-elements are in separate labeled
@@ -185,11 +193,16 @@ placing this object in a separate labeled worker, while associating a
 label with a password-input field would require a new iframe (to
 render the element).
 %
-Though we believe that the expressively of \sys{} when compared to
-fine-grained systems is comparable, the need for separate compartments
-to hold differently-labeled data may require code to interact with the
-data asynchronously.
-}
+Although we believe that the expressivity of \sys{} 
+% when compared to
+and fine-grained systems is comparable, the need for separate compartments
+to hold differently-labeled data may require code to interact with 
+data in an asynchronously manner. 
+%
+Ultimately, we note that coarse- and fine-grained mechanisms are not mutually
+exclusive; for instance, when dealing with legacy JavaScript code, one
+could simply use JSFlow within a COWL compartment. 
+
 
 % Local Variables:
 % TeX-master: "main.ltx"
