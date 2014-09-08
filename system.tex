@@ -157,7 +157,7 @@ any label that is more restricting, in order to receive a message
 from an otherwise prohibited context.
 %
 Of course, in raising its label to read more sensitive data from
-another context, a context also becomes more restricted in where it
+another context, the context also becomes more restricted in where it
 can write.
 %
 For example, a Mint context labeled
@@ -194,13 +194,15 @@ laundering data through a newly created context.
 Hence, newly created contexts implicitly inherit the current label of
 their parent.
 %
-(The initial label of a top-level context, i.e., a page, is public
-unless the web server attaches a \js|COWL-label| header to the page
-specifying a more restricting label.)
+(For backwards compatability with the SOP, the label of a top-level
+context, i.e., a page, is public.)
 %
 COWL however allows the parent to override this and specify---at
 creation time---the child's initial current label (which must be at
 least as restricting as the parent's label) to confine it further.
+%
+Finally, for browing contexts, a server can apply yet more restrictions
+by providing a \js|COWL-label| header with the (minimal) document label.
 
 There are two kinds of contexts that COWL applications can create.
 %
