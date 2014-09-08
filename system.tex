@@ -177,8 +177,8 @@ and read data above this \emph{clearance}.
 %
 This notion of clearance is well
 established~\cite{efstathopoulos:asbestos, Zeldovich:2006,
-  stefan:2011:flexible, Breeze13}; we limit our treatment of it to
-Section~\ref{sec:discussion}, where we discuss covert channels.
+  stefan:2011:flexible, Breeze13}; we discuss its relevance to covert
+channels in Section~\ref{sec:discussion}.
 
 As noted, COWL allows a labeled context to create additional labeled contexts,
 much like existing browsing contexts can create sub-compartments
@@ -250,72 +250,102 @@ with \js|<script>| tags.
 
 \subsection{Labeled Communication}
 \label{sec:system:communication}
-Since COWL always enforces a label check when a context sends
-messages, the design described thus far is already symmetric: a source
-context can impose restrictions on a target context by raising its
-label (or the label of a child context) and only then send the desired
-messages; to read the messages, the target context must confine itself
-by raising the context label.
-%
-Unfortunately, this approach of (ab)using the context label to impose
-restrictions on a target context is cumbersome.
-%
-(Consider the case where a context wishes to impose different
-restrictions according to the message or target context.)
+Since COWL enforces a label check whenever a context sends a message,
+the design described thus far is already symmetric: a source context
+can confine a target context by raising its label (or a child
+context's label) and thereafter send the desired message. To read this
+message, the target context must confine itself by raising its label
+accordingly. These semantics can make interactions between contexts
+cumbersome, however. For example, a sending context may wish to
+communicate with multiple target contexts, and need to confine those
+target contexts with different labels, or even confine individual
+messages to the same target context with different labels. And a
+receiving context may wish to communicate unfetteredly with one or
+more origins for a time before losing the ability to do so once it
+raises its label to receive a message. In the password-checker example
+application, the untrusted checker script at the right of
+Figure~\ref{fig:checker} exhibits exactly this latter behavior: it
+needs to communicate with untrusted remote origin {\tt sketchy.ru}
+before reading the password labeled {\tt fb.com}.
 
-\paragraph{Labeled Blobs}
-To address this issue, COWL allows code to heterogeneously label
-messages using \emph{labeled Blobs.}
-%
-A labeled Blob encapsulates a serialized immutable object, of type
-Blob~\cite{html5}, and the label protecting it.
-%
-Since messages between contexts must be serializable objects, labeled
-Blobs can be used to associate explicit labels with messages.
-%
-Unsurprisingly, these ``labeled messages'' can be sent from one
-context to another.
-%
-When doing so, COWL does not impose any more restrictions than those of
-Section~\ref{sec:system:contexts}.
-%
-Importantly, however, a receiving context cannot arbitrarily inspect
-such labeled messages;
-%
-until the message is ``unlabeled'' and the context label is raised to
-subsume the blob label, the received labeled message is mostly opaque:
-the receiving context can only inspect its label.
+%% %
+%% Unfortunately, this approach of (ab)using the context label to impose
+%% restrictions on a target context is cumbersome.
+%% %
+%% (Consider the case where a context wishes to impose different
+%% restrictions according to the message or target context.)
 
-While simple, labeled Blobs are very useful in building applications
-with (mutual) distrust.
+\paragraph{Labeled Blob Messages (Intra-Browser)}
+To simplify communication with confinement, we introduce the {\em
+  labeled Blob,} which binds together the payload of an individual
+inter-context message with the label protecting it. The payload takes
+the form of a serialized immutable object of type Blob~\cite{html5}.
+Encapsulating the label with the message avoids the cumbersome label
+raisings heretofore necessary in both sending and receiving contexts
+before a message may even be sent or received. Instead, COWL allows
+the developer sending a message from a context to specify the label to
+be attached to a labeled Blob; any label more restrictive than the
+sending context's current label may be specified. While the receiving
+context may receive a labeled Blob with no immediate effect on the
+origins with which it can communicate, it may only inspect the label,
+but not the payload. Only after raising its label as needed may the
+receiving context read the payload.
 %
-For example, a sender can impose confinement restrictions on a
-receiver by simply labeling a message.
+%% A labeled Blob encapsulates a serialized immutable object, of type
+%% Blob~\cite{html5}, and the label protecting it.
 %
-Since the label of the message can be above the sender's context label
-this alleviates the need for the sender to raise its label only to
-impose restrictions on the receiver.
+%% Since messages between contexts must be serializable objects, labeled
+%% Blobs can be used to associate explicit labels with messages.
 %
-(Indeed, when creating a labeled Blob, the specified label \emph{must}
-be at least as restricting as the current context label.)
+%% Unsurprisingly, these ``labeled messages'' can be sent from one
+%% context to another.
 %
-Equally important, the receiver can delay inspecting a sensitive
-message until it is ready to raise its label and be more restricted in
-where it can write.
-%
-(Or alternatively, it can serve as an intermediary and pass the
-labeled Blob to yet another context, a pattern we found useful when
-considering ``high'' integrity message.)
-%
-For example, in the password checker example of
-Section~\ref{sec:motivating-examples} we label the password
-\https{fb.com} before sending it to the untrusted checker.
-%
-The latter has the flexibility of communicating arbitrarily until it
-unlabels the password, at which point it will be constrained to
-sending messages to its parent.
+%% When doing so, COWL does not impose any more restrictions than those of
+%% Section~\ref{sec:system:contexts}.
+%% %
+%% Importantly, however, a receiving context cannot arbitrarily inspect
+%% such labeled messages;
+%% %
+%% until the message is ``unlabeled'' and the context label is raised to
+%% subsume the blob label, the received labeled message is mostly opaque:
+%% the receiving context can only inspect its label.
 
-\paragraph{Labeled XHR}
+Labeled Blobs simplify building applications that incorporate distrust
+among contexts. Not only can a sender impose confinement on a receiver
+simply by labeling a message; a receiver can delay inspecting a
+sensitive message until it has completed communication with untrusted
+origins. They also ease the implementation of integrity in
+applications, as they allow a context that is not trusted to modify
+content in some other context to serve as a passive conduit
+for a message from a third context that {\em is} so trusted.
+%
+%% For example, a sender can impose confinement restrictions on a
+%% receiver by simply labeling a message.
+%
+%% Since the label of the message can be above the sender's context label
+%% this alleviates the need for the sender to raise its label only to
+%% impose restrictions on the receiver.
+%
+%% (Indeed, when creating a labeled Blob, the specified label \emph{must}
+%% be at least as restricting as the current context label.)
+%
+%% Equally important, the receiver can delay inspecting a sensitive
+%% message until it is ready to raise its label and be more restricted in
+%% where it can write.
+%
+%% (Or alternatively, it can serve as an intermediary and pass the
+%% labeled Blob to yet another context, a pattern we found useful when
+%% considering ``high'' integrity message.)
+%
+%% For example, in the password checker example of
+%% Section~\ref{sec:motivating-examples} we label the password
+%% \https{fb.com} before sending it to the untrusted checker.
+%% %
+%% The latter has the flexibility of communicating arbitrarily until it
+%% unlabels the password, at which point it will be constrained to
+%% sending messages to its parent.
+
+\paragraph{Labeled XHR Messages (Browser--Server)}
 \label{sec:system:labeled-xhr}
 The ability of a context to impose confinement restrictions on
 another naturally extends to servers, when using the XHR constructor.
