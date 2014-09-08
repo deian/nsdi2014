@@ -339,10 +339,10 @@ different origins communicate, {\em each must be able to confine the
   other's further use of data it provides.}
 %
 %% XXX ds: want to use "at the end of the day;" too colloquial?
-Moreover, since it is in the interest of both parties to actually
-store the encrypted document, it is important for the confinement
-system to support {\em declassification}: \js|gdoc.com| should be
-allowed to store encrypted documents provided by \js|nsa.gov|.
+%% Moreover, since it is in the interest of both parties to actually
+%% store the encrypted document, it is important for the confinement
+%% system to support {\em declassification}: \js|gdoc.com| should be
+%% allowed to store encrypted documents provided by \js|nsa.gov|.
 
 %% brings up the requirement of *symmetric* confinement: two mutually
 %% distrusting origins each confine the other.
@@ -404,9 +404,11 @@ origins (and thus cannot exfiltrate sensitive data within the
 untrusted page).
 %% Once more, MAC-based confinement intuitively seems to
 %% fit this scenario well.
-This highlights the need for a confinement system that supports
-{\em delegation}: a page should be allowed to both, deem another
-script trustworthy, and, at any point, deem itself untrustworthy.
+This refactoring highlights the need for a confinement system that
+supports {\em delegation} and {\em dropping privilege}: a page should
+be able to create a compartment and confer its privileges to
+communicate with remote origins on that compartment, then give up
+those privileges itself.
 
 We note further that any {\em library} author
 may wish to reuse functionality from another untrusted
@@ -454,9 +456,9 @@ applications are unfortunately unaddressed by status-quo browser
 security policies, such as the SOP. These applications clearly
 illustrate the need for robust yet flexible confinement for untrusted
 code in browsers. To summarize, these applications would appear to be
-well served by a confinement system that:
+well served by a system that:
 \begin{CompactItemize}
-%\item Applies mandatory access control (MAC);
+\item Applies mandatory access control (MAC);
 \item Is {\em symmetric,} i.e., it permits two principals to {\em
     mutually} distrust one another, and each prevent the other from
   exfiltrating its data;
@@ -464,12 +466,15 @@ well served by a confinement system that:
   $A$ to confine code from principal $B$ that processes $A$'s data,
   while principal $B$ can independently confine code from principal
   $C$ that processes $B$'s data, etc.
-\item Supports {\em declassification,} i.e., it allows principal $A$
-  to declassify data sensitive to $A$ (but, of course, not $B$);
-\item Supports {\em delegation,} i.e., it allows principal $A$
-  to grant another principal the ability to ``speak, '' i.e., 
-  declassify and delegate, on its behalf, and revoke its own ability
-  to do so.
+%% \item Supports {\em declassification,} i.e., it allows principal $A$
+%%   to declassify data sensitive to $A$ (but, of course, not $B$);
+\item Supports {\em delegation} and {\em dropping privilege,} i.e., it
+  permits a script running in a compartment with the privilege to
+  communicate with some set of origins to confer those privileges
+  on another compartment, then relinquish those privileges itself.
+  %% to grant another principal the ability to ``speak, '' i.e., 
+  %% declassify and delegate, on its behalf, and revoke its own ability
+  %% to do so.
   %% XXX ds: don't like "revoke its ability do do so"
 \end{CompactItemize}
 In the next section, we describe \sys{}, a new confinement system that
