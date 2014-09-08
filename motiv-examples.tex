@@ -235,7 +235,7 @@ passwords from a remote server (essentially, ``updating'' the
 checker's functionality). Doing so requires communicating with a
 remote origin.
 %
-Yet, a CSP policy that permits such communication, even with the
+Yet a CSP policy that permits such communication, even with the
 top-level page's same origin, is \emph{too} permissive: a malicious
 script could potentially carry out a \emph{self-exfiltration attack}
 and write the password to a public part of a trusted
@@ -259,23 +259,26 @@ under \sys{}.}
 
 Figure~\ref{fig:checker} shows how such a design might look. In this
 and subsequent examples, rectangular frames denote compartments,
-arrows denote communication (either between a compartment and the network,
-or IPC-style between compartments), and events during execution are
-numbered sequentially in time. Following~\cite{yang:2013:towards}, compartments may be
-\emph{labeled} (Section~\ref{sec:labels}) with the
-origins to whose sensitive data they have been exposed. (The privilege
-of the compartment (generalization of origin) is underlined.) A compartment that
-has not yet observed sensitive data is denoted \js|public|; however, when it
-wishes to incorporate sensitive data, the compartment \emph{raises} its
-label (at the cost of being more restricted in where it can write). Here, a top-level page at
-\js|fb.com| encapsulates a password-checker script from a third-party
-origin in a new compartment. The label of the new compartment is
-initially \js|public|. First, in step (1), the checker script is free
-to download updated regular expressions from an arbitrary remote
+arrows denote communication (either between a compartment and the
+network, or IPC-style between compartments), and events during
+execution are numbered sequentially in time. As we proposed
+previously~\cite{yang:2013:towards}, compartments may be
+\emph{labeled} (Section~\ref{sec:labels}) with the origins to whose
+sensitive data they have been exposed. A compartment that has not yet
+observed sensitive data is denoted \js|public|; however, when it
+wishes to incorporate sensitive data, the compartment \emph{raises}
+its label (at the cost of being more restricted in where it can
+write). And a compartment's \emph{privilege,} which specifies the
+origins for which a script executing in that compartment is trusted,
+appears within a crown. Here, a top-level page at \js|fb.com|
+encapsulates a password-checker script from a third-party origin in a
+new compartment. The label of the new compartment is initially
+\js|public|. First, in step (1), the checker script is free to
+download updated regular expressions from an arbitrary remote
 origin. In step (2), the top-level page sends the user's password to
 the checker script's worker using \js|postMessage|; the password is
-\emph{labeled} by \js|fb.com| to indicate that the data is sensitive
-to this origin.
+\emph{labeled} \js|fb.com| to indicate that the data is sensitive to
+this origin.
 %
 %%When the browser delivers the password to the checker
 %%script's context, it raises the label of the context to reflect that
