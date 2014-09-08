@@ -194,32 +194,34 @@ laundering data through a newly created context.
 Hence, newly created contexts implicitly inherit the current label of
 their parent.
 %
-(For backwards compatability with the SOP, the label of a top-level
-context, i.e., a page, is public.)
+When creating a child, however, a parent may specify an initial
+current label for the child that is {\em more} restrictive than the
+parent's, to confine the child further.
 %
-COWL however allows the parent to override this and specify---at
-creation time---the child's initial current label (which must be at
-least as restricting as the parent's label) to confine it further.
+To ensure compatibility with pages written for the legacy SOP, a
+COWL-enabled browser assigns a default label of public to top-level
+contexts (i.e., to pages).
 %
-Finally, for browing contexts, a server can apply yet more restrictions
-by providing a \js|COWL-label| header with the (minimal) document label.
+Finally, a web server can restrict browsing contexts by setting a
+\js|COWL-label| HTTP response header, which dictates the minimal
+document label the browser must enforce on the associated content.
 
-There are two kinds of contexts that COWL applications can create.
+COWL applications can create two types of context.
 %
 First, an application can create standard (but labeled) contexts in
 the form of pages, iframes, workers, etc.
 %
-Indeed, it may do so because COWL applications are just regular web
-applications that additionally use the COWL API and are thus by
-confined by MAC, in addition to existing web security policies.
+Indeed, it may do so because a COWL application is merely a regular
+web application that additionally uses the COWL API. It thus is
+confined by MAC, in addition to today's web security policies.
 %
-Importantly, to enforce MAC, COWL must mediate all pre-existing
+Note that to enforce MAC, COWL must mediate all pre-existing
 communication channels---even subtle and implicit channels, such as
-content loading---according to contexts' label.
+content loading---according to contexts' labels.
 %
-In Section~\ref{sec:implementation} we describe how COWL does so.
+We describe how COWL does so in Section~\ref{sec:implementation}.
 
-Second, COWL applications can create lightweight labeled contexts in
+Second, a COWL application can create lightweight labeled contexts in
 the form of \emph{labeled workers (LWorkers)}.
 %
 Like normal workers~\cite{workers}, the API exposed to LWorkers is
@@ -241,7 +243,6 @@ In general, LWorkers---especially when given DOM access---simplify the
 isolation and confinement of scripts (e.g., the password strength
 checker) that would otherwise run in a shared context, as when loaded
 with \js|<script>| tags.
-
 
 \subsection{Labeled Communication}
 \label{sec:system:communication}
