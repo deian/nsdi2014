@@ -102,6 +102,28 @@ the information is received, we raise our current label (2--3) and
 unlabel the blobs, in the process restricting our communication to the
 web at large.
 
+\Red{XXX bk: moved here from design; needs to be pared down
+and integrated.}
+We note that COWL's introduction of labeled XHR composes usefully with
+CORS. Today's CORS policies are DAC-only, such that a server must
+either allow another origin to read its data, and fully trust that
+origin not to disclose the data, or deny the other origin access to
+the data altogether. Under COWL, however, a server could
+CORS-whitelist a foreign origin to permit that origin to read its
+data, and by setting a label on its response, be safe in the knowledge
+that COWL would appropriately confine the foreign origin's scripts in
+the browser. For example, Chase could expose a read-only bank
+statement HTTP API that whitelists known applications' origins, such
+as \https{mint.com}, but sets MAC labels on responses. Here, Chase
+need not trust Mint to write bug-free code---COWL confines the Mint
+code to ensure that it cannot arbitrarily leak bank statements. As we
+discuss in Section~\ref{sec:discussion}, however, a malicious Mint
+application could potentially leak data through covert channels.  We
+emphasize that COWL nevertheless offers a significant improvement over
+the status quo, in which, e.g., users give their login credentials to
+Mint, and thus not only trust Mint to keep their bank statements
+confidential, but also not to steal their funds!
+
 \subsection{Untrusted Third-Party Library}
 \label{sec:apps-third-party}
 
