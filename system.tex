@@ -128,7 +128,7 @@ hosted by Mint to modify the resulting data.
  
 COWL enforces label policies in MAC fashion by only allowing a context
 to communicate with other contexts or servers whose labels are at
-least as restricting.
+least as restricting. (A server's ``label'' is simply its origin.)
 %
 Intuitively, when a context wishes to send a message, the target must
 not allow additional origins to read the data (preserving secrecy);
@@ -348,96 +348,163 @@ context that {\em is} so trusted.
 
 \paragraph{Labeled XHR Messages (Browser--Server)}
 \label{sec:system:labeled-xhr}
-The ability of a context to impose confinement restrictions on
-another naturally extends to servers, when using the XHR constructor.
-% 
-Traditionally, an XHR request is composed of two parts: a write to an
-external origin (sending the request), and then a read from the external
-origin (reading the response, which is restricted according to the
-SOP).
-%
-Before initiating a request, COWL, however, also checks to see
-if the label of the origin subsumes the label of context. 
-%
-Since COWL-enabled servers may be interested in the current label of
-the context which initiated the request, we send this (and a
-description of the context privileges) with every request.
-%
-Similarly, when reading the response, we check to see if the label of
-the context subsumes the label of the response, which may be
-explicitly set with the \js|COWL-label| header.
-%
+Thus far we have focused on confinement as it arises when two browser
+contexts communicate. Confinement is of use in browser-server
+communication, too. As noted in Section~\ref{sec:system:contexts},
+COWL only allows a context to communicate with a server (whether with
+XHR, retrieving an image, or otherwise) when the server's origin
+subsumes the context's label. Upon receiving a request, a COWL-aware
+web server may also wish to know the current label of the context that
+initiated it. For this reason, COWL attaches the current label to
+every request the browser sends to a server.\footnote{COWL also
+  attaches the current privilege; Section~\ref{sec:system:privileges}
+  describes COWL's privilege primitive.} As also noted in
+Section~\ref{sec:system:contexts}, a COWL-aware web server may elect
+to label a response it sends the client by including a \js|COWL-label|
+header on it. In such cases, the COWL-aware browser will only allow
+the receiving context to read the response if its current label
+subsumes that on the response.
 
-While the server can set the response label (with the \js|COWL-label|)
-to ensure that the context can only inspect the response if it is
-appropriately confined, the client can decide to delay this decision by
-setting the response type---when opening the connection---to
-\js|labeled-blob|.
+%% The ability of a context to impose confinement restrictions on
+%% another naturally extends to servers, when using the XHR constructor.
+%% % 
+%% Traditionally, an XHR request is composed of two parts: a write to an
+%% external origin (sending the request), and then a read from the external
+%% origin (reading the response, which is restricted according to the
+%% SOP).
+%% %
+%% Before initiating a request, COWL, however, also checks to see
+%% if the label of the origin subsumes the label of context. 
+%% %
+%% Since COWL-enabled servers may be interested in the current label of
+%% the context which initiated the request, we send this (and a
+%% description of the context privileges) with every request.
 %
-As with inter-context labeled communication, the returned response
-of this \emph{labeled XHR} constructor is a labeled Blob (whose label
-is specified by the \js|COWL-label| header).
-%
-This flexibly allows the application to delay the inspection of a
-sensitive response, which would confine it.
-%
-For example, in our mashup example, Mint only confines itself once it
-receives all the necessary (labeled) responses from both Amazon and
-Chase; at this point it can perform its task and display the result to
-the user, but can no longer send requests since doing so may leak
-information.
-%
-(Of course, a separate context can always be used to continuously poll
-the servers and send the labeled responses to the more tainted
-context.)
+%% Similarly, when reading the response, we check to see if the label of
+%% the context subsumes the label of the response, which may be
+%% explicitly set with the \js|COWL-label| header.
+%% %
 
-With MAC in place, we envision that there are scenarios in which web
-servers would share resources by setting more flexible CORS policies, but
-only do so if the client to be appropriately confined.
+Here, again, a context that receives labeled data---in this case from
+a server---may wish to defer raising its label until after it has
+completed communication with other remote origins. To give a context
+this freedom, COWL supports {\em labeled XHR} communication. Rather
+than invoking the standard XHR constructor, a script can invoke COWL's
+labeled XHR constructor, which specifies that the response should be
+delivered to the initiating script as a labeled Blob. Just as with
+labeled Blob intra-browser IPC, the script is then free to delay
+raising its label to read the payload of the response---and being
+confined---until after it has completed its other remote
+communication.
+%% While the server can set the response label (with the \js|COWL-label|)
+%% to ensure that the context can only inspect the response if it is
+%% appropriately confined, the client can decide to delay this decision by
+%% setting the response type---when opening the connection---to
+%% \js|labeled-blob|.
+%% %
+%% As with inter-context labeled communication, the returned response
+%% of this \emph{labeled XHR} constructor is a labeled Blob (whose label
+%% is specified by the \js|COWL-label| header).
+%% %
+%% This flexibly allows the application to delay the inspection of a
+%% sensitive response, which would confine it.
 %
-For instance, Chase may expose a read-only bank statement (HTTP) API
-that white-lists reputable domains, such as \https{mint.com}, but
-imposes restrictions on what these origins can do with the shared data
-(namely, where they can disseminate it).
-%
-This is appealing because it allows a server to share resources without
-completely trusting the white-listed cross-origin.
-%
-In this example, Chase does not need to trust Mint to write bug-free
-code---COWL confines the Mint code to ensure that it cannot arbitrarily
-leak the bank statements.
-%
-Of course, and as discussed in Section~\ref{sec:discussion}, a malicious
-Mint application can leak data through covert channels.
-%
-Nevertheless, this improves the state of affairs where users give up
-their credentials and place complete trust in Mint---not only to keep
-their bank statements confidential, but also from stealing their
-funds.
+For example, in the third-party mashup example, Mint only confines
+itself once it has received all necessary (labeled) responses from
+both Amazon and Chase. At this point it processes the data and
+displays results to the user, but it can no longer send requests since
+doing so may leak information.\footnote{To continuously process data
+  in ``streaming'' fashion, one may partition the application into
+  contexts that poll Amazon and Chase's servers for new data and pass
+  labeled responses to the confined context that processes the
+  payloads of the responses.}
 
-Since trust varies between users, a server cannot be expected to use
-CORS white-lists (beyond a handful of reputable domains) to
-accommodate everybody.  For example, a user may wish to use a
-lesser-known mashup, \https{wutang-financial.com}, instead of
-\https{mint.com}; unless Chase white-lists this domain (maybe at the
-user's request), the user is, again, forced to decide between giving
-up their privacy (credentials) and using the service.  Intuitively,
-however, it is safe relax the CORS policy to allow cross-origin code
-to read the result of a response, as long as it is confined
-thereafter.  Hence, COWL allows users to override the default CORS
-policy of a website (if there is any) to white-list origins they
-trust.  For example, the user can white-list
-\https{wutang-financial.com} to read cross-origin data from
-\https{chase.com}.  Importantly, however, all such cross-origin
-responses must be labeled.  (We call this feature labeled CORS
-(LCORS).) If the server supplies a response label, COWL uses this
-label.  Otherwise, we assume that the server is not COWL-enabled and
-label the response with a \emph{unique} origin (see
-Section~\ref{sec:system:privileges}).  This ensures that once the
-response is inspected the code cannot communicate with \emph{any}
-server, including the \emph{same} origin (e.g., \https{chase.com}),
-since these requests carry the risk of self-exfiltration~\cite{selfex}
-and cross-site request forgery~\cite{CSRF}.
+\Red{bk: Lock on the rest of 3.2; significant changes underway...}
+
+We note that COWL's introduction of labeled XHR composes usefully with
+CORS. Today's CORS policies are DAC-only, such that a server must
+either allow another origin to read its data, and fully trust that
+origin not to disclose the data, or deny the other origin access to
+the data altogether. Under COWL, however, a server could
+CORS-whitelist a foreign origin to permit that origin to read its
+data, and by setting a label on its response, be safe in the knowledge
+that COWL would appropriately confine the foreign origin's scripts in
+the browser. For example, Chase could expose a read-only bank
+statement HTTP API that whitelists known applications' origins, such
+as \https{mint.com}, but sets MAC labels on responses. Here, Chase
+need not trust Mint to write bug-free code---COWL confines the Mint
+code to ensure that it cannot arbitrarily leak bank statements. As we
+discuss in Section~\ref{sec:discussion}, however, a malicious Mint
+application could potentially leak data through covert channels. We
+stress that COWL nevertheless offers a significant improvement over
+the status quo, in which users give their login credentials to Mint,
+and thus not only trust Mint to keep their bank statements
+confidential, but also not to steal their funds! \Red{bk: this
+  paragraph feels like it is more discussion than design. No? Litmus
+  test: what construct is being introduced?}
+
+%% With MAC in place, we envision that there are scenarios in which web
+%% servers would share resources by setting more flexible CORS policies, but
+%% only do so if the client to be appropriately confined.
+%% %
+%% For instance, 
+%
+%% This is appealing because it allows a server to share resources
+%% without completely trusting the white-listed cross-origin.
+%
+%
+%% Of course, and as discussed in Section~\ref{sec:discussion}, a malicious
+%% Mint application can leak data through covert channels.
+%
+%% Nevertheless, this improves the state of affairs where users give up
+%% their credentials and place complete trust in Mint---not only to keep
+%% their bank statements confidential, but also from stealing their
+%% funds.
+
+The operator of a server that provides useful data to mashup
+applications cannot be expected to know all applications users may
+wish to use. A user might prefer the niche \https{gekko-cash.com}
+application to the \https{mint.com} one. If Chase doesn't
+CORS-whitelist the lesser-known application's origin, the user will
+still face today's unpalatable choice between functionality and
+privacy. Note that in a COWL-enabled browser, however, it is safe to
+relax the CORS policy to allow a foreign origin to read Chase's data,
+{\em so long as} Chase's responses are labeled---in which case COWL
+will confine any script that reads them. COWL thus allows a user to
+configure her browser to effectively add additional foreign origins to
+those whitelisted (if any) in the CORS policy returned by an origin's
+web server. For example, the user can configure her COWL-enabled
+browser to allow \https{gekko-cash.com} to read data from the
+\https{chase.com} origin. If the server labels its response label,
+COWL confines the context that reads the response accordingly.
+Otherwise, COWL assumes that the server is not COWL-enabled and labels
+the response with a \emph{unique} origin (as described in
+Section~\ref{sec:system:privileges}). Doing so ensures that once the
+response has been inspected the code cannot communicate with
+\emph{any} server, including that at \emph{same} origin (e.g.,
+\https{chase.com}), since such requests carry the risks of
+self-exfiltration~\cite{selfex} and cross-site request
+forgery~\cite{CSRF}.
+
+%% overrides of web sites' CORS
+%% policies
+
+%% Since trust varies between users, a server cannot be expected to use
+%% CORS white-lists (beyond a handful of reputable domains) to
+%% accommodate everybody.  For example, a user may wish to use a
+%% lesser-known mashup, \https{wutang-financial.com}, instead of
+%% \https{mint.com}; unless Chase white-lists this domain (maybe at the
+%% user's request), the user is, again, forced to decide between giving
+%% up their privacy (credentials) and using the service.  Intuitively,
+%% however, it is safe relax the CORS policy to allow cross-origin code
+%% to read the result of a response, as long as it is confined
+%% thereafter.  Hence, COWL allows users to override the default CORS
+%% policy of a website (if there is any) to white-list origins they
+%% trust.  For example, the user can white-list
+%% \https{wutang-financial.com} to read cross-origin data from
+%% \https{chase.com}.  Importantly, however, all such cross-origin
+%% responses must be labeled.  (We call this feature labeled CORS
+%% (LCORS).) 
 %% %
 %% A server that is protected against self-exfiltration and cross-site
 %% request forgery using end-to-end labels can relax this requirement by
