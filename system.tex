@@ -381,6 +381,34 @@ their credentials and place complete trust in Mint---not only to keep
 their bank statements confidential, but also from stealing their
 funds.
 
+Since trust varies between users, a server cannot be expected to use
+CORS white-lists (beyond a handful of reputable domains) to
+accommodate everybody.  For example, a user may wish to use a
+lesser-known mashup, \https{wutang-financial.com}, instead of
+\https{mint.com}; unless Chase white-lists this domain (maybe at the
+user's request), the user is, again, forced to decide between giving
+up their privacy (credentials) and using the service.  Intuitively,
+however, it is safe relax the CORS policy to allow cross-origin code
+to read the result of a response, as long as it is confined
+thereafter.  Hence, COWL allows users to override the default CORS
+policy of a website (if there is any) to white-list origins they
+trust.  For example, the user can white-list
+\https{wutang-financial.com} to read cross-origin data from
+\https{chase.com}.  Importantly, however, all such cross-origin
+responses must be labeled.  (We call this feature labeled CORS
+(LCORS).) If the server supplies a response label, COWL uses this
+label.  Otherwise, we assume that the server is not COWL-enabled and
+label the response with a \emph{unique} origin (see
+Section~\ref{sec:system:privileges}).  This ensures that once the
+response is inspected the code cannot communicate with \emph{any}
+server, including the \emph{same} origin (e.g., \https{chase.com}),
+since these requests carry the risk of self-exfiltration~\cite{selfex}
+and cross-site request forgery~\cite{CSRF}.
+%% %
+%% A server that is protected against self-exfiltration and cross-site
+%% request forgery using end-to-end labels can relax this requirement by
+%% supplying a less restricting label.
+
 
 \subsection{Privileges}
 \label{sec:system:privileges}
