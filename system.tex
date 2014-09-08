@@ -568,15 +568,15 @@ origin and arbitrarily leak data.
 Equally important, COWL allows a context to grant its privileges (or a
 subset of its privileges) to another.
 %
-In the jQuery example, the application delegate a child context
+In the jQuery example, the application delegates a child context
 its privileges before loading jQuery; this allows
-the context to act on behalf of the origin while the main browing
-context is confined.
+the context to act on its behalf, while leaving the main context 
+confined.
 %
-We remark that with these capabilities we can additionally provide a
+We remark that with these capabilities we can also provide a
 programming model wherein privileges must be explicitly exercised as a
-library that wraps functions, such as \js|postMessage|, which sets and
-drops privileges appropriately.
+library that wraps functions, such as \js|postMessage|, to set and
+drop privileges appropriately.
 
 %% %%XXX(ds): MOVE to implementation:
 %% For example, our implementation modifies existing browsing contexts to
