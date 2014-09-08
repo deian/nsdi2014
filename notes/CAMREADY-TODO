@@ -14,3 +14,16 @@ should stick to one (compartment) for the final camera-ready version
 
 DS: we should note before going into bg section that the familiar
 reader is free to skip to 2.2
+
+EZY: Intro nits:
+    - "it is so easy" sounds awkward
+    - "The wealth of...is an attractive target". This sentence is sort
+      of dangling in the middle of two other sentences
+    - "emerge from the prior discussion", can we just say "emerge"?
+    - "And the Same-Origin Policy..." Try not to start a sentence with "And"
+    - "In practice, web developers turn their backs on privacy...
+      because..." The causality doesn't follow: because the browser
+      doesn't let them do both, they have to pick, and in practice, they
+      pick flexibility.
+    - "Our contributions include: ... We ..." Would be better to use a
+      parallel construction here
