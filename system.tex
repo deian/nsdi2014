@@ -314,10 +314,11 @@ Labeled Blobs simplify building applications that incorporate distrust
 among contexts. Not only can a sender impose confinement on a receiver
 simply by labeling a message; a receiver can delay inspecting a
 sensitive message until it has completed communication with untrusted
-origins. They also ease the implementation of integrity in
-applications, as they allow a context that is not trusted to modify
-content in some other context to serve as a passive conduit
-for a message from a third context that {\em is} so trusted.
+origins (as does the checker script in Figure~\ref{fig:checker}). They
+also ease the implementation of integrity in applications, as they
+allow a context that is not trusted to modify content in some other
+context to serve as a passive conduit for a message from a third
+context that {\em is} so trusted.
 %
 %% For example, a sender can impose confinement restrictions on a
 %% receiver by simply labeling a message.
