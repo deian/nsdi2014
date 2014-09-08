@@ -283,20 +283,26 @@ Since the label of the message can be above the sender's context label
 this alleviates the need for the sender to raise its label only to
 impose restrictions on the receiver.
 %
-(Indeed, when creating a labeled Blob the specified label must be at
-least as restricting as the current context label.)
+(Indeed, when creating a labeled Blob, the specified label \emph{must}
+be at least as restricting as the current context label.)
 %
-Importantly, the receiver can delay inspecting a sensitive message
-until it is ready to raise its label and be more restricted in where
-it can write.
+Equally important, the receiver can delay inspecting a sensitive
+message until it is ready to raise its label and be more restricted in
+where it can write.
+%
+(Or alternatively, it can serve as an intermediary and pass the
+labeled Blob to yet another context, a pattern we found useful when
+considering ``high'' integrity message.)
 %
 For example, in the password checker example of
 Section~\ref{sec:motivating-examples} we label the password
 \https{fb.com} before sending it to the untrusted checker.
 %
-The latter has the flexibility of communicating arbitrarily until
-it unlabels the password, at which point it will it be constrained to
+The latter has the flexibility of communicating arbitrarily until it
+unlabels the password, at which point it will be constrained to
 sending messages to its parent.
+
+
 
 
 

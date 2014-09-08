@@ -91,84 +91,111 @@ Similarly, code can exfiltrate data by encoding it in the path of a
 URL whose origin is \https{b.com}, and setting the \js|src| property
 of an \js|img| element to this URL.
 
-\paragraph{Content Security Policy}
+\paragraph{Content Security Policy (CSP)}
 
-To improve user privacy developers can use CSP to impose additional
-policies on a context.
-%
-Specifically, with CSP, developers can set various directives to
-restrict the origins from where different content (images, scripts,
-etc.) may be loaded~\cite{csp}.
-%
-While the initial intent of this was to address cross-site scripting
-(XSS) attacks by limiting code to be loaded from trustworthy sources,
-CSP evolved to address a broader class of privacy issues, including
-(explicit) exfiltration.
-%
-For instance, the fine-grained control over resource loading has the
-dual purpose of restricting to whom data can be leaked through content
-loading.
-%
-(If a page is restricted to only including images from \https{b.com},
-it can only leak data through image loading to this (i.e.,
-\https{b.com}) origin.)
-%
-Other CSP directives have the sole role of preventing leaks.
-%
-For example, the \texttt{connect-src} directive is used to white-list
-the origins that a page is allowed to communicate with via XHR.
+Modern browsers allow the developer to specify a CSP for a page that
+protects a user's privacy by limiting communication by the page's
+compartment---i.e., that disallows communication that would ordinarily
+be permitted by the default SOP.  Developers may set individual CSP
+directives to restrict the origins to which a context may issue
+requests of specific types (for images, or scripts, XHR destinations,
+etc.)~\cite{csp}. CSP policies suffer from two limitations,
+however. They are {\em static:} they cannot change during a page's
+lifetime (e.g., a page may not drop the privilege to communicate with
+untrusted origins before reading potentially sensitive data). And they
+are {\em inaccessible:} JavaScript code cannot inspect the CSP of its
+enclosing context or some other context, e.g., when determining
+whether to share sensitive data with that other context.
 
-Unfortunately, CSP cannot be used to restrict certain channels such as
-inter-compartment messaging (e.g., via \js|postMessage|) or leaks due
-to navigation.
-%
-This, however, is not a fundamental limitation of CSP and indeed
-within the scope of future versions of the specification~\tocite{}.
-%
-More fundamentally, CSP policies are 1) \emph{static}, i.e., policies
-cannot change through the lifetime of a page (e.g., a page cannot drop
-communication privileges with certain hosts); and 2)
-\emph{inaccessible}: JavaScript code cannot inspect the CSP policy of
-its context, or the policy of another context when, for instance,
-deciding to share sensitive data with the latter party.
+%% To improve user privacy developers can use CSP to impose additional
+%% policies on a context.
+%% %
+%% Specifically, with CSP, developers can set various directives to
+%% restrict the origins from where different content (images, scripts,
+%% etc.) may be loaded~\cite{csp}.
+%% %
+%% While the initial intent of this was to address cross-site scripting
+%% (XSS) attacks by limiting code to be loaded from trustworthy sources,
+%% CSP evolved to address a broader class of privacy issues, including
+%% (explicit) exfiltration.
+%% %
+%% For instance, the fine-grained control over resource loading has the
+%% dual purpose of restricting to whom data can be leaked through content
+%% loading.
+%% %
+%% (If a page is restricted to only including images from \https{b.com},
+%% it can only leak data through image loading to this (i.e.,
+%% \https{b.com}) origin.)
+%% %
+%% Other CSP directives have the sole role of preventing leaks.
+%% %
+%% For example, the \texttt{connect-src} directive is used to white-list
+%% the origins that a page is allowed to communicate with via XHR.
 
-\paragraph{postMessage \& Cross-Origin Resource Sharing}
+%% Unfortunately, CSP cannot be used to restrict certain channels such as
+%% inter-compartment messaging (e.g., via \js|postMessage|) or leaks due
+%% to navigation.
+%% %
+%% This, however, is not a fundamental limitation of CSP and indeed
+%% within the scope of future versions of the specification~\tocite{}.
+%% %
+%% More fundamentally, CSP policies are 1) \emph{static}, i.e., policies
+%% cannot change through the lifetime of a page (e.g., a page cannot drop
+%% communication privileges with certain hosts); and 2)
+%% \emph{inaccessible}: JavaScript code cannot inspect the CSP policy of
+%% its context, or the policy of another context when, for instance,
+%% deciding to share sensitive data with the latter party.
 
-Within the confines of the browser, the HTML5 \js|postMessage|
-API~\cite{webmessaging} gives developers the flexibility of
-implementing applications that can exchange messages between
-cross-origin compartments, as shown in Figure~\ref{fig:primer-browser-arch}.
+\paragraph{postMessage \& Cross-Origin Resource Sharing (CORS)}
+
+As shown in Figure~\ref{fig:primer-browser-arch}, the HTML5
+\js|postMessage| API~\cite{webmessaging} allows developers to
+communicate between contexts of different origins in IPC-like fashion
+within the browser. A \js|postMessage| sender specifies the intended
+origin of the recipient, and only a context with that origin may read
+the message.
 %
-When sending a message, the sender can specify intended origin of the
-to ensure that an arbitrary context cannot read the message.
+%% When sending a message, the sender can specify intended origin of the
+%% to ensure that an arbitrary context cannot read the message.
 %
 %% Otherwise, a malicious attacker may be able to carry out a
 %% man-in-the-middle attack by navigating the context to whom the message
 %% was destined for to a page they control (wherein they read the
 %% message)~\cite{barth2009securing}.
 
-Similar to the \js|postMessage| API, CORS~\cite{cors13} gives
-developers the flexibility of implementing applications that can read
-data from a cross-origin server.
+CORS~\cite{cors13} goes a step further, and allows controlled
+cross-origin communication between a browsing context of one origin
+and a remote server with a different origin. Under CORS, a server may
+include a header on returned content that explicitly whitelists other
+origin(s) to read its responses.\footnote{Recall that the default SOP
+  blocks a context from reading a response from a different origin.}
+
 %
-Specifically, with CORS, code can read cross-origin resources,
-retrieved via XHR, if the remote host supplies a CORS header
-white-listing the (requesting) origin, alongside the resource.
-%
-Recall that the SOP would otherwise disallow code from inspecting a
-cross-origin response.
+%% Specifically, with CORS, code can read cross-origin resources,
+%% retrieved via XHR, if the remote host supplies a CORS header
+%% white-listing the (requesting) origin, alongside the resource.
+%% %
+%% Recall that the SOP would otherwise disallow code from inspecting a
+%% cross-origin response.
  
-Unfortunately both, the \js|postMessage| intended origin and CORS 
-are solely a form of discretionary access control.
+Note that both \js|postMessage|'s intended origin and CORS are purely
+discretionary in nature: they allow static selection of which
+cross-origin communication is allowed and which denied, but enforce no
+confinement on the receiving compartment of differing origin. Thus, in
+the status-quo web security architecture, a privacy-conscious
+developer should only ever send sensitive data to a compartment of
+differing origin if she completely trusts that origin. 
+
+%% are solely a form of discretionary access control.
+%% %
+%% They give the sending compartment or server control over the origins
+%% that are allowed to read the resource/message, but once access is
+%% granted, they have no control over what the cross-origin compartment
+%% can do with the data.
 %
-They give the sending compartment or server control over the origins
-that are allowed to read the resource/message, but once access is
-granted, they have no control over what the cross-origin compartment
-can do with the data.
-%
-Hence in the status quo, a developer should only send sensitive data
-to a cross-origin compartment if she completely trusts the foreign
-origin.
+%% Hence in the status quo, a developer should only send sensitive data
+%% to a cross-origin compartment if she completely trusts the foreign
+%% origin.
 
 \subsection{Motivating Examples}
 \label{sec:motivating-examples}
@@ -312,10 +339,10 @@ different origins communicate, {\em each must be able to confine the
   other's further use of data it provides.}
 %
 %% XXX ds: want to use "at the end of the day;" too colloquial?
-Moreover, since it is in the interest of both parties to actually
-store the encrypted document, it is important for the confinement
-system to support {\em declassification}: \js|gdoc.com| should be
-allowed to store encrypted documents provided by \js|nsa.gov|.
+%% Moreover, since it is in the interest of both parties to actually
+%% store the encrypted document, it is important for the confinement
+%% system to support {\em declassification}: \js|gdoc.com| should be
+%% allowed to store encrypted documents provided by \js|nsa.gov|.
 
 %% brings up the requirement of *symmetric* confinement: two mutually
 %% distrusting origins each confine the other.
@@ -377,9 +404,11 @@ origins (and thus cannot exfiltrate sensitive data within the
 untrusted page).
 %% Once more, MAC-based confinement intuitively seems to
 %% fit this scenario well.
-This highlights the need for a confinement system that supports
-{\em delegation}: a page should be allowed to both, deem another
-script trustworthy, and, at any point, deem itself untrustworthy.
+This refactoring highlights the need for a confinement system that
+supports {\em delegation} and {\em dropping privilege}: a page should
+be able to create a compartment and confer its privileges to
+communicate with remote origins on that compartment, then give up
+those privileges itself.
 
 We note further that any {\em library} author
 may wish to reuse functionality from another untrusted
@@ -427,9 +456,9 @@ applications are unfortunately unaddressed by status-quo browser
 security policies, such as the SOP. These applications clearly
 illustrate the need for robust yet flexible confinement for untrusted
 code in browsers. To summarize, these applications would appear to be
-well served by a confinement system that:
+well served by a system that:
 \begin{CompactItemize}
-%\item Applies mandatory access control (MAC);
+\item Applies mandatory access control (MAC);
 \item Is {\em symmetric,} i.e., it permits two principals to {\em
     mutually} distrust one another, and each prevent the other from
   exfiltrating its data;
@@ -437,12 +466,15 @@ well served by a confinement system that:
   $A$ to confine code from principal $B$ that processes $A$'s data,
   while principal $B$ can independently confine code from principal
   $C$ that processes $B$'s data, etc.
-\item Supports {\em declassification,} i.e., it allows principal $A$
-  to declassify data sensitive to $A$ (but, of course, not $B$);
-\item Supports {\em delegation,} i.e., it allows principal $A$
-  to grant another principal the ability to ``speak, '' i.e., 
-  declassify and delegate, on its behalf, and revoke its own ability
-  to do so.
+%% \item Supports {\em declassification,} i.e., it allows principal $A$
+%%   to declassify data sensitive to $A$ (but, of course, not $B$);
+\item Supports {\em delegation} and {\em dropping privilege,} i.e., it
+  permits a script running in a compartment with the privilege to
+  communicate with some set of origins to confer those privileges
+  on another compartment, then relinquish those privileges itself.
+  %% to grant another principal the ability to ``speak, '' i.e., 
+  %% declassify and delegate, on its behalf, and revoke its own ability
+  %% to do so.
   %% XXX ds: don't like "revoke its ability do do so"
 \end{CompactItemize}
 In the next section, we describe \sys{}, a new confinement system that
