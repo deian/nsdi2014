@@ -263,8 +263,9 @@ restrictions on a target context is cumbersome.
 (Consider the case where a context wishes to impose different
 restrictions according to the message or target context.)
 
+\paragraph{Labeled Blobs}
 To address this issue, COWL allows code to heterogeneously label
-messages using labeled Blobs.
+messages using \emph{labeled Blobs.}
 %
 A labeled Blob encapsulates a serialized immutable object, of type
 Blob~\cite{html5}, and the label protecting it.
@@ -314,7 +315,7 @@ The latter has the flexibility of communicating arbitrarily until it
 unlabels the password, at which point it will be constrained to
 sending messages to its parent.
 
-\subsubsection{Labeled XHR}
+\paragraph{Labeled XHR}
 \label{sec:system:labeled-xhr}
 The ability of a context to impose confinement restrictions on
 another naturally extends to servers, when using the XHR constructor.
