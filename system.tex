@@ -84,55 +84,58 @@ We now describe these three constructs in greater detail.
 
 \subsection{Labeled Browsing Contexts}
 \label{sec:system:contexts}
-COWL applications are partitioned into multiple labeled contexts.
+A COWL application consists of multiple labeled contexts.
 %
-Labeled contexts naturally extend existing browser contexts (which
-are used to isolate iframes, pages, etc.) with MAC \emph{labels}.
+Labeled contexts naturally extend today's browser contexts, used to
+isolate iframes, pages, etc., with MAC \emph{labels}.
 %
-The context label is the security policy on all the data within the
-context, which COWL enforces by restricting the flow of information
-to/from other contexts and servers.
+A context's label specifies the security policy for all data within
+the context, which COWL enforces by restricting the flow of
+information to and from other contexts and servers.
 %% in addition to the restrictions imposed by existing DAC policies such
 %% as the SOP.
 
 Following~\cite{yang:2013:towards, stefan:2011:dclabels}, a label is a
 pair of boolean formulas: a \emph{secrecy} formula specifying which
-origins are allowed to read the data, and an \emph{integrity} formula
-specifying which origins can write it.
+origins may read a context's data, and an \emph{integrity} formula
+specifying which origins may write it.
 %
-For example, data labeled \dcLabel{\https{amazon.com} $\lor$
-\https{chase.com}}{\https{amazon.com}}
-can be only read by Amazon or Chase, and modified by Amazon.
+For example, only Amazon or Chase may read data labeled
+\dcLabel{\https{amazon.com} $\lor$
+  \https{chase.com}}{\https{amazon.com}}, and only Amazon may
+modify it.
 %
-Amazon may use this label to allow a Chase mashup to read
-user purchases.
+Amazon could assign this label to its order history page to allow a
+Chase-hosted mashup to read the user's purchases.
 %
-On the other hand, the label on data produced by the third-party
-mashup integrator of Section~\ref{sec:motivating-examples} after
-reading the purchases and statements will be
+On the other hand, after a third-party mashup hosted by
+\https{mint.com} (as described in
+Section~\ref{sec:motivating-examples}) reads {\em both} the user's
+Chase bank statement data {\em and} Amazon purchase data, the label on
+data produced by the third-party mashup will be
 \dcLabel{\https{amazon.com} $\land$
-\https{chase.com}}{\https{mint.com}}.
+  \https{chase.com}}{\https{mint.com}}.
 %
-The secrecy component specifies that the data may be sensitive to both
-parties, and without their consent (see
-Section~\ref{sec:system:privileges}), can only be read by the user;
-the integrity component, on the other hand, restricts Mint code to
-modifying the results.
+This secrecy label component specifies that the data may be sensitive
+to both parties, and without both their consent (see
+Section~\ref{sec:system:privileges}), should only be read by the user;
+the integrity label component, on the other hand, permits only code
+hosted by Mint to modify the resulting data.
  
-COWL enforces label policies in a mandatory fashion by only allowing a
-context to communicate with other contexts or servers whose labels are
-at least as restricting.
+COWL enforces label policies in MAC fashion by only allowing a context
+to communicate with other contexts or servers whose labels are at
+least as restricting.
 %
 Intuitively, when a context wishes to send a message, the target must
 not allow additional origins to read the data (preserving secrecy);
 dually, the source context must not be writable by origins not
-otherwise trusted by the target, i.e., the source must be at least as
-trustworthy as the target.
+otherwise trusted by the target. That is, the source must be at least
+as trustworthy as the target.
 %
-We say the target label ``subsumes'' the source label.\footnote{
-  If the communication is bidirectional, e.g., accessing a
-cross-context (but same-iring) DOM, then both the target and source
-must subsume each other.}
+We say that such a target label ``subsumes'' the source
+label.\footnote{ If communication is bidirectional, e.g., when a
+  script accesses the DOM in a different context (but of the same
+  origin), then both the target and source must subsume each other.}
 %
 For example, a context labeled
 \dcLabel{\https{amazon.com}}{\https{mint.com}} can send messages to
@@ -141,48 +144,48 @@ one labeled \dcLabel{\https{amazon.com} $\land$
 to preserves the privacy of \https{amazon.com} (and
 \https{chase.com}).
 %
-However, communication in the inverse direction is not possible since
-the privacy of \https{chase.com} may be violated.
+However, communication in the reverse direction is not possible since
+it may violate the privacy of \https{chase.com}.
 %
-In the rest of the paper, we limit our discussion to secrecy and only
+In the rest of this paper, we limit our discussion to secrecy and only
 comment on integrity where relevant; the interested reader is referred
 to~\cite{stefan:2011:dclabels} for a complete description of the label
 model.
 
 A context can freely \emph{raise} its label, i.e., change its label to
-any label that is more restricting, in order to receive message
-from otherwise prohibited contexts.
+any label that is more restricting, in order to receive a message
+from an otherwise prohibited context.
 %
-Of course, in raising its label to read more sensitive data (from
-another context) the context is also more restricted in where it can
-write.
+Of course, in raising its label to read more sensitive data from
+another context, a context also becomes more restricted in where it
+can write.
 %
 For example, a Mint context labeled
 \dcLabelS{\https{amazon.com}}{\https{mint.com}} can raise its label to
 \dcLabelS{\https{amazon.com} $\land$
-\https{chase.com}}{\https{mint.com}} to read bank statements; of
-course, this is at the cost of giving up its ability to communicate
-with Amazon (or, for that matter, any other) servers.
+  \https{chase.com}}{\https{mint.com}} to read bank statements, but
+only at the cost of giving up its ability to communicate with Amazon
+(or, for that matter, any other) servers.
 %
-When creating a new context, code can impose an upper-bound
-on the context label to ensure the untrusted code cannot raise it
-label and read data above this \emph{clearance}.
+When creating a new context, code can impose an upper bound on the
+context's label to ensure tha untrusted code cannot raise its label
+and read data above this \emph{clearance}.
 %
-Since our notion of clearance is
-standard~\cite{efstathopoulos:asbestos, Zeldovich:2006,
-stefan:2011:flexible, Breeze13}, our brief treatment of it is limited
-to Section~\ref{sec:discussion}, where we discuss covert channels.
+This notion of clearance is well
+established~\cite{efstathopoulos:asbestos, Zeldovich:2006,
+  stefan:2011:flexible, Breeze13}; we limit our treatment of it to
+Section~\ref{sec:discussion}, where we discuss covert channels.
 
 As noted, COWL allows a labeled context to create additional labeled contexts,
 much like existing browsing contexts can create sub-compartments
 in the form of iframes, workers, etc.
 %
-This is crucial for compartmentalizing a system in a hierarchical
-fashion, where code of different trustworthiness is placed in
-a separate context.
+This functionality is crucial for compartmentalizing a system
+hierarchically, where the developer places code of different degrees
+of trustworthiness in separate contexts.
 %
-For example, in the password checker example of
-Section~\ref{sec:motivating-examples} we create a child context in
+For example, in the password checker example in
+Section~\ref{sec:motivating-examples}, we create a child context in
 which we execute the untrusted checker script.
 %
 Importantly, however, code should not be able to leak information by
@@ -191,10 +194,10 @@ laundering data through a newly created context.
 Hence, newly created contexts implicitly inherit the current label of
 their parent.
 %
-(For backwards compatibility with the SOP, the initial label of a
-top-level context, i.e., a page, is public.) 
+(For backward compatibility with the SOP, the initial label of a
+top-level context, i.e., a page, is public.)
 %
-COWL, however, allows the parent to override this and specify---at
+COWL however allows the parent to override this and specify---at
 creation time---the child's initial current label (which must be at
 least as restricting as the parent's label) to confine it further.
 
@@ -203,38 +206,38 @@ There are two kinds of contexts that COWL applications can create.
 First, an application can create standard (but labeled) contexts in
 the form of pages, iframes, workers, etc.
 %
-Indeed, this is possible because COWL applications are just regular
-web applications that additionally use the COWL API and abide by MAC,
-in addition to existing web security policies.
+Indeed, it may do so because COWL applications are just regular web
+applications that additionally use the COWL API and are thus by
+confined by MAC, in addition to existing web security policies.
 %
-Importantly, to enforce MAC, COWL must mediate all the pre-existing
+Importantly, to enforce MAC, COWL must mediate all pre-existing
 communication channels---even subtle and implicit channels, such as
-content loading---according to the context label.
+content loading---according to contexts' label.
 %
-In Section~\ref{sec:implementation} we describe how COWL does this.
+In Section~\ref{sec:implementation} we describe how COWL does so.
 
-Second, COWL applications can create light-weight labeled contexts
-in the form of \emph{labeled workers (LWorkers)}.
+Second, COWL applications can create lightweight labeled contexts in
+the form of \emph{labeled workers (LWorkers)}.
 %
 Like normal workers~\cite{workers}, the API exposed to LWorkers is
 minimal; its global only contains constructs for communicating
 with the parent, the XHR constructor, and the COWL API.
 %
 Unlike normal workers, which execute in separate threads, an LWorker
-executes in the same thread as its parent, sharing the event loop.
+executes in the same thread as its parent, sharing its event loop.
 %
-This has the added benefit of allowing the parent to give the child
-(labeled) access to its DOM, any access of which is treated as both a
-read and a write, i.e., bidirectional communication.
+This sharing has the added benefit of allowing the parent to give the
+child (labeled) access to its DOM, any access to which is treated as
+both a read and a write, i.e., bidirectional communication.
 %
-Such a ``DOM worker'' is used by our third-party library example to
-isolate the trusted application code, which requires access to the
-DOM, form the untrusted jQuery library.
+Our third-party library example uses such a \emph{DOM worker} to
+isolate the trusted application code, which requires access to the DOM
+through the untrusted jQuery library.
 %
-In general, LWorkers, especially when given DOM access, simplify the
-isolation and confinement of scripts (e.g. the password strength
-checker) which would otherwise run in a shared context, as loaded with
-\js|<script>| tags.
+In general, LWorkers---especially when given DOM access---simplify the
+isolation and confinement of scripts (e.g., the password strength
+checker) that would otherwise run in a shared context, as when loaded
+with \js|<script>| tags.
 
 
 \subsection{Labeled Communication}
