@@ -536,11 +536,11 @@ encrypted).
 Similarly, code can declassify information when unlabeling messages.
 %
 For example, Facebook leverages the \https{fb.com} privilege to
-declassify the password strength result, labeled with its origin, to
-avoid raising its label to \https{fb.com}.
+declassify the password strength result, which is labeled with its
+origin, to avoid (unecessarily) raising its label to \https{fb.com}.
 %
-Alternatively it would need to use the privilege to lower its current
-label.
+(Alternatively it would need to use the privilege to lower its current
+label.)
 
 In COWL, privileges are \emph{implicitly} exercised: if a context
 has a privilege, code will always attempt to use it.
