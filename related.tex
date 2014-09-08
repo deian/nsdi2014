@@ -1,13 +1,23 @@
 \section{Related Work}
 \label{sec:related}
 
+Existing implementations of information flow control in the browser can
+be classified either as \emph{fine-grained}, which associate IFC
+policies with individual objects in the browser, or
+\emph{coarse-grained}, which associate policies with
+entire compartments and browsing contexts.  Because \sys{} is a
+coarse-grained IFC system, we first compare it to other coarse-grained
+systems, and then talk both generally and in particular with how
+it compares to fine-grained systems.
+
+\paragraph{Coarse-grained IFC} \sys{} shares many features
+with coarse-grained systems.
 % BFlow
-%The closest related work to our system is BFlow.
 %
-Like \sys{}, BFlow~\cite{Yip:2009:PBS} allows web sites to enforce confinement policies
+BFlow~\cite{Yip:2009:PBS}, for example, allows web sites to enforce confinement policies
 stricter than the SOP\@.
 %
-BFlow can, for example, confine third-party code by placing
+BFlow can confine third-party code by placing
 it in a tainted \emph{protection zone}---a group
 of iframes that share a common label.
 %
@@ -15,7 +25,7 @@ However, unlike \sys{}, BFlow cannot mediate between mutually
 distrustful principals: e.g., one cannot directly implement the
 encrypted document editor with BFlow.
 %
-This is because BFlow does not provides symmetric confinement---a
+This is because BFlow does not provide symmetric confinement---a
 sub-frame cannot impose any restrictions on its parent---and its
 labels do not support conjunctions of multiple origins (e.g., BFlow
 cannot encode a policy that states that sensitive data may derive from
@@ -29,34 +39,9 @@ security policies more flexible than the SOP, such as our third-party
 mashup example.
 %
 These differences reflect different goals for the two systems: BFlow's
-authors set out to confine untrusted third-party scripts, but never to
-support applications that incorporate code from mutually distrusting
-parties.
-%
-% Like BFlow, \sys{} accepts labels that arrive in HTTP headers and is thus
-% amenable to confining one user's code from another's on the same
-% website. However, we have yet to develop a server that implements this
-% functionality; developers can use BFlow's server or systems such as
-% Hails~\cite{giffin:2012:hails} or Aeolus~\cite{cheng:aeolus} to
-% ensure that labels are propagated appropriately in an end-to-end
-% fashion.
-%
-%%I think the story might be even better for us: I don't think they
-%%can build password checker where the latter is an iframe hosted on
-%%other domain.
-%%
-%%Waiting on email
-
-%% BFlow~\cite{Yip:2009:PBS} is a confinement system for web browsers. It tracks
-%% flows of information at the granularity of \emph{secure zones}, i.e.,
-%% compartments composed of one or several iframes.  {\sys} does not require such
-%% abstraction, it relies on the compartment notions already provided by browsers,
-%% i.e., iframes and workers. Similar to our approach, BFlow uses \js|postMessage|
-%% for communication across secure zones. BFlow does not allow JavaScript code in
-%% different secure zones to write to shared DOM variables and cookies regardless
-%% their security labels.  While \sys~ supports more expressive labels, potentially
-%% including different domains, BFlow can propagates labeled data to the server
-%% side. It is stated as future work to achieve a similar feature.
+authors set out to confine untrusted third-party scripts; in contrast,
+we seek to support applications that incorporate code from mutually
+distrusting parties.
 
 
 % DCS 
@@ -68,7 +53,7 @@ channels of certain iframes.
 Such monitoring can in principle confine code such as the
 password-strength checker.
 %
-However, DCS's confinement is fundamentally limited to \verb|data:|
+However, the way DCS implements confinement is fundamentally limited to \verb|data:|
 URI iframes, and, as a result, DCS cannot confine a service provided
 in an iframe (the common case, both to isolate the enclosing page from
 the script and because the checker's author may not want to share
@@ -79,158 +64,52 @@ cannot impose restrictions on its parent. It therefore cannot support
 applications that combine code from mutually distrusting origins, as
 does the encrypted document editor example.
 %
-% DCS's support for only asymmetric confinement falls out of the work's
-% narrower goal of confining untrusted libraries.
-% %
-% Unlike \sys{}, DCS is not limited to using labels for policy
-% specification; instead, it allows a page to implement policies using
-% arbitrary JavaScript.
-% %
-% However, to ensure that the monitor cannot reveal more information
-% about an iframe's content than allowed by the SOP, a page can only
-% impose a limited range of policies on an iframe (e.g., DCS cannot
-% impose restrictions on redirects).
-% %
-% \sys{} does not have this limitation---the iframe itself imposes
-% the policy by voluntarily raising its label.
-%
 DCS further does not incorporate functionality to let developers build
 applications like third-party mashups, which require safe relaxation of the
-SOP.
-%
+SOP\@.
 
-% \Red{What is the limitation} However, we recognize this as a limitation of \sys{} and leave the
-% investigation of expressiveness labels to future work.
-
-%% Recently, and different from other sandboxes approaches, the
-%% data-confined sandbox system~\cite{Akhawe2013} (DCS) restricts
-%% propagation of information by using \js|iframes| and mediating
-%% cross-domain operations (e.g. access to local storage, fragment-IDs,
-%% network communication, etc.).  Every sandbox communicates by
-%% \js!postMessage! only with its designated parent. The parent defines
-%% the confinement policy and plays the role of man-in-the-middle when a
-%% sandbox wish to communicate with another one. While having similar
-%% goals, DCS is more restrictive than \sys. DCS disallows dynamic code
-%% evaluation inside sandboxes and presents a not egalitarian design,
-%% i.e., a sandbox (\js|iframe|) cannot host another sandbox. Clearly,
-%% the DCS client-side TCB is smaller than ours.
-
-
-
+\paragraph{Fine-grained IFC}
+Fine-grained IFC systems differ from \sys{} in that they track
+information flow at the level of objects, allowing applications
+to take advantage of information flow control without explicitly
+compartmentalizing their applications. This makes it easier to
+confine untrusted libraries which are closely coupled with trusted
+code on a page (as is jQuery).
 % JSFlow 
-JSFlow~\cite{JSFlow} is a fine-grained JavaScript IFC system itself
-implemented in JavaScript.
+JSFlow~\cite{JSFlow} is one such fine-grained JavaScript IFC system, which
+enforces policies by executing JavaScript in an interpreter written in
+JavaScript.
 %
-Because JSFlow can associate labels with individual objects, a
-developer can use JSFlow to confine untrusted libraries that are
-closely coupled with trusted code on a page (as is jQuery).
-%
-\sys{}, on the other hand, is coarse-grained and
-%, like BFlow,
-generally
-requires that an application be compartmentalized (e.g., by placing the
-page's code that needs to communicate with the network in a lightweight
-DOM worker).
-%
-% Despite these benefits, JSFlow's fine-grained approach
-% also incurs costs.
-%
-% First, JSFlow cannot confine style sheets that execute code
-% or
-JSFlow, however, does not support applications that rely on policies
-more flexible than the SOP, such as our third-party mashup example.
-%
-%%Second, developers need to understand a new semantics for the core
-%%JavaScript language~\cite{Hedin:2012}, in contrast to a new DOM-leve
-%%API.
-%
-% Second, as an IFC-supporting JavaScript interpreter written in
-% JavaScript,  JSFlow must model all library APIs, including
-% the JavaScript built-in APIs.
-% That said, the coverage of the DOM demonstrated is commendable.
-%
-JSFlow's authors suggest that the computational cost of executing pages' JavaScript
-code in an interpreter written in JavaScript (two orders of magnitude
-slowdown) makes JSFlow a better fit for use as a development tool than
+One difficulty with JSFlow is that
+its implementation incurs a two orders of magnitude slowdown:
+JSFlow's authors suggest that this cost makes JSFlow a better fit for use as a development tool than
 as an ``always-on'' privacy system for users' browsers.
-
-% Executing pages' JavaScript code in an interpreter written in
-% JavaScript incurs a significant execution slowdown (by two orders of magnitude).
-% And the requirement that JSFlow include a model of all
-% library APIs restricts the APIs available to developers.
-% %
-% JSFlow is largely complementary to \sys{}; we believe there may be
-% applications where it would make sense for some \sys{} compartments to
-% enforce fine-grained IFC internally with JSFlow.
-
-% ConDOM~\cite{ConDOM} is another fine-grained IFC system for the
-% browser. Like JSFlow, ConDOM extends objects with labels that are
-% propagated across the JavaScript built-in API, and consequently shares
-% JSFlow's execution overhead.
-% and  suffer from similar shortcomings as 
-% the ones described for JSFlow. 
-
-
-%% Hedin and Sabelfeld~\cite{Hedin:2012} formally describe a sound language-based
-%% confinement mechanisms for a subset of JavaScript and their ideas are being
-%% currently applied to JSFlow~\cite{JSFlow}. %, a modified JavaScript interpreter.
-%% JSFlow is designed to confine legacy code, and because of that, it does an
-%% impressive effort to obtain fine-grain labeling of data. This is achieved at the
-%% price of proposing detailed models for capturing big parts of the browser
-%% semantics (e.g. interaction with the DOM), which drastically impact on
-%% performance (sometimes more than 100\%!).  We provide a more coarse-grain
-%% approach: \emph{\sys{} does not care for most of the JavaScript and DOM API
-%%   internals}. Instead, \sys~ uses the browsing contexts and simply
-%% mediates among them to preserve security.
-
+%
+Additionally, JSFlow does not support applications that rely on policies
+more flexible than the SOP, such as our third-party mashup example.
 
 % With our
-The FlowFox~\cite{DeGroef:2012} browser IFC system executes a
-program multiple times, once per label, using secure-multi execution
-(SME)~\cite{Devriese:2010}. SME ensures by construction that no leaks
-from a sensitive context can leak into a less senstive context.
+Another fine-grained IFC system is FlowFox~\cite{DeGroef:2012},
+which uses secure-multi execution
+(SME)~\cite{Devriese:2010} in order to enforce policies. SME ensures that no leaks
+from a sensitive context can leak into a less sensitive context by
+executing a program multiple times.
 %
-Like JSFlow, FlowFox supports fine-grained labeling of data.
-%
-Unlike JSFlow and \sys{}, FlowFox's SME approach is not amenable to
+Unlike JSFlow and \sys{}, SME is not amenable to
 scenarios where declassification plays a key role (e.g., the encrypted
 editor, password manager, or third-party mashup).
-%%\footnote{Although
-%%  SME has been recently extended to consider
-%%  declassification~\cite{Rafnsson:2013}, it is unclear how this
-%%  theoretical result translates into the FlowFox system, or more
-%%  importantly, to what extent it would extend Flowfox's applicability.}
 %
 FlowFox's labeling of user interactions and metadata (history, screen
-size, etc.) allow it to mitigate history sniffing and behavior
-tracking.
-%
-These attacks are outside the present threat model for \sys{}.  The
-degree of protection \sys{} provides for such data is limited to the
-policies imposed by developers before sharing the data.
+size, etc.) do allow it to mitigate history sniffing and behavior
+tracking;
+these attacks are not addressed by \sys{}, where developers must
+impose policy on the data to be shared.
 
-%
-%% Authors show how FlowFox can enforce
-%% non-interference like policies for popular web cites. While \sys{} does not
-%% target legacy code, it can enforce a wider-range of policies
-%% (e.g. declassification). Different from \sys{}, FlowFox requires a total
-%% ordering of the security lattice, an uncommon assumption in an scenario with
-%% mutual distrust (as the web). While recent results show how to lift this
-%% requirement in reactive systems (as the browser)~\cite{ZanariniJR13}, FlowFox
-%% has not yet incorporate them into its design.
+Ultimately, however, coarse- and fine-grained mechanisms are not mutually
+exclusive; for instance, when dealing with legacy JavaScript code, JSFlow could be
+implemented within a COWL compartment.
 
-% ConDOM 
-%\todo{ar}{revise as the above}
-%ConDOM~\cite{ConDOM} implements fine-grained label tracking system
-%that spans both the JavaScript engine and DOM\@.
-%%
-%To handle implicit flows, authors use a
-%control flow stack (neglecting exceptions) and inject labels at the HTML parser
-%for dynamically generated code. In contrast, \sys{} handles any type of
-%branches or dynamic code by labeling the browsing context itself. \todo{ezy}{this doesn't seem very convincing\ldots}
-
-
-%Sandboxing/language subsets
+\paragraph{Sandboxing}
 There is much work on sandboxing and developing subsets of JavaScript (e.g.,
 Caja~\cite{GoogleCaja}, BrowserShield~\cite{Reis:2007},
 WebJail~\cite{VanAcker:2011}, TreeHouse~\cite{Ingram:2012},
@@ -249,29 +128,6 @@ editor).
 %
 Nevertheless, we believe that access control and language subsets are a crucial
 complement to confinement when building robust secure applications.
-
-
-
-%%% Google extensions security analysis 
-%%Carlini \emph{et al.}~\cite{Carlini:2012} evaluate the security of the
-%%Google Chrome extension platform.
-%
-% \sys{}'s lightweight DOM workers are very similar to content
-% scripts~\cite{Carlini:2012}, although provided as DOM objects to
-% web site developers.
-% %
-% However, as opposed to extension systems, we do not not consider
-% privileged APIs, nor do we intend to extend the API made available to
-% workers in such a way.
-% %
-% Instead, we believe that extension systems can stand to benefit from
-% confining content scripts, if only to provide a means for further
-% reducing the trust placed on existing extensions.
-% %
-% Indeed, since Firefox content scripts rely on the same core mechanisms
-% used by \sys{}, we expect porting the Add-on SDK to use confinement to
-% be require only modest effort.
- 
 
 % Local Variables:
 % TeX-master: "main.ltx"
