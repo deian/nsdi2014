@@ -190,8 +190,9 @@ laundering data through a newly created context.
 Hence, newly created contexts implicitly inherit the current label of
 their parent.
 %
-(For backwards compatibility with the SOP, the initial label of a
-top-level context, i.e., a page, is public.) 
+(The initial label of a top-level context, i.e., a page, is public
+unless the page is accompanied by a \js|COWL-label| header specifying
+a more restricting label.)
 %
 COWL, however, allows the parent to override this and specify---at
 creation time---the child's initial current label (which must be at
@@ -302,15 +303,6 @@ The latter has the flexibility of communicating arbitrarily until it
 unlabels the password, at which point it will be constrained to
 sending messages to its parent.
 
-
-
-
-
-\paragraph{LabeledXHR}
-
-- 
-
-Tie back to third-party mashup example.
 
 \subsection{Privileges}
 \label{sec:system:privileges}
