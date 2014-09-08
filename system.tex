@@ -53,7 +53,7 @@ labeled communication, where a subscript on the communicated data
 denotes the data's label.
 
 A MAC system must restrict access to certain operations whose abuse
-would permit the release of sensitive information to authorized
+would permit the release of sensitive information to unauthorized
 parties. We refer to such access-controlled operations in COWL as
 privileged, and the right to invoke them as a {\em privilege.} For
 example, if a script {\em declassifies} messages it receives from
@@ -519,8 +519,70 @@ the status quo.
 
 \subsection{Privileges}
 \label{sec:system:privileges}
-Relate to declassification and delegation.
 
+COWL provides every context with unforgeable objects called
+\emph{privileges} with which code can assert authority over
+origins.
+%
+Privileges are used to allow flows otherwise not permitted by COWL's
+label checks.
+%
+For example, code executing on behalf of \https{nsa.gov} with a
+current label \dcLabelS{\https{nsa.gov} $\land$ \https{gdoc.com}}{}
+is allowed to send messages to a context labeled
+\dcLabelS{\https{gdoc.com}}{}.
+%
+Without the \https{nsa.gov} privilege this flow would not be
+allowed since it may be leaking NSA information to Google.
+%
+Indeed by using privileges NSA is declassifying the message, i.e., it
+no longer considers it sensitive (since, for instance, it may be
+encrypted).
+%
+Similarly, code can declassify information when unlabeling messages.
+%
+For example, Facebook leverages the \https{fb.com} privilege to
+declassify the password strength result, which is labeled with its
+origin, to avoid (unecessarily) raising its label to \https{fb.com}.
+%
+(Alternatively it would need to use the privilege to lower its current
+label.)
+
+In COWL, privileges are \emph{implicitly} exercised: if a context
+has a privilege, code will always attempt to use it.
+%
+While the alternative approach of requiring privileges to be exercised
+explicitly (e.g., when sending messages) may be safer~\tocite{histar,
+lio}, we found this to over-complicate existing asynchronous web
+APIs.\footnote{
+  Exposing a new set of communication primitives would simplify this,
+  but one our goals with COWL is to avoid imposing new programming
+  models on developers.
+}
+%
+Instead, COWL gives code control over the use of privileges by
+allowing it to get and set the underlying context privileges.
+%
+(Code can drop privileges by setting the context privileges to
+\js|null|.)
+%
+This is useful, for example, when confining a context that contains
+(intrusive) untrusted libraries such as jQuery; here, we drop the
+context privilege to ensure that jQuery cannot act on behalf of the
+origin and arbitrarily leak data.
+%
+Equally important, COWL allows a context to grant its privileges (or a
+subset of its privileges) to another.
+%
+In the jQuery example, the application delegates a child context
+its privileges before loading jQuery; this allows
+the context to act on its behalf, while leaving the main context 
+confined.
+%
+We remark that with these capabilities we can also provide a
+programming model wherein privileges must be explicitly exercised as a
+library that wraps functions, such as \js|postMessage|, to set and
+drop privileges appropriately.
 
 %% %%XXX(ds): MOVE to implementation:
 %% For example, our implementation modifies existing browsing contexts to
