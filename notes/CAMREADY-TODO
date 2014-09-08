@@ -8,3 +8,6 @@ it's nearly page 6! This cannot work for holding a reader's interest.
 need to discuss how page developer can whitelist third-party origin with MAC,
 but if user is worried about covert channels, *user* has ultimate choice of
 whether to allow third-party origin access to an origin's data.
+
+DS: front sections use context and later ones use compartment; we
+should stick to one (compartment) for the final camera-ready version
