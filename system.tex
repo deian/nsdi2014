@@ -309,6 +309,47 @@ The latter has the flexibility of communicating arbitrarily until it
 unlabels the password, at which point it will be constrained to
 sending messages to its parent.
 
+\subsubsection{Labeled XHR}
+\label{sec:system:labeled-xhr}
+The ability of a context to impose confinement restrictions on
+another naturally extends to servers, when using the XHR constructor.
+% 
+Transitionally, an XHR request is composed of two parts: a write to an
+external origin (sending the request), and then a read from the external
+origin (reading the response, which is restricted according to the
+SOP).
+%
+Before initiating a request, COWL, however, also checks to see
+if the label of the origin subsumes the label of context. 
+%
+Similarly, when reading the response, we check to see if the label of
+the context subsumes the label of the response, which may be
+explicitly set with the \js|COWL-label| header.
+%
+
+While the server can set the response label (with the \js|COWL-label|)
+to ensure that the context can only inspect the response if it is
+appropriately confined, the client can decide to delay this decision by
+setting the response type---when opening the connection---to
+\js|labeled-blob|.
+%
+As with inter-context labeled communication, the returned response
+of this ``labeled XHR'' is a labeled Blob (whose label is specified by
+the \js|COWL-label| header).
+%
+This flexibly allows the application to delay the inspection of a
+sensitive response, which would confine it.
+%
+For example, in our mashup example, Mint only confines itself once it
+receives all the necessary (labeled) responses from both Amazon and
+Chase; at this point it can perform its task and display the result to
+the user, but can no longer send requests since doing so may leak
+information.
+%
+(Of course, a separate context can always be used to continuously poll
+the servers and send the labeled responses to the more tainted
+context.)
+
 
 \subsection{Privileges}
 \label{sec:system:privileges}
