@@ -319,13 +319,17 @@ sending messages to its parent.
 The ability of a context to impose confinement restrictions on
 another naturally extends to servers, when using the XHR constructor.
 % 
-Transitionally, an XHR request is composed of two parts: a write to an
+Traditionally, an XHR request is composed of two parts: a write to an
 external origin (sending the request), and then a read from the external
 origin (reading the response, which is restricted according to the
 SOP).
 %
 Before initiating a request, COWL, however, also checks to see
 if the label of the origin subsumes the label of context. 
+%
+Since COWL-enabled servers may be interested in the current label of
+the context which initiated the request, we send this (and a
+description of the context privileges) with every request.
 %
 Similarly, when reading the response, we check to see if the label of
 the context subsumes the label of the response, which may be
@@ -354,6 +358,30 @@ information.
 (Of course, a separate context can always be used to continuously poll
 the servers and send the labeled responses to the more tainted
 context.)
+
+With MAC in place, we envision that there are scenarios in which web
+servers would share resources by setting more flexible CORS policies, but
+only do so if the client to be appropriately confined.
+%
+For instance, Chase may expose a read-only bank statement (HTTP) API
+that white-lists reputable domains, such as \https{mint.com}, but
+imposes restrictions on what these origins can do with the shared data
+(namely, where they can disseminate it).
+%
+This is appealing because it allows a server to share resources without
+completely trusting the white-listed cross-origin.
+%
+In this example, Chase does not need to trust Mint to write bug-free
+code---COWL confines the Mint code to ensure that it cannot arbitrarily
+leak the bank statements.
+%
+Of course, and as discussed in Section~\ref{sec:discussion}, a malicious
+Mint application can leak data through covert channels.
+%
+Nevertheless, this improves the state of affairs where users give up
+their credentials and place complete trust in Mint---not only to keep
+their bank statements confidential, but also from stealing their
+funds.
 
 
 \subsection{Privileges}
