@@ -33,39 +33,41 @@ application example in Figure~\ref{fig:checker}.
 %
 
 {\em Labeled browsing contexts} enforce MAC-based confinement of
-  JavaScript at the granularity of a browsing context (e.g., a worker
-  or iframe). The rectangular frames in Figure~\ref{fig:checker} are
-  labeled browsing contexts. As contexts may be nested, labeled
-  browsing contexts allow hierarchical confinement, whose importance
-  for supporting nesting of untrusted libraries we discussed in
-  Section~\ref{sec:motivating-examples}. Throughout this paper, when describing a
-  COWL-enabled browser, we use the terms compartment, browsing
-  context, and labeled browsing context interchangeably.
+JavaScript at the granularity of a browsing context (e.g., a worker or
+iframe). The rectangular frames in Figure~\ref{fig:checker} are
+labeled browsing contexts. As contexts may be nested, labeled browsing
+contexts allow hierarchical confinement, whose importance for
+supporting nesting of untrusted libraries we discussed in
+Section~\ref{sec:motivating-examples}. Throughout this paper, when
+describing a COWL-enabled browser, we use the terms compartment,
+browsing context, and labeled browsing context interchangeably.
 
-When one browsing context sends sensitive information to
-  another, {\em labeled communication} allows the sending context to
-  confine the potentially untrusted code within the receiving
-  context. Explicitly carrying labels in this fashion allows symmetric
-  confinement, whose importance in building applications that compose
-  mutually distrusting scripts we articulated in
-  Section~\ref{sec:motivating-examples}. In Figure~\ref{fig:checker},
-  the arrows between compartments indicate labeled communication,
-  where a subscript on the communicated data denotes the data's label.
+When one browsing context sends sensitive information to another, {\em
+  labeled communication} allows the sending context to confine the
+potentially untrusted code within the receiving context. Explicitly
+carrying labels in this fashion allows symmetric confinement, whose
+importance in building applications that compose mutually distrusting
+scripts we articulated in Section~\ref{sec:motivating-examples}. In
+Figure~\ref{fig:checker}, the arrows between compartments indicate
+labeled communication, where a subscript on the communicated data
+denotes the data's label.
 
-  A labeled browsing context may be granted one or more {\em
-    privileges.} A privilege authorizes scripts within a context to
-  execute certain operations whose abuse would permit the release of
-  sensitive information to unauthorized parties. For example, a script
-  can use its privileges to {\em declassify} messages it receives from
-  another context, and thus retain the ability to do with the data
-  received in those messages as it pleases. In COWL we express
-  privilege in terms of origins. The crown icon in the left
-  compartment in Figure~\ref{fig:checker} denotes that this
-  compartment holds the privilege to execute these {\em privileged}
-  operations on data labeled with the origin {\tt fb.com}. In
-  Figure~\ref{fig:checker}, the {\tt fb.com} compartment uses its
-  privilege to remain unconfined by declassifying the checker response
-  labeled {\tt fb.com}.)
+A MAC system must restrict access to certain operations whose abuse
+would permit the release of sensitive information to authorized
+parties. We refer to such access-controlled operations in COWL as
+privileged, and the right to invoke them as a {\em privilege.} For
+example, if a script {\em declassifies} messages it receives from
+another context, it will retain the ability to do as it pleases with
+the data received in those messages---i.e., the sending context will
+not have confined the receiving context. One must trust the script
+invoking a privileged operation like declassification not to abuse
+it. In COWL we express privilege in terms of origins. The crown icon
+in the left compartment in Figure~\ref{fig:checker} denotes that this
+compartment may execute privileged operations on data labeled with the
+origin {\tt fb.com}---more succinctly, that the compartment holds the
+privilege for {\tt fb.com}. The compartment uses that privilege to
+remain unconfined by declassifying the checker response labeled {\tt
+  fb.com}.
 
 We now describe these three constructs in greater detail.
 
