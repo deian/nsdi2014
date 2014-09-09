@@ -297,10 +297,9 @@ be attached to a labeled Blob; any label as or more restrictive than the
 sending context's current label may be specified. While the receiving
 context may receive a labeled Blob with no immediate effect on the
 origins with which it can communicate, it may only inspect the label,
-not the payload.
-(Importantly the label itself cannot be used to leak
+not the payload.\footnote{The label itself cannot leak
 information---COWL still ensures that the target context's label is at
-least as restricting as that of the source context.)
+least as restricting as that of the source context.}
 Only after raising its label as needed may the receiving context read
 the payload.
 %
