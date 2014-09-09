@@ -148,9 +148,9 @@ separate DOM worker which has the \https{a.com} privilege, while the
 main browsing context runs jQuery without privileges or the ability to
 talk to the network.  Initially, we start in the main browsing context
 with the \https{a.com} privilege.  We generate a fresh origin
-\https{unq0}, and spawn a DOM worker (1), delegating both privileges to it.  The
-main context drops both privileges and raises its label to 
-\dcLabelS{\https{unq0}}{} (2).  Finally, the
+\https{unq0}, and spawn a DOM worker (1), delegating it both privileges.  The
+main context then drops its privileges (we only show \https{a.com}
+and raises its label to \dcLabelS{\https{unq0}}{} (2).  Finally, the
 trusted worker downloads jQuery (3) and injects the script contents
 into to the main context's DOM (4).  At the time the library
 is loaded, the main context becomes untrusted, but this is no matter, as
