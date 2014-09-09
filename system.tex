@@ -267,15 +267,15 @@ message, the target context must confine itself by raising its label
 accordingly. These semantics can make interactions between contexts
 cumbersome, however. For example, a sending context may wish to
 communicate with multiple target contexts, and need to confine those
-target contexts with different labels, or even confine individual
-messages to the same target context with different labels. And a
-receiving context may wish to communicate unfetteredly with one or
-more origins for a time before losing the ability to do so once it
-raises its label to receive a message. In the password-checker example
-application, the untrusted checker script at the right of
-Figure~\ref{fig:checker} exhibits exactly this latter behavior: it
-needs to communicate with untrusted remote origin {\tt sketchy.ru}
-before reading the password labeled {\tt fb.com}.
+target contexts with different labels, or even confine the same target
+context with different labels for different messages. And a receiving
+context may wish to communicate unfetteredly with one or more origins
+for a time before losing the ability to do so once it raises its label
+to receive a message. In the password-checker example application, the
+untrusted checker script at the right of Figure~\ref{fig:checker}
+exhibits exactly this latter behavior: it needs to communicate with
+untrusted remote origin {\tt sketchy.ru} before reading the password
+labeled {\tt fb.com}.
 
 %% %
 %% Unfortunately, this approach of (ab)using the context label to impose
