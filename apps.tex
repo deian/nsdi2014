@@ -144,12 +144,12 @@ untrusted JavaScript library is shown.  Our goal is to establish a
 separate DOM worker which has the \https{a.com} privilege, while the
 main browsing context runs jQuery without privileges or the ability to
 talk to the network.  Initially, we start in the main browsing context
-with the \https{a.com} privilege.  We generate a fresh privilege/origin
-pair, and spawn a DOM worker (1), delegating both privileges to it.  The
+with the \https{a.com} privilege.  We generate a fresh origin
+\https{unq0}, and spawn a DOM worker (1), delegating both privileges to it.  The
 main context drops both privileges (2), while both compartments raise
-their label to ``\https{a.com} and fresh-privilege'' (3).  Finally, the
-trusted worker downloads jQuery (4) and passes the script contents to
-the main context, which loads the library (5).  At the time the library
+their label to \dcLabels{\https{a.com} $\land$ \https{unq0}}{} (3).  Finally, the
+trusted worker downloads jQuery (3) and injects the script contents
+into to the main context's DOM (4).  At the time the library
 is loaded, the main context becomes untrusted, but this is no matter, as
 it is fully confined at this point.  As the trusted DOM worker has both
 privileges, it can freely modify the DOM of the main context, as well as
