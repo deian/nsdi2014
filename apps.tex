@@ -85,49 +85,47 @@ operates similarly to the encrypted document editor.
 \centerline{\includegraphics[width=\columnwidth]{mashup}}
 \caption{\label{fig:mashup} Third-party mashup under \sys{}.}
 \end{figure}
-The key feature that enables us to build third-party mashups is
-labeled XHR, as it composes with CORS.
+Labeled XHR as composed with CORS is central to COWL's support for
+third-p[arty mashups.
 %
-Today's CORS policies are DAC-only, such that a server must
-either allow another origin to read its data, and fully trust that
-origin not to disclose the data, or deny the other origin access to
-the data altogether. Under COWL, however, a server could
-CORS-whitelist a foreign origin to permit that origin to read its
-data, and by setting a label on its response, be safe in the knowledge
-that COWL would appropriately confine the foreign origin's scripts in
-the browser.
+Today's CORS policies are DAC-only, such that a server must either
+allow another origin to read its data and fully trust that origin not
+to disclose the data, or deny the other origin access to the data
+altogether. Under COWL, however, a server could CORS-whitelist a
+foreign origin to permit that origin to read its data, and by setting
+a label on its response, be safe in the knowledge that COWL would
+appropriately confine the foreign origin's scripts in the browser.
  
-In Figure~\ref{fig:mashup},
-the architecture for an application which reconciles a user's Amazon
-purchases and bank statement is shown. 
+Figure~\ref{fig:mashup} depicts an application that reconciles a
+user's Amazon purchases and bank statement.
 %
-Here, Chase and Amazon respectively expose (read-only) bank statement,
-and purchase history APIs that whitelist known applications' origins,
-such as \https{mint.com}, but set MAC labels on responses.
+Here, Chase and Amazon respectively expose read-only APIS for bank
+statements and purchase histories that whitelist known applications'
+origins, such as \https{mint.com}, but set MAC labels on responses.
 %
 (As discussed in Section~\ref{sec:discussion}, with MAC in place, COWL
-allows users to otherwise augment CORS by whitelisting cross-origins
+allows users to otherwise augment CORS by whitelisting foreign origins
 on a per-origin basis.)
 %
 % The rest is very simple.
 %
-Using labeled XHR, we make requests to both web sites (1),
+The mashup makes requests to both web sites using labeled XHR (1)
 to receive the bank statement and
 purchase history as labeled Blobs.
 %
-Once all of the information is received, we unlabel it and raise
-our context label accordingly (2--3); this restricts our communication
-to the web at large.
+Once all of the information is received, the mashup unlabels it and
+raises its context's label accordingly (2--3); doing so restricts
+communication to the web at large.
 
-We remark that, in contrast to solely using CORS, by setting by MAC
-labels on responses, Chase and Amazon need not trust Mint to write
-bug-free code---COWL confines the Mint code to ensure that it cannot
+Note that in contrast to when solely using CORS, by setting MAC labels
+on responses, Chase and Amazon need not trust Mint to write bug-free
+code---COWL confines the Mint code to ensure that it cannot
 arbitrarily leak bank statements or purchase histories. As we discuss
 in Section~\ref{sec:discussion}, however, a malicious Mint application
 could potentially leak data through covert channels.  We emphasize
 that COWL nevertheless offers a significant improvement over the
-status quo, in which, \emph{e.g.,} users give their login credentials to
-Mint, and thus not only trust Mint to keep their bank statements
+status quo, in which, \emph{e.g.,} users give their login credentials
+to Mint, and thus not only trust Mint to keep their bank statements
 confidential, but also not to steal their funds!
 
 \subsection{Untrusted Third-Party Library}
@@ -139,27 +137,25 @@ confidential, but also not to steal their funds!
 confinement.}
 \end{figure}
 
-The key features that let us confine tightly-couple untrusted
-third-party libraries like jQuery is the ability to delegate
-privileges to a trusted context and subsequently drop them from the
-main page. In doing so we can completely confine the main page, and
-ensure that it can only communicate with the trusted and unconstrained
-context.
+COWL can confine tightly coupled untrusted third-party libraries like
+jQuery by delegating privileges to a trusted context and subsequently
+dropping them from the main page. In doing so, COWL completely
+confines the main page, and ensures that it can only communicate with
+the trusted and unconfined context.
 
-In Figure~\ref{fig:jquery}, the architecture for a web page using an
-untrusted JavaScript library is shown.  Our goal is to establish a
-separate DOM worker which has the \https{a.com} privilege, while the
-main browsing context runs jQuery without privileges or the ability to
-talk to the network.  Initially, we start in the main browsing context
-with the \https{a.com} privilege.  We generate a fresh origin
-\https{unq0}, and spawn a DOM worker (1), delegating it both privileges.  The
-main context then drops its privileges and raises its label to
-\dcLabelS{\https{unq0}}{} (2).  Finally, the
-trusted worker downloads jQuery (3) and injects the script contents
-into to the main context's DOM (4).  At the time the library
-is loaded, the main context becomes untrusted, but this is no matter, as
-it is fully confined at this point.  As the trusted DOM worker has both
-privileges, it can freely modify the DOM of the main context, as well as
-communicate with the wider web.  We can think of this DOM worker as a
-\emph{firewall} between the page proper (with the untrusted library)
-and the rest of the world.
+Figure~\ref{fig:jquery} shows how to use COWL to confine the untrusted
+jQuery library referenced by a web page. The goal is to establish a
+separate DOM worker with the \https{a.com} privilege, while the main
+browsing context runs jQuery in confined fashion---without privileges
+or the ability to talk to the network. Initially the main browsing
+context holds the \https{a.com} privilege. The page generates a fresh
+origin \https{unq0} and spawns a DOM worker (1), delegating it both
+privileges. The main context then drops its privileges and raises its
+label to \dcLabelS{\https{unq0}}{} (2). Finally, the trusted worker
+downloads jQuery (3) and injects the script content into the main
+context's DOM (4).  When the library is loaded, the main context
+becomes untrusted, but also fully confined. As the trusted DOM worker
+holds both privileges, it can freely modify the DOM of the main
+context, as well as communicate with the wider web. One may view
+this DOM worker as a \emph{firewall} between the page proper (with the
+untrusted library) and the rest of the world.
