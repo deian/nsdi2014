@@ -271,19 +271,19 @@ arrows denote communication (either between a compartment and the
 network, or IPC-style between compartments), and events during
 execution are numbered sequentially in time. As we have proposed
 previously~\cite{yang:2013:towards}, compartments may be
-\emph{labeled} (Section~\ref{sec:system:contexts}) with the origins to whose
-sensitive data they have been exposed. A compartment that has not yet
-observed sensitive data is denoted \js|public|; however, when it
-wishes to incorporate sensitive data, the compartment \emph{raises}
+\emph{labeled} (Section~\ref{sec:system:contexts}) with the origins to
+whose sensitive data they have been exposed. A compartment that has
+not yet observed sensitive data is denoted \js|public|; however, when
+it wishes to incorporate sensitive data, the compartment \emph{raises}
 its label (at the cost of being more restricted in where it can
-write). We illustrate the raising of a label with bubbles connoting
-the sensitivity of data being integrated.
-And a compartment's \emph{privilege,} which specifies the
+write). We illustrate the raising of a label with a ``flash''
+connoting the sensitivity of data being integrated.  A compartment's
+\emph{privilege} (Section~\ref{sec:system:privileges}), which specifies the
 origins for which a script executing in that compartment is trusted,
-appears within a crown. Here, a top-level page at \js|fb.com|
+is indicated by a crown. Here, a top-level page at \js|fb.com|
 encapsulates a password-checker script from a third-party origin in a
 new compartment. The label of the new compartment is initially
-\js|public|. 
+\js|public|.
 %%\todo{}{Here, it would be clearer to refer explicitly to the message, \emph{e.g.,} 
 %%``In step (2), the top-level page sends the user's password to 
 %%the checker script's worker, denote by the message $[``password'']_{fp.com}$---
@@ -295,7 +295,7 @@ download updated regular expressions from an arbitrary remote
 origin. In step (2), the top-level page sends the user's password to
 the checker script's worker using \js|postMessage|; the password is
 \emph{labeled} \js|fb.com| to indicate that the data is sensitive to
-this origin.
+this origin (Section~\ref{sec:system:communication}).
 %
 %%When the browser delivers the password to the checker
 %%script's context, it raises the label of the context to reflect that
