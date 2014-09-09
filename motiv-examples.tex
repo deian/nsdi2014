@@ -39,16 +39,16 @@ Figure~\ref{fig:primer-browser-arch} depicts the basic building blocks of
 the current web security architecture.
 %
 %% Core to this design is the notion of \emph{browsing
-%% contexts}, i.e., pages and frames.
+%% contexts}, \emph{i.e.,} pages and frames.
 %
-A \emph{browsing context} (e.g., a page or frame) encapsulates
+A \emph{browsing context} (\emph{e.g.,} a page or frame) encapsulates
 presentable content and a JavaScript execution environment (heap and
 code) that interacts with content through the \emph{Document Object
   Model (DOM)}~\cite{html5}.
 %
-Browsing contexts may be nested (e.g., by using iframes).
+Browsing contexts may be nested (\emph{e.g.,} by using iframes).
 %
-They also may read and write persistent storage (e.g., cookies), issue
+They also may read and write persistent storage (\emph{e.g.,} cookies), issue
 network requests (either implicitly in page content that references a
 URL retrieved over the network, or explicitly in JavaScript, using the
 \xhr{} (XHR) constructor), and communicate with other contexts
@@ -64,8 +64,8 @@ the more precise meaning is relevant.
 Since different authors may contribute components within a page,
 today's status quo browsers impose a security policy on interactions
 among components. Policies are expressed in terms of \emph{origins}.
-An origin is a source of authority encoded by the protocol (e.g.,
-\js|https|), domain name (e.g., \js|fb.com|), and port (e.g., \js|443|)
+An origin is a source of authority encoded by the protocol (\emph{e.g.,}
+\js|https|), domain name (\emph{e.g.,} \js|fb.com|), and port (\emph{e.g.,} \js|443|)
 of a resource URL. For brevity, we elide the protocol and
 port from URLs throughout.
 
@@ -74,7 +74,7 @@ origin should only be readable by content from the same
 origin~\cite{rfc6454, googlehandbook, VanKesteren2012}.  Browsers
 ensure that code executing in an \https{a.com} context can only
 inspect the DOM and cookies of another context if they share the same
- origin, i.e., \https{a.com}. Similarly, such code can only inspect
+ origin, \emph{i.e.,} \https{a.com}. Similarly, such code can only inspect
 the response to a network request (performed with XHR) if the remote
 host's origin is \https{a.com}.
 %
@@ -95,16 +95,16 @@ of an \js|img| element to this URL.
 
 Modern browsers allow the developer to specify a CSP for a page that
 protects a user's privacy by limiting communication by the page's
-compartment---i.e., that disallows communication that would ordinarily
+compartment---\emph{i.e.,} that disallows communication that would ordinarily
 be permitted by the default SOP.  Developers may set individual CSP
 directives to restrict the origins to which a context may issue
 requests of specific types (for images, or scripts, XHR destinations,
 etc.)~\cite{csp}. CSP policies suffer from two limitations,
 however. They are {\em static:} they cannot change during a page's
-lifetime (e.g., a page may not drop the privilege to communicate with
+lifetime (\emph{e.g.,} a page may not drop the privilege to communicate with
 untrusted origins before reading potentially sensitive data). And they
 are {\em inaccessible:} JavaScript code cannot inspect the CSP of its
-enclosing context or some other context, e.g., when determining
+enclosing context or some other context, \emph{e.g.,} when determining
 whether to share sensitive data with that other context.
 
 %% To improve user privacy developers can use CSP to impose additional
@@ -124,7 +124,7 @@ whether to share sensitive data with that other context.
 %% loading.
 %% %
 %% (If a page is restricted to only including images from \https{b.com},
-%% it can only leak data through image loading to this (i.e.,
+%% it can only leak data through image loading to this (\emph{i.e.,}
 %% \https{b.com}) origin.)
 %% %
 %% Other CSP directives have the sole role of preventing leaks.
@@ -133,14 +133,14 @@ whether to share sensitive data with that other context.
 %% the origins that a page is allowed to communicate with via XHR.
 
 %% Unfortunately, CSP cannot be used to restrict certain channels such as
-%% inter-compartment messaging (e.g., via \js|postMessage|) or leaks due
+%% inter-compartment messaging (\emph{e.g.,} via \js|postMessage|) or leaks due
 %% to navigation.
 %% %
 %% This, however, is not a fundamental limitation of CSP and indeed
 %% within the scope of future versions of the specification~\tocite{}.
 %% %
-%% More fundamentally, CSP policies are 1) \emph{static}, i.e., policies
-%% cannot change through the lifetime of a page (e.g., a page cannot drop
+%% More fundamentally, CSP policies are 1) \emph{static}, \emph{i.e.,} policies
+%% cannot change through the lifetime of a page (\emph{e.g.,} a page cannot drop
 %% communication privileges with certain hosts); and 2)
 %% \emph{inaccessible}: JavaScript code cannot inspect the CSP policy of
 %% its context, or the policy of another context when, for instance,
@@ -215,9 +215,9 @@ illuminate key design requirements for the \sys{} confinement
 system. %, as well as the overall intuition behind its design.
 
 \paragraph{Password Checker} Given users' propensity for choosing poor
-(i.e., easily guessable) passwords, many web sites today incorporate
+(\emph{i.e.,} easily guessable) passwords, many web sites today incorporate
 functionality to check the strength of a password selected by a user
-and offer the user feedback (e.g., ``too weak; choose another,''
+and offer the user feedback (\emph{e.g.,} ``too weak; choose another,''
 ``strong,'' etc.). Suppose a developer at Facebook (at origin
 \js|fb.com|) wishes to re-use password-checking functionality provided
 in a JavaScript library by a third party, say, from origin
@@ -236,7 +236,7 @@ page.
 %
 Unfortunately, a CSP policy that disallows scripts within the page
 from initiating XHRs to any other origins is \emph{too} inflexible, in
-that it precludes useful operations by the checker script, e.g.,
+that it precludes useful operations by the checker script, \emph{e.g.,}
 retrieving an updated set of regular expressions describing weak
 passwords from a remote server (essentially, ``updating'' the
 checker's functionality). Doing so requires communicating with a
@@ -283,7 +283,7 @@ appears within a crown. Here, a top-level page at \js|fb.com|
 encapsulates a password-checker script from a third-party origin in a
 new compartment. The label of the new compartment is initially
 \js|public|. 
-%%\todo{}{Here, it would be clearer to refer explicitly to the message, e.g., 
+%%\todo{}{Here, it would be clearer to refer explicitly to the message, \emph{e.g.,} 
 %%``In step (2), the top-level page sends the user's password to 
 %%the checker script's worker, denote by the message $[``password'']_{fp.com}$---
 %%we ignore the messages subindexes (to be explained in Section XXX)''}
@@ -329,7 +329,7 @@ read the data (without raising its label).
 %% objection, "why would the user trust the encryption library to
 %% encrypt correctly, but *not* trust it not to leak the cleartext?"
 Today's web applications, such as in-browser document editors backed
-by cloud-based storage (e.g., Google Docs), typically require the user
+by cloud-based storage (\emph{e.g.,} Google Docs), typically require the user
 to trust the app developer/cloud-based storage provider (often the
 same principal under the SOP) with the data in her documents. That is,
 the provider's server observes the user's data in cleartext. Suppose
@@ -381,7 +381,7 @@ sensitive, and furthermore, will not want data from Amazon to be
 exposed to her bank or vice-versa, nor to any other remote
 party. Today, if one of the two providers implements the mashup, its
 application code must bypass the SOP to allow sharing of data across
-origin boundaries, e.g., by communicating between iframes with
+origin boundaries, \emph{e.g.,} by communicating between iframes with
 \js|postMessage| or setting a permissive CORS policy.
 This approach forfeits robust confinement: one
 origin sends sensitive data to the other, after which the receiving
@@ -392,7 +392,7 @@ their privacy, usually by simply handing off credentials, as again today's brows
 confines the sensitive data the mashup's code observes within the
 browser. To enable third-party mashups that do not sacrifice the
 user's privacy, we note again the need for an untrusted script to be
-able to issue requests to multiple remote origins (e.g., Amazon and
+able to issue requests to multiple remote origins (\emph{e.g.,} Amazon and
 the bank), but to lose the privilege to communicate over the network
 once it has read the responses from those origins. Here, too, MAC-based confinement
   addresses the shortcomings of DAC. 
@@ -474,20 +474,20 @@ code in browsers. To summarize, these applications would appear to be
 well served by a system that:
 \begin{CompactItemize}
 \item Applies mandatory access control (MAC);
-\item Is {\em symmetric,} i.e., it permits two principals to {\em
+\item Is {\em symmetric,} \emph{i.e.,} it permits two principals to {\em
     mutually} distrust one another, and each prevent the other from
   exfiltrating its data;
-\item Is {\em hierarchical, } i.e., it permits principal
+\item Is {\em hierarchical, } \emph{i.e.,} it permits principal
   $A$ to confine code from principal $B$ that processes $A$'s data,
   while principal $B$ can independently confine code from principal
   $C$ that processes $B$'s data, etc.
-%% \item Supports {\em declassification,} i.e., it allows principal $A$
+%% \item Supports {\em declassification,} \emph{i.e.,} it allows principal $A$
 %%   to declassify data sensitive to $A$ (but, of course, not $B$);
-\item Supports {\em delegation} and {\em dropping privilege,} i.e., it
+\item Supports {\em delegation} and {\em dropping privilege,} \emph{i.e.,} it
   permits a script running in a compartment with the privilege to
   communicate with some set of origins to confer those privileges
   on another compartment, then relinquish those privileges itself.
-  %% to grant another principal the ability to ``speak, '' i.e., 
+  %% to grant another principal the ability to ``speak, '' \emph{i.e.,} 
   %% declassify and delegate, on its behalf, and revoke its own ability
   %% to do so.
   %% XXX ds: don't like "revoke its ability do do so"
