@@ -5,10 +5,8 @@ In this section we discuss various design trade-offs, the limitations
 of \sys{} that arise as result of these trade-offs, and future work
 directions for addressing some of these limitations.
 
-\paragraph{User-Configured Confinement} \Red{bk: moved this here
-wholesale from 3, per discussion with Deian; probably needs tailoring
-to fit here, but definitely belongs here.} Recall that in the
-status-quo web security architecture, the SOP by default blocks an
+\paragraph{User-Configured Confinement}
+Recall that in the status-quo web security architecture, the SOP by default blocks an
 origin from reading the response from a server of a different
 origin. A server can use CORS to grant individual foreign origins
 access to its data in all-or-nothing, DAC fashion. How does COWL's MAC

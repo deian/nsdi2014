@@ -84,24 +84,20 @@ it operates on very similar principles to the encrypted document editor.
   chase.com instead of bank.ch}}
 \end{figure}
 The key feature that enables us to build third-party mashups is
-labeled XHR\@.  In Figure~\ref{fig:mashup}, the architecture for an
-application which reconciles a user's Amazon purchases
-and bank statement is shown.  As opposed to the encrypted document editor,
-the architecture for this mash-up is very simple: we just download
-information from a few websites, and then do some computation on them.
+labeled XHR, as it composes with CORS.  In Figure~\ref{fig:mashup},
+the architecture for an application which reconciles a user's Amazon
+purchases and bank statement is shown.  As opposed to the encrypted
+document editor, the architecture for this mash-up is very simple: we
+just download information from a few websites, and then do some
+computation on them.
 
-It's instructive to consider a version of this mash-up which does not
-work.  Suppose that we use regular XHR in order to retrieve data from
-\https{chase.com} and \https{amazon.com}.  Ordinarily, we cannot read
-the results of XHR, since \https{chase.com} does not flow to \https{mint.biz}.
-We might change our label to be \https{chase.com} (exercising the \https{mint.biz}
-privilege), but now we cannot contact \https{amazon.com}.
-
+In this application, COWL's introduction of labeled XHR composes usefully with
+CORS. Today's CORS policies are DAC-only, such that a server must
 Labeled XHR (Section~\ref{sec:labeled-xhr}) provides a solution to
 this conundrum.  First, we make labeled XHRs to both web sites (1),
 maintaining our current label but receiving labeled blobs.  Once all of
-the information is received, we raise our current label (2--3) and
-unlabel the blobs, in the process restricting our communication to the
+the information is received, we raise our current label by unlabeling
+the Blobs (2--3), in the process restricting our communication to the
 web at large.
 
 \Red{XXX bk: moved here from design; needs to be pared down
@@ -135,9 +131,12 @@ confidential, but also not to steal their funds!
 confinement.}
 \end{figure}
 
-The key feature that lets us confine untrusted third-party libraries
-like jQuery is the ability to confine the main page, so that it can
-only communicate with a separate compartment containing only trusted code.
+The key features that let us confine tightly-couple untrusted
+third-party libraries like jQuery is the ability to delegate
+privileges to a trusted context and subsequently drop them from the
+main page. In doing so we can completely confine the main page, and
+ensure that it can only communicate with the trusted and unconstrained
+context.
 
 In Figure~\ref{fig:jquery}, the architecture for a web page using an
 untrusted JavaScript library is shown.  Our goal is to establish a
@@ -147,7 +146,7 @@ talk to the network.  Initially, we start in the main browsing context
 with the \https{a.com} privilege.  We generate a fresh origin
 \https{unq0}, and spawn a DOM worker (1), delegating both privileges to it.  The
 main context drops both privileges (2), while both compartments raise
-their label to \dcLabels{\https{a.com} $\land$ \https{unq0}}{} (3).  Finally, the
+their label to \dcLabelS{\https{a.com} $\land$ \https{unq0}}{} (3).  Finally, the
 trusted worker downloads jQuery (3) and injects the script contents
 into to the main context's DOM (4).  At the time the library
 is loaded, the main context becomes untrusted, but this is no matter, as
