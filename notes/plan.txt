@@ -24,6 +24,8 @@ We agree that this not clear enough, we used the word "object" too
 loosely. We will revise to be more specific: Blobs, which can include
 serialized JavaScript values (e.g., as seen in postMessage).
 
+ALE: DONE (we use blob-messages as labeled intra-browser communication)
+
 2. What is the label check done when accessing the DOM of compartment?
 
 We believe that by giving integrity full treatment this question will
@@ -38,11 +40,17 @@ However, if compartment A holds the privilege for B, the operation
 would be allowed, the privilege overriding the label check and
 endorsing a cross-compartment DOM write.
 
+ALE: DONE This is done as well, the DOM has no label as indicated above, but it is 
+protected by the current label of its containing compartment.
+
 3. How do you disallow the manual setting of label XHR header?
 (Also raised by reviewer B)
 
-We'll clarify the text here to note that we such headers are filtered
+We'll clarify the text here to note that such headers are filtered
 by our modified XHR constructor.
+
+ALE: CHECK (We say in Section 3.2 that label XHR are set by the API 
+but I couldn't find how we allow the manual setting of label XHR header)
 
 4. The paragraph on "clearance" does not really belong to the section
 labeled "XMLHttpRequest".
@@ -50,6 +58,9 @@ labeled "XMLHttpRequest".
 The interesting part about clearance relates to the use of the labeled
 XHR, but since clearance is "first class" it makes sense to separate
 it from XHR. We intend to do this.
+
+ALE: DONE (Introduced briefly in Section 3.1 but it is discussed in 
+Section 7 with covert channels)
 
 5. "I am wondering whether in practice using mashups composed of lots
 of different libraries can lead to a proliferation of complex policies
@@ -66,6 +77,9 @@ intricate policies (e.g., that involve many libraries and mutual
 distrust among them) in a straightforward way, and that a compiler
 could then compile such policies into the COWL primitives.
 
+ALE: CHECK (We have not said that future work includes the production 
+of high-level policies)
+
 Reviewer B
 --------------------------------------------------------------
 
@@ -79,10 +93,16 @@ compartments (e.g., one to that always communicates with the network
 and the other for inspecting the sensitive data) or acquire (if it
 doesn't alreayd have) the privilege to downgrade/declassify its label.
 
+ALE: DONE (This is clear from the password checker example and the third-party
+mashup). 
+
 2. I suggest removing all footnotes about integrity and adding a
 separate section. (Also raised by reviewers D and E)
 
 We strongly agree.
+
+ALE: DONE (Added in the text in Section 3.1 and reference to the DC label 
+paper)
 
 [DONE] 3. Is COWL safe from covert channels? Or does COWL merely limit the
 rate of information leak via covert channels?
@@ -90,6 +110,11 @@ rate of information leak via covert channels?
 We briefly discussed this at the end of section 3 and 3.3, but since
 we plan to extract clearance into its own section, treating covert
 channels in this section seems more appropriate.
+
+ALE: DONE (Now covert channels is in the discussion section together 
+with clearence. Importantly, we say that we do not introduce any new 
+covert channel!)
+
 
 The details: When the SOP is restricted--i.e., no labeled XHR was
 used--the question of covert channels is irrelevant, since webpages do
@@ -105,6 +130,11 @@ functionality of third-party mashup sites, the status quo requires the
 user to give up their password; COWL significantly improves this state
 of affairs.
 
+ALE: DONE (the discussion above is valid, but it is still valid that 
+we do not add new covert channels, but the page can now exploit it in 
+more scenarios---bare in mind that before you give away your data 
+explicitly as indicated in discussion above)
+
 e13479dfd75953f6b25b82ca207b91165ebbe062
 e19fec4096412a2abebfad10deb574f4fa884623
 
@@ -116,6 +146,10 @@ that since our implementation of LWorkers repurposes V8 contexts and
 SpiderMonkey compartments we believe the chance of unauthorized
 leakage of information between LWorkers to be no worse than that of
 iframes.
+
+ALE: CHECK (Although we do not introduce new (timing) covert channels with the 
+introduction of LWorkers, it is not explicit mention in Section 7. It would be 
+a good idea to do so). 
 
 e13479dfd75953f6b25b82ca207b91165ebbe062
 e19fec4096412a2abebfad10deb574f4fa884623
@@ -131,6 +165,8 @@ We agree that it would be instructive to present the code for the
 password checker, and will do so. We will similarly address other
 presentations concerns, suggested by the reviewers (C included).
 
+ALE: DONE (no room for showing code)
+
 [DONE] 2. I like Sec 2.1 which provides background for me; could you
 also explain CSP and CORS in this style?
 
@@ -140,12 +176,18 @@ d9121df41403d9fe242f4a11f7055ea033529fc1
 eef754ab196266fddfa5da0341576bfe2127f32a
 48a24f6ac09e048d6fcae0941ccebb4712931e7e
 
+ALE: DONE!
+
 3. Table 2: some unexpected speedups are not explained, such as "New
 iframe - Firefox - labeled" and "New worker - Firefox - unlabeled[c]."
 
 We will update the explanation of the table to note that this
 difference (14.5 ms unlabeled, 14.4 ms labeled) is small enough to be
 explained by variability in the distribution of completion times.
+
+ALE: DONE! (It is marked those speed ups in the table and explained in the
+text)
+
 
 4. Why "at 90 messages" you exhaust the call stack?  Is the 90 stack
 frames thing in javascript spec?
@@ -156,8 +198,14 @@ which runs-to-completion.  The stack limit depends on the underlying
 JavaScript engine implementation and is not specified in the
 specification.
 
+ALE: CHECK (we should add a footnote in the last sentence from the 
+paragraph "Communication" in Section 6.1. It should says something 
+like "...the call stack\footnote{Recall that LWorkers share the same heap}". 
+
 5. Why did you use a "simplified version" of the encrypted document
 editor?
+
+ALE: DONE!
 
 We will update the measurements section to note that it was unclear
 how to securely re-implement the application without COWL, so we
@@ -175,6 +223,8 @@ presentation as I read on..."
 As with other reviewers' presentation concerns we'll try to structure
 section 3 more clearly.
 
+ALE: DONE!
+
 2. "COWL makes the ambient authority of an origin explicit" (what is
 an ambient authority?)
 
@@ -183,6 +233,9 @@ implicit: a page is loaded from a URL, and that compartment is forever
 associated with that exact origin. By "ambient authority" we mean the
 origin is implicit in the page. By contrast, under COWL, a compartment
 has explicit control over its label (and privilege).
+
+ALE: DONE (the idea of the control over the label is clear from the 
+begining and we no longer use the phrase "ambient authority")
 
 [DONE] 3. In the password checker example (pg. 3), why is CSP too
 restrictive?  From what I understand, CSP allows one to explicitly
@@ -200,6 +253,8 @@ access persists for the entire page, even after the password checker
 has received the password: it could just send the password to the
 remote origin.
 
+ALE: DONE (this explanation is in the example)
+
 eef754ab196266fddfa5da0341576bfe2127f32a
 
 Reviewer E
@@ -215,6 +270,10 @@ to create compartments means operations which raise labels can be
 isolated to separate compartments. Good application design can avoid
 accumulation of taint.
 
+ALE: DONE (it is clear through the examples when compartments are 
+created in order to fetch some data first, before loosing the ability 
+to talk to the network)
+
 To address the reviewer's comment with respect to files, when
 describing how we deal with storage layers, we will also note how
 labeled storage can be integrated with COWL. Namely, by taking the
@@ -223,6 +282,8 @@ Hails/LIO [11]), which avoids taint-accumulation: the label associated
 with a file/cookie is immutable, and writes which cannot flow to the
 label are rejected.
 
+ALE: DONE (we said that fine-grained storage is future work)
+
 2. SOP "provides some degree of integrity" for DOM changes, what
 about COWL?
 
@@ -230,6 +291,8 @@ We intend to address this question by clarifying the first reviewer's
 question on what check is performed when modifying the DOM since the
 motivation for the DOM integrity label was very much to ensure that
 COWL is at least as restricting as the SOP.
+
+ALE: DONE!
 
 3. Is your vision to co-exist or replace all existing security
 mechanisms?
@@ -243,6 +306,9 @@ pages which opt-in to this new functionality. This confusion may have
 been, in part, due to the fact that we only mentioned [40]; we hope to
 further clarify this by comparing with [40].
 
+ALE: DONE (we said that it is backwards-compatible in the abstract. It is clear
+in Section 6 that COWL can be turned on and off.)
+
 3. What does COWL give up by taking a coarse-grained approach?
 (Also raised by B and D.)
 
@@ -254,6 +320,7 @@ speaking, coarse-grained IFC requires developers to give some though
 about how to compartmentalize a system to achieve desired security.
 Fine-grained IFC can require less programmer effort: we imagine that
 our jQuery example would be more natural in a fine-grained IFC system.
+
 
 Still, the benefits of a coarse grained system are compelling, and
 we conjecture that coarse-grained and fine-grained IFC are equally 
@@ -267,6 +334,8 @@ around every individual object).
 Both approaches are not mutually exclusive, one could imagine 
 introducing compartments where fine-grained IFC is applied instead 
 (e.g., JSFlow). This is an interesting direction for future work.
+
+ALE: CHECK (It is in the related work section)
 
 --------------------------------------------------------------
 --------------------------------------------------------------
@@ -297,17 +366,34 @@ Alternative approach to sec 3:
 For secrecy, authority means you can punch out of confinement
 For integrity, I own a channel
 
-What is privilege? A compartment is allowed to DO something.  For secrecy, in a MAC system, you can violate confinement: literally, "you can send something to someone so that they will not be confined when they get it".
+What is privilege? A compartment is allowed to DO something.  For secrecy, in a
+MAC system, you can violate confinement: literally, "you can send something to
+someone so that they will not be confined when they get it".
 
-For Section 2, we don't need the protocol: "both secrecy and integrity involve the notion of privilege. For any system to ".
-Then in section 3 will transition (saying it's a pain)
+For Section 2, we don't need the protocol: "both secrecy and integrity involve
+the notion of privilege. For any system to ".  Then in section 3 will transition
+(saying it's a pain)
 
 discipline/punish/authority
 
-A common approach, and one that we adopt, is to divide a software system into compartment, and then to achieve secrecy and integrity, one must reason about the *privileges* that these [Seltzer] compartments have. A privilege, broadly speaking, refers to the ability to execute an operation of some type (e.g. reads, writes).
+A common approach, and one that we adopt, is to divide a software system into
+compartment, and then to achieve secrecy and integrity, one must reason about
+the *privileges* that these [Seltzer] compartments have. A privilege, broadly
+speaking, refers to the ability to execute an operation of some type
+(e.g. reads, writes).
 
-What does privilege mean for secrecy and integrity, in the context of MAC?  Well, recall in MAC, you have confinement: if compartment A sends sensitive info to B, by default B can't leak that sensitive information to unauthorized parties.  Privilege means that the ability to send information that is exempted from this restriction (specifically, send information to another compartment, while still allowing B to leak it anywhere.)  For integrity, if we have communicating parties A and B, and A has the privilege to do so, then B receives it.
+What does privilege mean for secrecy and integrity, in the context of MAC?
+Well, recall in MAC, you have confinement: if compartment A sends sensitive info
+to B, by default B can't leak that sensitive information to unauthorized
+parties.  Privilege means that the ability to send information that is exempted
+from this restriction (specifically, send information to another compartment,
+while still allowing B to leak it anywhere.)  For integrity, if we have
+communicating parties A and B, and A has the privilege to do so, then B receives
+it.
 
-New idea: two gets across, you need MAC and you need secrecy and integrity and /authority/
+New idea: two gets across, you need MAC and you need secrecy and integrity and
+/authority/
 
-Authority implies trust?  Programmers need to control what compartments can disseminate and modify information.  Broadly speaking, these are privileges: the ability to do these things.
+Authority implies trust?  Programmers need to control what compartments can
+disseminate and modify information.  Broadly speaking, these are privileges: the
+ability to do these things.
