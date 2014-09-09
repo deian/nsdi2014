@@ -18,17 +18,17 @@ integrate more of these resources) and build the required
 application-specific functionality atop them. Unfortunately, some of
 the many contributors to the tangle of JavaScript comprising an
 application may not have the user's best interest at heart. The wealth
-of sensitive data processed in today's web applications (e.g., email,
+of sensitive data processed in today's web applications (\emph{e.g.,} email,
 bank statements, health records, passwords, etc.) is an attractive
 target. Miscreants may stealthily craft malicious JavaScript that,
 when incorporated into an application by an unwitting developer,
 violates the user's privacy by leaking sensitive information.
 
 Two goals for web applications emerge from the prior discussion:
-\emph{flexibility} for the application developer (i.e., enabling the
+\emph{flexibility} for the application developer (\emph{i.e.,} enabling the
 building of applications with rich functionality, composable from
 potentially disparate pieces hosted by different sites); and
-\emph{privacy} for the user (i.e., to ensure that the user's sensitive
+\emph{privacy} for the user (\emph{i.e.,} to ensure that the user's sensitive
 data cannot be leaked from applications to unauthorized parties).
 These two goals are hardly new: Wang {\em et al.}~articulated similar
 ones, and proposed new browser primitives to improve isolation within
@@ -41,9 +41,9 @@ by one principal from reading content hosted by another.
 
 %%\todo{}{Consistency: status quo or status-quo} 
 % No, there is no consistency concern: each is appropriate in different
-% circumstances. no hyphen when being used as a noun (e.g., ``in the
+% circumstances. no hyphen when being used as a noun (\emph{e.g.,} ``in the
 % status quo''); hyphen when being used as an adjective in attributive
-% position (e.g., ``the status-quo web architecture'')
+% position (\emph{e.g.,} ``the status-quo web architecture'')
 Unfortunately, in the status-quo web browser security architecture,
 one must often sacrifice privacy to achieve flexibility, and
 vice-versa. The central reason that flexibility and privacy are at
@@ -52,7 +52,7 @@ for providing privacy---the SOP, Content Security Policy
 (CSP)~\cite{csp}, and Cross-Origin Resource Sharing
 (CORS)~\cite{cors13}---are all forms of discretionary access control.
 DAC has the brittle character of either denying or granting
-untrusted code (e.g., a library written by a third party) access to
+untrusted code (\emph{e.g.,} a library written by a third party) access to
 data. In the former case, the untrusted JavaScript might {\em need}
 the sensitive data to implement the desired application
 functionality---hence, denying access prioritizes privacy over
@@ -83,7 +83,7 @@ In this paper, we present \sys{} (Confinement with Origin Web Labels),
 a mandatory access control (MAC) system that confines untrusted
 Javascript in web browsers. \sys{} allows untrusted code to compute
 over sensitive data and display results to the user, but prohibits the
-untrusted code from exfiltrating sensitive data (e.g., by sending it
+untrusted code from exfiltrating sensitive data (\emph{e.g.,} by sending it
 to an untrusted remote origin). It thus allows web developers to opt
 for {\em both} flexibility and privacy.
 
@@ -105,8 +105,8 @@ context explicitly on a separate execution context.
 No prior browser security architecture offers this combination of
 properties.
 
-We demonstrate the applicability of \sys{} by using it to implement
-secure versions of the four motivating applications.
+We demonstrate \sys{}'s applicability by implementing
+secure versions of the four motivating applications with it.
 Our contributions include:
 
 \begin{CompactItemize}
