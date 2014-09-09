@@ -25,10 +25,11 @@
 *.pdfsync
 *.ps
 *.snm
+*.swp
 *.synctex.gz
+*.tdo
 *.toc
 *.vrb
 *.xdy
-*.tdo
-*.swp
 *~
+/main.pdf
