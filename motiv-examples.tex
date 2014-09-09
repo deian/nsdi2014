@@ -69,14 +69,14 @@ An origin is a source of authority encoded by the protocol (\emph{e.g.,}
 of a resource URL. For brevity, we elide the protocol and
 port from URLs throughout.
 
-The {\em same-origin policy} specifies that resources of an
-origin should only be readable by content from the same
+The {\em same-origin policy} (SOP) specifies that an origin's
+resources should only be readable by content from the same
 origin~\cite{rfc6454, googlehandbook, VanKesteren2012}.  Browsers
 ensure that code executing in an \https{a.com} context can only
 inspect the DOM and cookies of another context if they share the same
- origin, \emph{i.e.,} \https{a.com}. Similarly, such code can only inspect
-the response to a network request (performed with XHR) if the remote
-host's origin is \https{a.com}.
+origin, \emph{i.e.,} \https{a.com}. Similarly, such code can only
+inspect the response to a network request (performed with XHR) if the
+remote host's origin is \https{a.com}.
 %
 %% In general, the SOP isolates code in one page from accessing client-
 %% and server-side data associated with another origin.
@@ -95,24 +95,25 @@ of an \js|img| element to this URL.
 
 Modern browsers allow the developer to specify a CSP for a page that
 protects a user's privacy by limiting communication by the page's
-compartment---\emph{i.e.,} that disallows communication that would ordinarily
-be permitted by the default SOP.  Developers may set individual CSP
-directives to restrict the origins to which a context may issue
-requests of specific types (for images, or scripts, XHR destinations,
-etc.)~\cite{csp}. CSP policies suffer from two limitations,
-however. They are {\em static:} they cannot change during a page's
-lifetime (\emph{e.g.,} a page may not drop the privilege to communicate with
-untrusted origins before reading potentially sensitive data). And they
-are {\em inaccessible:} JavaScript code cannot inspect the CSP of its
-enclosing context or some other context, \emph{e.g.,} when determining
-whether to share sensitive data with that other context.
+compartment---\emph{i.e.,} that disallows communication that would
+ordinarily be permitted by the default SOP.  Developers may set
+individual CSP directives to restrict the origins to which a context
+may issue requests of specific types (for images or scripts, XHR
+destinations, \emph{etc.})~\cite{csp}. CSP policies suffer from two
+limitations, however. They are {\em static:} they cannot change during
+a page's lifetime (\emph{e.g.,} a page may not drop the privilege to
+communicate with untrusted origins before reading potentially
+sensitive data). And they are {\em inaccessible:} JavaScript code
+cannot inspect the CSP of its enclosing context or some other context,
+\emph{e.g.,} when determining whether to share sensitive data with
+that other context.
 
 %% To improve user privacy developers can use CSP to impose additional
 %% policies on a context.
 %% %
 %% Specifically, with CSP, developers can set various directives to
 %% restrict the origins from where different content (images, scripts,
-%% etc.) may be loaded~\cite{csp}.
+%% \emph{etc.}) may be loaded~\cite{csp}.
 %% %
 %% While the initial intent of this was to address cross-site scripting
 %% (XSS) attacks by limiting code to be loaded from trustworthy sources,
@@ -218,7 +219,7 @@ system. %, as well as the overall intuition behind its design.
 (\emph{i.e.,} easily guessable) passwords, many web sites today incorporate
 functionality to check the strength of a password selected by a user
 and offer the user feedback (\emph{e.g.,} ``too weak; choose another,''
-``strong,'' etc.). Suppose a developer at Facebook (at origin
+``strong,'' \emph{etc.}). Suppose a developer at Facebook (at origin
 \js|fb.com|) wishes to re-use password-checking functionality provided
 in a JavaScript library by a third party, say, from origin
 \js|sketchy.ru|. If the developer at \js|fb.com| simply includes the
@@ -433,7 +434,7 @@ confining untrusted code should allow not only a single level of
 confinement (one trusted context confining one untrusted context), but
 arbitrarily many levels of confinement (one trusted context confining
 an untrusted one, that in turn confines a further untrusted one,
-etc.).
+\emph{etc.}).
 
 %% describe trusted compartment between page w/JQuery and network as
 %% firewall---its job is to deny network requests to origins other
@@ -480,7 +481,7 @@ well served by a system that:
 \item Is {\em hierarchical, } \emph{i.e.,} it permits principal
   $A$ to confine code from principal $B$ that processes $A$'s data,
   while principal $B$ can independently confine code from principal
-  $C$ that processes $B$'s data, etc.
+  $C$ that processes $B$'s data, \emph{etc.}
 %% \item Supports {\em declassification,} \emph{i.e.,} it allows principal $A$
 %%   to declassify data sensitive to $A$ (but, of course, not $B$);
 \item Supports {\em delegation} and {\em dropping privilege,} \emph{i.e.,} it
