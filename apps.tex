@@ -1,78 +1,82 @@
 \section{Applications}
 \label{sec:apps}
 
-In the previous sections, we described the goals of various applications
-and motivated why it was difficult to accommodate them in the standard
-web architecture.  Then, we described the \sys{} system, explaining the
-primitives we introduced to the browser.  In this section, we close the
-loop, explaining how to use this primitives to implement the
-applications described in the first section.
+In Section~\ref{sec:motivating-examples}, we characterized four
+applications and explained why they cannot be accommodated satisfactorily
+in the status-quo web architecture. We then described the COWL system's
+new browser primitives. We now close the loop by demonstrating how
+to build the aforementioned applications with the COWL primitives.
 
 \subsection{Encrypted Document Editor}
 
-In the previous section, we described the key feature needed by an
-encrypted document editor: symmetric confinement, where two mutually
-distrusting scripts can confine each other's use of data that has been
-sent.  The key to implementing this application will be judicious use of
-\emph{privileges}, which are asymmetrically distributed to the
-distrusting components.
+The key feature needed by an encrypted document editor is symmetric
+confinement, where two mutually distrusting scripts can each confine
+the other's use of data they send one another. Asymmetrically
+conferring COWL privileges on the distrusting components is the key to
+realizing this application.
 
 \begin{figure}
 \centerline{\includegraphics[width=\columnwidth]{editor}}
 \caption{\label{fig:editor} Encrypted document editor architecture.}
 \end{figure}
 
-In Figure~\ref{fig:editor}, the architecture for an encrypted document
-editor is shown.  The editor has three components: a component which has
-your Google Documents credentials and communicates with the server (\https{gdoc.com}), the
-editor proper (also \https{gdoc.com}), and the component which performs encryption (\https{nsa.gov}).  We give the
-following security guarantee: if the \https{nsa.gov} is honest, then we
-guarantee that the clear text of your document is never leaked to any
-origin.  If only \https{gdoc.com} is honest, then \https{gdoc.com} may
-be able to recover your cleartext (e.g.\ the encryptor used the null
-cipher), but the encryptor should not able to exfiltrate the cleartext
-to anyone else.
+Figure~\ref{fig:editor} depicts the architecture for an encrypted
+document editor. The editor has three components: a component which
+has the user's Google Documents credentials and communicates with the
+server (\https{gdoc.com}), the editor proper (also \https{gdoc.com}),
+and the component that performs encryption (\https{nsa.gov}). COWL
+provides privacy as follows: if \https{nsa.gov} is honest, then COWL
+ensures that the clear text of the user's document is not leaked to
+any origin. If only \https{gdoc.com} is honest, then \https{gdoc.com}
+may be able to recover cleartext (\emph{e.g.,} the encryptor may have
+used the null cipher), but the encryptor should not be able to
+exfiltrate the cleartext to anyone else.
 
-What occurs when you open Google Documents to edit an encrypted
-document?
+How does execution of the encrypted document editor proceed?
 %
 Initially, \https{gdoc.com} downloads (1) the encrypted document from
 Google's servers.
 %
-Seeing that the document is encrypted, it opens an iframe to
+As the document is encrypted, it opens an iframe to
 \https{nsa.gov}, with initial label 
-public so it can communicate with the \https{nsa.gov} server and
+\js|public| so it can communicate with the \https{nsa.gov} server and
 download the private key (2) which will be used to decrypt the document.
 %
 Next, it sends the encrypted document as a labeled Blob, with the label
 \dcLabelS{\https{gdoc.com}}{} (3); the iframe unlabels the Blob and
 raises its label (4) so it can decrypt the document.
 %
-Finally, the iframe passes on the decrypted document (labeled as
+Finally, the iframe passes the decrypted document (labeled as
 \dcLabelS{\https{gdoc.com} $\land$ \https{nsa.gov}}{}) to a new iframe (5) which
 implements the editor proper.
 
-To save the document, we run this flow in reverse: the editor sends a
-decrypted document to the encryptor (5), which encrypts it with the
-private key.  Next, the critical step occurs: the encryptor exercises its privileges
-to send a labeled blob of the encrypted document which is \emph{only}
-labeled \dcLabelS{\https{gdoc.com}}{} (3).  Since the encryptor is the only compartment
-with the \https{nsa.gov} privilege, all documents must pass through it for
-encryption before being sent out to the world; conversely, it itself cannot
-exfiltrate any data, as it is operating with \https{gdoc.com} in its label.
+To save the document, these steps proceed in reverse: the editor sends
+a decrypted document to the encryptor (5), which encrypts it with the
+private key.  Next, the critical step occurs: the encryptor exercises
+its privileges to send a labeled blob of the encrypted document which
+is \emph{only} labeled \dcLabelS{\https{gdoc.com}}{} (3).  Since the
+encryptor is the only compartment with the \https{nsa.gov} privilege,
+all documents must pass through it for encryption before being sent
+elsewhere; conversely, it itself cannot exfiltrate any data, as it is
+confined by \https{gdoc.com} in its label.
 
-One interesting thing to note about this architecture is that a user can
-verify that Google Documents appropriately loaded the encryptor, since
-without it, it would not be possible to display the decrypted text.  However, when
-a new document is being created, the encryptor iframe must be placed
-in a separate pop-up window, so that the user can verify that encryption
-has been enabled.\footnote{This architecture might be desirable in any case
-to prevent phishing.}
+Note that this design permits the user to verify that Google Documents
+appropriately loaded the encryptor: without it, displaying the
+decrypted text would be impossible. However, when a new document is
+being created, the encryptor iframe must be placed in a separate
+pop-up window, so that the user can verify that encryption has been
+enabled.\footnote{This architecture might be desirable in any case to
+  prevent phishing.}
 
-Due to space limitations, we do not discuss the architecture of a \sys{} 
-password manager we built; this application allows users to safely store their
-passwords on third-party storage provides such GoogleDocs. We only remark that
-it operates on very similar principles to the encrypted document editor.
+We have implemented a password manager atop COWL that lets users
+safely store passwords on third-party web-accessible storage. We elide
+its detailed design in the interest of brevity, and note only that it
+operates similarly to the encrypted document editor.
+%% In the interest of brevity, we do not discuss the architecture of the
+%% \sys{} password manager; this application allows users to safely store
+%% their passwords on third-party storage provides such GoogleDocs. We
+%% only remark that it operates on very similar principles to the
+%% encrypted document editor.
 
 \subsection{Third-Party Mashup}
 \label{sec:apps-mashup}

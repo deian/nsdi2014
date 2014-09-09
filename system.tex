@@ -369,8 +369,8 @@ subsumes the context's label. Upon receiving a request, a COWL-aware
 web server may also wish to know the current label of the context that
 initiated it. For this reason, COWL attaches the current label to
 every request the browser sends to a server.\footnote{COWL also
-  attaches the current privilege; Section~\ref{sec:system:privileges}
-  describes COWL's privilege primitive.} As also noted in
+  attaches the current privilege; see Section~\ref{sec:system:privileges}.}
+  As also noted in
 Section~\ref{sec:system:contexts}, a COWL-aware web server may elect
 to label a response it sends the client by including a \js|COWL-label|
 header on it. In such cases, the COWL-aware browser will only allow
@@ -611,8 +611,8 @@ Dropping privileges is of practical use in confining closely
 coupled untrusted libraries like jQuery, as illustrated in
 Section~\ref{sec:apps-third-party}.
 %
-Setting privileges, on the other hand, is used to increase the
-trust placed in a context, authorizing it act on behalf of the
+Setting privileges, on the other hand, increases the
+trust placed in a context by authorizing it act on behalf of
 origins.
 %
 This is especially useful since
