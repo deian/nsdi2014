@@ -40,9 +40,7 @@ In turn, COWL will confine these client-whitelisted origins (e.g.,
 origin (\https{chase.com}).
 %
 In particular, COWL will use the server-supplied label when available
-and server white-listing is provided; \todo{ale}{Not clear to me, do you mean 
-``In particular, COWL will use the server-supplied label and 
-server white-listing when available;''}
+and server white-listing is \emph{not} provided;
 otherwise, we conservatively label the response with a
 \emph{fresh} origin (as described in
 Section~\ref{sec:system:privileges}). The latter ensures that once the
@@ -85,7 +83,7 @@ resort to using covert channels.
 COWL only relaxes existing policies when allowing users to override
 CORS as to permit cross-origin (labeled) sharing.
 %
-At first this may appear as a completely new risk \todo{}{for data exfiltration}.
+At first this may appear as a completely new risk.
 %
 However, we remark that the white-listing is user controlled (e.g.,
 the user must explicitly allow \https{mint.com} to read

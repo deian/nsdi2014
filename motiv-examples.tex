@@ -12,8 +12,7 @@ distrusted) third parties. To make concrete the diversity of potential
 trust relationships between scripts' authors and diverse ways page
 developers may structure amalgamations of scripts, we describe several
 example web applications, none of which can be implemented with strong
-privacy \todo{}{What does it mean strong? Is there a weak privacy notion? why
-  not just privacy?} for the user in today's web browsers. These examples
+privacy for the user in today's web browsers. These examples
 illustrate key requirements for the design of a flexible browser
 confinement mechanism. Before describing these examples, however, we
 offer a brief refresher on status-quo browser privacy polices.
@@ -33,7 +32,7 @@ offer a brief refresher on status-quo browser privacy polices.
 \end{center}
 \vspace{-10pt}
 \caption{\label{fig:primer-browser-arch} Browser
-architecture.\todo{ds}{update with fig that shows DAC}}
+architecture.}
 \vspace{-10pt}
 \end{figure}
 Figure~\ref{fig:primer-browser-arch} depicts the basic building blocks of
@@ -164,12 +163,12 @@ the message.
 %% was destined for to a page they control (wherein they read the
 %% message)~\cite{barth2009securing}.
 
-\todo{}{It would be better to emphazise who sets CORS. What about:
-  CORS~\cite{cors13} goes a step further, and allows web servers to extend the
-  (cross-) domains capable to observe its responses. Under CORS, a server may
-  include a header on returned content that explicitly whitelists other
-  origin(s) to read its responses.\footnote{Recall that the default SOP blocks a
-    context from reading a response from a different origin.}  }
+%%\todo{}{It would be better to emphazise who sets CORS. What about:
+%%  CORS~\cite{cors13} goes a step further, and allows web servers to extend the
+%%  (cross-) domains capable to observe its responses. Under CORS, a server may
+%%  include a header on returned content that explicitly whitelists other
+%%  origin(s) to read its responses.\footnote{Recall that the default SOP blocks a
+%%    context from reading a response from a different origin.}  }
 
 CORS~\cite{cors13} goes a step further, and allows controlled
 cross-origin communication between a browsing context of one origin
@@ -282,12 +281,12 @@ appears within a crown. Here, a top-level page at \js|fb.com|
 encapsulates a password-checker script from a third-party origin in a
 new compartment. The label of the new compartment is initially
 \js|public|. 
-\todo{}{Here, it would be clearer to refer explicitly to the message, e.g., 
-``In step (2), the top-level page sends the user's password to 
-the checker script's worker, denote by the message $[``password'']_{fp.com}$---
-we ignore the messages subindexes (to be explained in Section XXX)''}
-\todo{}{We need to describe better what is a label and a privilege in the
-  picture. A bit confusing with the underline. The crown is a good idea}
+%%\todo{}{Here, it would be clearer to refer explicitly to the message, e.g., 
+%%``In step (2), the top-level page sends the user's password to 
+%%the checker script's worker, denote by the message $[``password'']_{fp.com}$---
+%%we ignore the messages subindexes (to be explained in Section XXX)''}
+%%\todo{}{We need to describe better what is a label and a privilege in the
+%%  picture. A bit confusing with the underline. The crown is a good idea}
 First, in step (1), the checker script is free to
 download updated regular expressions from an arbitrary remote
 origin. In step (2), the top-level page sends the user's password to
@@ -390,15 +389,8 @@ browser. To enable third-party mashups that do not sacrifice the
 user's privacy, we note again the need for an untrusted script to be
 able to issue requests to multiple remote origins (e.g., Amazon and
 the bank), but to lose the privilege to communicate over the network
-once it has read the responses from those origins.\footnote{\Red{MOVE: The
-  desired semantics here can be subtle. Once a third-party script
-  communicates with a \emph{second} origin, should it retain the
-  ability to communicate with the origin from which it \emph{first}
-  read sensitive data? In some cases, allowing such communication
-  would create the risk of cross-site request
-  forgery~\cite{CSRF}. We explain the correct semantics in detail in
-  Section~\ref{sec:labeled-xhr}.}} Here, too, MAC-based confinement
-  addresses the shortcomings of DAC. %meets this need.
+once it has read the responses from those origins. Here, too, MAC-based confinement
+  addresses the shortcomings of DAC. 
 
 \paragraph{Untrusted Third-Party Library}
 Web application developers today make extensive use of third-party
