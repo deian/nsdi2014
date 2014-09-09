@@ -593,17 +593,16 @@ with its origin, to avoid (unecessarily) raising its label to
 
 COWL generally exercises privileges \emph{implicitly:} if a context
 holds a privilege, code executing in that context will always attempt
-to use it.
-%
+to use it.\footnote{
 While the alternative approach of explicit exercise of privileges
-(e.g., when sending messages) may be
+(e.g., when registering an \js|onmessage| handler) may be
 safer~\cite{Zeldovich:2006}~\tocite{lio}, we find it a poor fit with
-existing asynchronous web APIs.
+existing asynchronous web APIs.}
 %% \footnote{ Exposing a new set of communication primitives would
 %%   simplify this, but one our goals with COWL is to avoid imposing new
 %%   programming models on developers.  }
 %
-COWL instead lets code control the use of privileges by allowing code
+COWL, however,  lets code control the use of privileges by allowing code
 to get and set the underlying context's privileges.
 %
 Code can drop privileges by setting its context's privileges to
@@ -612,28 +611,17 @@ Code can drop privileges by setting its context's privileges to
 Dropping privileges is of practical use in confining closely
 coupled untrusted libraries like jQuery, as illustrated in
 Section~\ref{sec:apps-third-party}.
-%% Doing so is useful, for example, when confining a context that
-%% contains (intrusive) untrusted libraries such as jQuery; here, we drop
-%% the context privilege to ensure that jQuery cannot act on behalf of
-%% the origin and arbitrarily leak data.
 %
-%% In addition, we can provide a programming model wherein privileges
-%% must be explicitly exercised as a library that wraps functions (e.g.,
-%% \js|postMessage|), internally setting and dropping privileges.
-
-% Initial privileges and privilege creation
-%% By default, a browsing context has the privilege corresponding to the
-%% page origin.
+Setting privileges, on the other hand, is used to increase the
+trust placed in a context, authorizing it act on behalf of the
+origins.
 %
+This is especially useful since
 COWL allows one context to {\em delegate} its privileges (or a subset
 of them) to another; this functionality is also instrumental in
 confining untrusted libraries like jQuery.
 %
-%% In our jQuery example, the application delegates a child context its
-%% privileges before loading jQuery; this allows the context to act on
-%% its behalf, while leaving the main context confined.
-%
-COWL also allows a context to create privileges for \emph{fresh}
+Finally, COWL also allows a context to create privileges for \emph{fresh}
 origins, i.e., unique origins that do not correspond to a real URI
 scheme (and thus do not map to real servers).
 %

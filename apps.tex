@@ -19,7 +19,8 @@ distrusting components.
 
 \begin{figure}
 \centerline{\includegraphics[width=\columnwidth]{editor}}
-\caption{\label{fig:editor} Encrypted document editor architecture.}
+\caption{\label{fig:editor} Encrypted document editor architecture.
+\todo{}{step 5 fix label}}
 \end{figure}
 
 In Figure~\ref{fig:editor}, the architecture for an encrypted document
@@ -40,23 +41,23 @@ Initially, \https{gdoc.com} downloads (1) the encrypted document from
 Google's servers.
 %
 Seeing that the document is encrypted, it opens an iframe to
-\https{nsa.gov}, exercising its privilege to keep its initial label as
-\https{nsa.gov} so it can talk to the \https{nsa.gov} server and
+\https{nsa.gov}, with initial label 
+public so it can communicate with the \https{nsa.gov} server and
 download the private key (2) which will be used to decrypt the document.
 %
-Next, it sends the encrypted document as a labeled blob, with the label
-``\https{gdoc.com}'' (3); the iframe raises its label (4) so it can read
-and decrypt the document.
+Next, it sends the encrypted document as a labeled Blob, with the label
+\dcLabelS{\https{gdoc.com}}{} (3); the iframe unlabels the Blob and
+raises its label (4) so it can decrypt the document.
 %
 Finally, the iframe passes on the decrypted document (labeled as
-``\https{gdoc.com} and \https{nsa.gov}'') to a new iframe (5) which
+\dcLabelS{\https{gdoc.com} $\land$ \https{nsa.gov}}{}) to a new iframe (5) which
 implements the editor proper.
 
 To save the document, we run this flow in reverse: the editor sends a
 decrypted document to the encryptor (5), which encrypts it with the
 private key.  Next, the critical step occurs: the encryptor exercises its privileges
 to send a labeled blob of the encrypted document which is \emph{only}
-labeled \https{gdoc.com} (3).  Since the encryptor is the only compartment
+labeled \dcLabelS{\https{gdoc.com}}{} (3).  Since the encryptor is the only compartment
 with the \https{nsa.gov} privilege, all documents must pass through it for
 encryption before being sent out to the world; conversely, it itself cannot
 exfiltrate any data, as it is operating with \https{gdoc.com} in its label.
