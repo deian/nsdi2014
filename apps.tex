@@ -19,8 +19,7 @@ distrusting components.
 
 \begin{figure}
 \centerline{\includegraphics[width=\columnwidth]{editor}}
-\caption{\label{fig:editor} Encrypted document editor architecture.
-\todo{}{step 5 fix label}}
+\caption{\label{fig:editor} Encrypted document editor architecture.}
 \end{figure}
 
 In Figure~\ref{fig:editor}, the architecture for an encrypted document
@@ -80,8 +79,7 @@ it operates on very similar principles to the encrypted document editor.
 
 \begin{figure}
 \centerline{\includegraphics[width=\columnwidth]{mashup}}
-\caption{\label{fig:mashup} Third-party mashup under \sys{}.\todo{}{It should be
-  chase.com instead of bank.ch; should be mint.com}}
+\caption{\label{fig:mashup} Third-party mashup under \sys{}.}
 \end{figure}
 The key feature that enables us to build third-party mashups is
 labeled XHR, as it composes with CORS.
@@ -151,8 +149,8 @@ main browsing context runs jQuery without privileges or the ability to
 talk to the network.  Initially, we start in the main browsing context
 with the \https{a.com} privilege.  We generate a fresh origin
 \https{unq0}, and spawn a DOM worker (1), delegating both privileges to it.  The
-main context drops both privileges (2), while both compartments raise
-their label to \dcLabelS{\https{a.com} $\land$ \https{unq0}}{} (3).  Finally, the
+main context drops both privileges and raises its label to 
+\dcLabelS{\https{unq0}}{} (2).  Finally, the
 trusted worker downloads jQuery (3) and injects the script contents
 into to the main context's DOM (4).  At the time the library
 is loaded, the main context becomes untrusted, but this is no matter, as
