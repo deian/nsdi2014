@@ -168,6 +168,7 @@ model.
 A context can freely \emph{raise} its label, \emph{i.e.,} change its label to
 any label that is more restricting, in order to receive a message
 from an otherwise prohibited context.
+\Red{modulo clearance?}
 %
 Of course, in raising its label to read more sensitive data from
 another context, the context also becomes more restricted in where it
@@ -225,7 +226,7 @@ First, an application can create standard (but labeled) contexts in
 the form of pages, iframes, workers, \emph{etc.}
 %
 Indeed, it may do so because a COWL application is merely a regular
-web application that additionally uses the COWL API. It thus is
+web application that additionally uses the COWL API\@. It thus is
 confined by MAC, in addition to today's web security policies.
 %
 Note that to enforce MAC, COWL must mediate all pre-existing
@@ -239,7 +240,7 @@ the form of \emph{labeled workers (LWorkers)}.
 %
 Like normal workers~\cite{workers}, the API exposed to LWorkers is
 compact; it consists only of constructs for communicating with
-the parent, the XHR constructor, and the COWL API.
+the parent, the XHR constructor, and the COWL API\@.
 %
 Unlike normal workers, which execute in separate threads, an LWorker
 executes in the same thread as its parent, sharing its event loop.
@@ -269,13 +270,13 @@ cumbersome, however. For example, a sending context may wish to
 communicate with multiple target contexts, and need to confine those
 target contexts with different labels, or even confine the same target
 context with different labels for different messages. And a receiving
-context may wish to communicate unfetteredly with one or more origins
-for a time before losing the ability to do so once it raises its label
-to receive a message. In the password-checker example application, the
-untrusted checker script at the right of Figure~\ref{fig:checker}
-exhibits exactly this latter behavior: it needs to communicate with
-untrusted remote origin {\tt sketchy.ru} before reading the password
-labeled {\tt fb.com}.
+context may need unfettered communication with one or more origins for
+a time before confining itself by raising its label to receive a
+message. In the password-checker example application, the untrusted
+checker script at the right of Figure~\ref{fig:checker} exhibits
+exactly this latter behavior: it needs to communicate with untrusted
+remote origin {\tt sketchy.ru} before reading the password labeled
+{\tt fb.com}.
 
 %% %
 %% Unfortunately, this approach of (ab)using the context label to impose
@@ -290,7 +291,7 @@ To simplify communication with confinement, we introduce the {\em
 inter-context message with the label protecting it. The payload takes
 the form of a serialized immutable object of type Blob~\cite{html5}.
 Encapsulating the label with the message avoids the cumbersome label
-raisings heretofore necessary in both sending and receiving contexts
+raises heretofore necessary in both sending and receiving contexts
 before a message may even be sent or received. Instead, COWL allows
 the developer sending a message from a context to specify the label to
 be attached to a labeled Blob; any label as or more restrictive than the
@@ -595,7 +596,8 @@ holds a privilege, code executing in that context will always attempt
 to use it.\footnote{
 While the alternative approach of explicit exercise of privileges
 (\emph{e.g.,} when registering an \js|onmessage| handler) may be
-safer~\cite{Zeldovich:2006, stefan:2011:flexible}, we find it a poor fit with
+safer~\cite{Zeldovich:2006, stefan:2011:flexible, miller:capability},
+we find it a poor fit with 
 existing asynchronous web APIs.}
 %% \footnote{ Exposing a new set of communication primitives would
 %%   simplify this, but one our goals with COWL is to avoid imposing new
@@ -623,6 +625,9 @@ confining untrusted libraries like jQuery.
 Finally, COWL also allows a context to create privileges for \emph{fresh}
 origins, \emph{i.e.,} unique origins that do not correspond to a real URI
 scheme (and thus do not map to real servers).
+\Red{Fresh origins would seem to contradict that script cannot
+  synthesize valid privileges.  Perhaps the use of synthesize is too
+  subtle.}
 %
 These fresh origins are primarily used to \emph{completely} confine a
 context: the sender can label messages with this origin, which upon
