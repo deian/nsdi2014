@@ -248,8 +248,7 @@ This sharing has the added benefit of allowing the parent to give the
 child (labeled) access to its DOM, any access to which is treated as
 both a read and a write, i.e., bidirectional communication.
 %
-Our third-party library example uses such a \emph{DOM worker} \todo{}{This
-  concept is not introduced before} to
+Our third-party library example uses such a \emph{DOM worker} to
 isolate the trusted application code, which requires access to the DOM
 through the untrusted jQuery library.
 %
@@ -298,11 +297,12 @@ be attached to a labeled Blob; any label as or more restrictive than the
 sending context's current label may be specified. While the receiving
 context may receive a labeled Blob with no immediate effect on the
 origins with which it can communicate, it may only inspect the label,
-not the payload\todo{}{We should clarify that inspecting the label 
-does not reveal information, i.e., sensitive information cannot be 
-encoded in the label (since we checked that the label on the label already 
-flows to the label of the destination context)}. Only after raising its label as needed may the
-receiving context read the payload.
+not the payload.
+(Importantly the label itself cannot be used to leak
+information---COWL still ensures that the target context's label is at
+least as restricting as that of the source context.)
+Only after raising its label as needed may the receiving context read
+the payload.
 %
 %% A labeled Blob encapsulates a serialized immutable object, of type
 %% Blob~\cite{html5}, and the label protecting it.
