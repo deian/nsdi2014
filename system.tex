@@ -563,26 +563,40 @@ APIs.\footnote{
 Instead, COWL gives code control over the use of privileges by
 allowing it to get and set the underlying context privileges.
 %
-(Code can drop privileges by setting the context privileges to
-\js|null|.)
+Code can drop privileges by setting the context privileges to
+\js|null|.
 %
 This is useful, for example, when confining a context that contains
 (intrusive) untrusted libraries such as jQuery; here, we drop the
 context privilege to ensure that jQuery cannot act on behalf of the
 origin and arbitrarily leak data.
 %
-Equally important, COWL allows a context to grant its privileges (or a
-subset of its privileges) to another.
+In addition, we can provide a programming model wherein privileges
+must be explicitly exercised as a library that wraps functions (e.g.,
+\js|postMessage|), internally setting and dropping privileges.
+
+% Initial privileges and privilege creation
+By default, a browsing context has the privilege corresponding to the
+page origin.
 %
-In the jQuery example, the application delegates a child context
-its privileges before loading jQuery; this allows
-the context to act on its behalf, while leaving the main context 
-confined.
+While privileges for existing origins cannot be created, COWL allows 
+one context to grant its privileges (or a subset of them) to another.
 %
-We remark that with these capabilities we can also provide a
-programming model wherein privileges must be explicitly exercised as a
-library that wraps functions, such as \js|postMessage|, to set and
-drop privileges appropriately.
+In our jQuery example, the application delegates a child context its
+privileges before loading jQuery; this allows the context to act on
+its behalf, while leaving the main context confined.
+%
+Equally important, COWL allows a context to create privileges for
+\emph{fresh} origins, i.e., unique origins that do not have a real
+scheme (and thus do not map to real servers).
+%
+These fresh origins are primarily used to \emph{completely} confine a
+context: the sender can label messages with this origin, which when
+inspected will raise the label to this ``fake'' origin, thereby
+ensuring that it cannot communicate except with the parent (who has
+the fresh origin privilege).
+%
+%
 
 %% %%XXX(ds): MOVE to implementation:
 %% For example, our implementation modifies existing browsing contexts to
