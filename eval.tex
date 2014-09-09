@@ -96,7 +96,7 @@ is
 faster than communicating with Web Workers.
 %
 This speedup is due to the fact that the light-weight workers share
-share an (OS thread and) event-loop with their parent.
+ an (OS thread and) event-loop with their parent.
 %
 However, this does mean that at 90 messages, we exhaust the call
 stack.
@@ -133,7 +133,8 @@ to be a rare occurrence.
 %
 Moreover, there is much room for optimization: in some cases,
 we could avoid changing the underlying CSP policy and document
-origin upon a label range, if a compartment is already completely confined.
+origin upon a label range, if a compartment is already completely confined 
+\todo{}{What about examplifying like ``, i.e., when the CSP policy has been set to default-src `none`''}.
  
 \paragraph{DOM} We also executed the Dromaeo benchmark suite~\cite{dromaeo} on both
 Firefox and Chromium.
