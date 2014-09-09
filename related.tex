@@ -1,14 +1,13 @@
 \section{Related Work}
 \label{sec:related}
 
-Existing implementations of information flow control in the browser can
-be classified either as \emph{fine-grained}, which associate IFC
-policies with individual objects in the browser, or
-\emph{coarse-grained}, which associate policies with
-entire compartments and browsing contexts.  Because \sys{} is a
-coarse-grained IFC system, we first compare it to other coarse-grained
-systems, and then talk both generally and in particular with how
-it compares to fine-grained systems.
+Existing implementations of information flow control in the browser
+can be classified either as \emph{fine-grained} or
+\emph{coarse-grained} The former associate IFC policies with
+individual objects, while the latter associate policies with entire
+browsing contexts. We first first compare \sys{} to other
+coarse-grained systems, and then discuss how it compares with
+fine-grained systems.
 
 \paragraph{Coarse-grained IFC} \sys{} shares many features
 with existing coarse-grained systems.
@@ -38,28 +37,28 @@ For the same reasons, BFlow cannot support applications that require
 security policies more flexible than the SOP, such as our third-party
 mashup example.
 %
-These differences reflect different goals for the two systems: BFlow's
-authors set out to confine untrusted third-party scripts; in contrast,
-we also seek to support applications that incorporate code from mutually
+These differences reflect different goals for the two systems. BFlow's
+authors set out to confine untrusted third-party scripts, while we
+also seek to support applications that incorporate code from mutually
 distrusting parties.
 
 
 % DCS 
-More recently, Akhawe \emph{et al.}~proposed the data-confined
-sandbox (DCS) system~\cite{Akhawe2013}, which provides pages with the
-ability to intercept and monitor the network, storage, and cross-origin
-channels of certain iframes.
+More recently, Akhawe \emph{et al.}~propose the data-confined sandbox
+(DCS) system~\cite{Akhawe2013}, which allows pages to intercept and
+monitor the network, storage, and cross-origin channels of certain
+iframes.
 %
 Such monitoring can in principle confine code such as the
 password-strength checker.
 %
-However, the way DCS implements confinement is fundamentally limited to \verb|data:|
-URI iframes, and, as a result, DCS cannot confine a service provided
-in an iframe (the common case, both to isolate the enclosing page from
-the script and because the checker's author may not want to share
-source code\cite{postman}).
+However, DCS's confinement implementation is fundamentally limited to
+\verb|data:| URI iframes, and, as a result, DCS cannot confine a
+service provided in an iframe---the common case, both to isolate the
+enclosing page from the script and because the checker's author may
+not want to share source code\cite{postman}.
 %
-Like BFlow, DCS does not offer symmetrical confinement---an iframe
+Like BFlow, DCS does not offer symmetric confinement---an iframe
 cannot impose restrictions on its parent. It therefore cannot support
 applications that combine code from mutually distrusting origins, as
 does the encrypted document editor example.
@@ -70,86 +69,84 @@ SOP\@.
 
 \paragraph{Fine-grained IFC}
 Fine-grained IFC systems differ from \sys{} in that they track
-information flow at the level of objects, allowing applications
-to take advantage of information flow control without explicitly
-compartmentalizing their applications. This makes it easier to
-confine untrusted libraries which are closely coupled with trusted
-code on a page (as is jQuery) and helps avoid the issue of
-\emph{over-tainting}, or \emph{label creep},
-where a single context repeatedly accumulates taint as it interacts
-with more data.
+information flow at the level of objects, allowing developers to take
+advantage of information flow control without explicit
+compartmentalization of applications. This approach eases confining
+untrusted libraries that are closely coupled with trusted code on a
+page (as is jQuery) and helps avoid the problem of
+\emph{over-tainting}, or \emph{label creep}, where a single context
+repeatedly accumulates taint as it interacts with more data.
 
 % JSFlow 
 JSFlow~\cite{JSFlow} is one such fine-grained JavaScript IFC system, which
 enforces policies by executing JavaScript in an interpreter written in
 JavaScript.
 %
-One difficulty with JSFlow is that
-its implementation incurs a two orders of magnitude slowdown:
-JSFlow's authors suggest that this cost makes JSFlow a better fit for use as a development tool than
-as an ``always-on'' privacy system for users' browsers.
+One difficulty with JSFlow is that its implementation incurs a two
+order of magnitude slowdown: JSFlow's authors suggest that this cost
+makes JSFlow a better fit for use as a development tool than as an
+``always-on'' privacy system for users' browsers.
 %
 Additionally, JSFlow does not support applications that rely on policies
 more flexible than the SOP, such as our third-party mashup example.
 
 % With our
-Another fine-grained IFC system is FlowFox~\cite{DeGroef:2012},
-which uses secure-multi execution
-(SME)~\cite{Devriese:2010} in order to enforce policies. SME ensures that no leaks
-from a sensitive context can leak into a less sensitive context by
-executing a program multiple times.
+The FlowFox fine-grained IFC system~\cite{DeGroef:2012} enforces
+policies with secure-multi execution (SME)~\cite{Devriese:2010}. SME
+ensures that no leaks from a sensitive context can leak into a less
+sensitive context by executing a program multiple times.
 %
 Unlike JSFlow and \sys{}, SME is not amenable to
 scenarios where declassification plays a key role (\emph{e.g.,} the encrypted
 editor or the password manager).
 %
 FlowFox's labeling of user interactions and metadata (history, screen
-size, \emph{etc.}) do allow it to mitigate history sniffing and behavior
-tracking;
-these attacks are not addressed by \sys{}, where developers must
-impose policy on the data to be shared.
+size, \emph{etc.}) do allow it to mitigate history sniffing and
+behavior tracking; \sys{} does not address these attacks, where
+developers must impose policy on the data to be shared.
 
 In general, fine-grained IFC systems may be more convenient for
 developers since they do not require thinking about
 compartmentalization.
 %
-However, these systems do imposes a new language semantics that
+However, these systems do impose new language semantics that
 developers would need to learn; this is in contrast to COWL's approach
-of re-purposing already-familiar isolation units.
+of repurposing familiar isolation constructs.
 %
-By their nature, coarse-grained IFC systems are also more
-amendable to fast (and less intrustive) implementations.
+By their nature, coarse-grained IFC systems are also more amenable to
+faster, less invasive implementations.
 %
-Furthermore, many of the downsides of coarse-grained IFC can be overcome
-in practice: we conjecture that coarse-grained and fine-grained IFC are
-equally expressive, provided one can use arbitrarily many compartments;
-additionally, the fact that browsing compartments are short-lived helps
-avoid excessive accumulation of taint. 
+Furthermore, we believe that many of coarse-grained IFC's limitations
+can be overcome in practice. We conjecture that coarse-grained and
+fine-grained IFC are equally expressive, provided one may use
+arbitrarily many compartments. In addition, browsing contexts'
+typically short lifetimes help avoid excessive accumulation of taint.
 %
-Ultimately, however, coarse- and
-fine-grained mechanisms are not mutually exclusive; for instance, when
-dealing with legacy JavaScript code, JSFlow could be used within
-a COWL context to confine the code in a more fine-grained fashion.
+Ultimately, however, coarse- and fine-grained mechanisms are not
+mutually exclusive. For instance, one could deploy JSFlow within a
+COWL context to confine legacy (non-compartmentalized) JavaScript code
+in a more fine-grained fashion.
 
 \paragraph{Sandboxing}
-There is much work on sandboxing and developing subsets of JavaScript (\emph{e.g.,}
-Caja~\cite{GoogleCaja}, BrowserShield~\cite{Reis:2007},
+The literature on sandboxing and secure subsets of JavaScript is rich,
+and includes Caja~\cite{GoogleCaja}, BrowserShield~\cite{Reis:2007},
 WebJail~\cite{VanAcker:2011}, TreeHouse~\cite{Ingram:2012},
 JSand~\cite{Agten:2012:JCC}, SafeScript~\cite{SafeScript}, Defensive
-JavaScript~\cite{djs}, and Embassies~\cite{Howell:2013}). 
+JavaScript~\cite{djs}, and Embassies~\cite{Howell:2013}).
 %
 While our design has been inspired by some of these systems (\emph{e.g.,}
 TreeHouse), the usual goals of these systems are to mediate
 security-critical operations, restrict access to the DOM, and restrict
 communication APIs\@.
 %
-In contrast to the mandatory nature of confinement, however, most restrictions
-are imposed in a discretionary fashion and are thus not suitable to the
-building a number of the applications we consider (in particular, the encrypted
-editor).
+In contrast to the mandatory nature of confinement, however, these
+systems impose most restrictions in discretionary fashion, and are
+thus not suitable for building some of the applications we consider
+(in particular, the encrypted editor).
 %
-Nevertheless, we believe that access control and language subsets are a crucial
-complement to confinement when building robust secure applications.
+Nevertheless, we believe that access control and language subsets are
+crucial complements to confinement for building robustly secure
+applications.
 
 % Local Variables:
 % TeX-master: "main.ltx"
