@@ -11,7 +11,7 @@ systems, and then talk both generally and in particular with how
 it compares to fine-grained systems.
 
 \paragraph{Coarse-grained IFC} \sys{} shares many features
-with coarse-grained systems.
+with existing coarse-grained systems.
 % BFlow
 %
 BFlow~\cite{Yip:2009:PBS}, for example, allows web sites to enforce confinement policies
@@ -74,7 +74,10 @@ information flow at the level of objects, allowing applications
 to take advantage of information flow control without explicitly
 compartmentalizing their applications. This makes it easier to
 confine untrusted libraries which are closely coupled with trusted
-code on a page (as is jQuery).
+code on a page (as is jQuery) and helps avoid the issue of \emph{over-taint},
+where a single compartment repeatedly accumulates taint as it interacts
+with more data.
+
 % JSFlow 
 JSFlow~\cite{JSFlow} is one such fine-grained JavaScript IFC system, which
 enforces policies by executing JavaScript in an interpreter written in
@@ -105,9 +108,16 @@ tracking;
 these attacks are not addressed by \sys{}, where developers must
 impose policy on the data to be shared.
 
-Ultimately, however, coarse- and fine-grained mechanisms are not mutually
-exclusive; for instance, when dealing with legacy JavaScript code, JSFlow could be
-implemented within a COWL compartment.
+In general, fine-grained IFC systems are more convenient for users;
+however, the performance benefits of coarse-grained IFC are compelling.
+Furthermore, many of the downsides of coarse-grained IFC can be overcome
+in practice: we conjecture that coarse-grained and fine-grained IFC are
+equally expressive, provided one can use arbitrarily many compartments;
+additionally, the fact that browsing compartments are short-lived helps
+avoid excessive accumulation of taint.  In any case, coarse- and
+fine-grained mechanisms are not mutually exclusive; for instance, when
+dealing with legacy JavaScript code, JSFlow could be implemented within
+a COWL compartment.
 
 \paragraph{Sandboxing}
 There is much work on sandboxing and developing subsets of JavaScript (e.g.,
