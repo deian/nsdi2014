@@ -81,44 +81,50 @@ it operates on very similar principles to the encrypted document editor.
 \begin{figure}
 \centerline{\includegraphics[width=\columnwidth]{mashup}}
 \caption{\label{fig:mashup} Third-party mashup under \sys{}.\todo{}{It should be
-  chase.com instead of bank.ch}}
+  chase.com instead of bank.ch; should be mint.com}}
 \end{figure}
 The key feature that enables us to build third-party mashups is
-labeled XHR, as it composes with CORS.  In Figure~\ref{fig:mashup},
-the architecture for an application which reconciles a user's Amazon
-purchases and bank statement is shown.  As opposed to the encrypted
-document editor, the architecture for this mash-up is very simple: we
-just download information from a few websites, and then do some
-computation on them.
-
-In this application, COWL's introduction of labeled XHR composes usefully with
-CORS. Today's CORS policies are DAC-only, such that a server must
-Labeled XHR (Section~\ref{sec:labeled-xhr}) provides a solution to
-this conundrum.  First, we make labeled XHRs to both web sites (1),
-maintaining our current label but receiving labeled blobs.  Once all of
-the information is received, we raise our current label by unlabeling
-the Blobs (2--3), in the process restricting our communication to the
-web at large.
-
-\Red{XXX bk: moved here from design; needs to be pared down
-and integrated.}
-We note that COWL's introduction of labeled XHR composes usefully with
-CORS. Today's CORS policies are DAC-only, such that a server must
+labeled XHR, as it composes with CORS.
+%
+Today's CORS policies are DAC-only, such that a server must
 either allow another origin to read its data, and fully trust that
 origin not to disclose the data, or deny the other origin access to
 the data altogether. Under COWL, however, a server could
 CORS-whitelist a foreign origin to permit that origin to read its
 data, and by setting a label on its response, be safe in the knowledge
 that COWL would appropriately confine the foreign origin's scripts in
-the browser. For example, Chase could expose a read-only bank
-statement HTTP API that whitelists known applications' origins, such
-as \https{mint.com}, but sets MAC labels on responses. Here, Chase
-need not trust Mint to write bug-free code---COWL confines the Mint
-code to ensure that it cannot arbitrarily leak bank statements. As we
-discuss in Section~\ref{sec:discussion}, however, a malicious Mint
-application could potentially leak data through covert channels.  We
-emphasize that COWL nevertheless offers a significant improvement over
-the status quo, in which, e.g., users give their login credentials to
+the browser.
+ 
+In Figure~\ref{fig:mashup},
+the architecture for an application which reconciles a user's Amazon
+purchases and bank statement is shown. 
+%
+Here, Chase and Amazon respectively expose (read-only) bank statement,
+and purchase history APIs that whitelist known applications' origins,
+such as \https{mint.com}, but set MAC labels on responses.
+%
+(As discussed in Section~\ref{sec:discussion}, with MAC in place, COWL
+allows users to otherwise augment CORS by whitelisting cross-origins
+on a per-origin basis.)
+%
+The rest is very simple.
+%
+Using labeled XHR we make requests to both web sites (1),
+to receive the bank statement and
+purchase history as labeled Blobs.
+%
+Once all of the information is received, we unlabel it and raise
+our context label accordingly (2--3); this restricts our communication
+to the web at large.
+
+We remark that, in contrast to solely using CORS, by setting by MAC
+labels on responses, Chase and Amazon need not trust Mint to write
+bug-free code---COWL confines the Mint code to ensure that it cannot
+arbitrarily leak bank statements or purchase histories. As we discuss
+in Section~\ref{sec:discussion}, however, a malicious Mint application
+could potentially leak data through covert channels.  We emphasize
+that COWL nevertheless offers a significant improvement over the
+status quo, in which, e.g., users give their login credentials to
 Mint, and thus not only trust Mint to keep their bank statements
 confidential, but also not to steal their funds!
 
