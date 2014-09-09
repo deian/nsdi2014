@@ -236,7 +236,7 @@ her {\em own} server and have that server specify a CSP policy for the
 page.
 %
 Unfortunately, a CSP policy that disallows scripts within the page
-from initiating XHRs to any other origins is \emph{too} inflexible, in
+from initiating XHRs to any other origins is \emph{too inflexible,} in
 that it precludes useful operations by the checker script, \emph{e.g.,}
 retrieving an updated set of regular expressions describing weak
 passwords from a remote server (essentially, ``updating'' the
@@ -244,7 +244,7 @@ checker's functionality). Doing so requires communicating with a
 remote origin.
 %
 Yet a CSP policy that permits such communication, even with the
-top-level page's same origin, is \emph{too} permissive: a malicious
+top-level page's same origin, is \emph{too permissive:} a malicious
 script could potentially carry out a \emph{self-exfiltration attack}
 and write the password to a public part of a trusted
 origin~\cite{Yip:2009:PBS, selfex}.
