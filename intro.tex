@@ -10,6 +10,9 @@ content and services. Such reuse is ubiquitous\@. jQuery, a widely used
 JavaScript library, is included in and used by over 77\% of the
 Quantcast top-10,000 web sites, and 59\% of the Quantcast top-million
 web sites~\cite{quantcast}.
+\Red{Not clear how jQuery is an example of network-accessible content
+  and services.  Is that point that most people use the version hosted
+  by Google?  If so must state explicitly.}
 
 The resulting model is one in which web developers cobble together
 multiple JavaScript libraries, web-based content, and web-based
@@ -30,12 +33,12 @@ building of applications with rich functionality, composable from
 potentially disparate pieces hosted by different sites); and
 \emph{privacy} for the user (\emph{i.e.,} to ensure that the user's sensitive
 data cannot be leaked from applications to unauthorized parties).
-These two goals are hardly new: Wang {\em et al.}~articulated similar
+These two goals are hardly new: Wang {\em et al.}\ articulated similar
 ones, and proposed new browser primitives to improve isolation within
 {\em mashups,} including discretionary access control (DAC) for inter-frame
 communication~\cite{mashupos}. Indeed, today's browsers incorporate
 similar mechanisms in the guises of HTML5's seamless iframes, iframe
-sandbox, and postMessage API~\cite{html5}. And the Same-Origin Policy
+sandbox, and postMessage API\@~\cite{html5}. And the Same-Origin Policy
 (SOP, reviewed in Section~\ref{sec:backgd}) prevents JavaScript hosted
 by one principal from reading content hosted by another.
 
@@ -100,7 +103,7 @@ confine the other's use of the passed sensitive data. Hierarchical
 confinement allows any developer to confine code she does not trust,
 and confinement to be nested to arbitrary depths. And delegation
 allows a developer explicitly to confer the privileges of one execution
-context explicitly on a separate execution context.
+context on a separate execution context.
 %
 No prior browser security architecture offers this combination of
 properties.
