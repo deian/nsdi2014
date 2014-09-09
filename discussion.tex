@@ -49,10 +49,6 @@ response has been inspected, the code cannot communicate with
 requests carry the risks of self-exfiltration~\cite{selfex} and
 cross-site request forgery~\cite{CSRF}.
 %
-While users may white-list malicious origins, which, as we discuss
-below, can leak information through covert channels, this is still an
-improvement over the status quo where users would otherwise have given
-out their credentials.
 
 
 \paragraph{Covert Channels}
@@ -69,8 +65,8 @@ protect against covert channel attacks.
 Indeed, malicious code can leverage covert channels already present in
 the browser to leak sensitive information.
 %
-For instance, a malicious compartment may exploit rendering durations,
-as in~\tocite{}, to leak sensitive data to a less-tainted compartment
+For instance, a malicious context may exploit rendering durations,
+as in~\tocite{}, to leak sensitive data to a less-tainted context
 which may, in turn, exfiltrate the data to a remote host.
 %
 Importantly, however, COWL does not introduce new covert channels--our
@@ -84,25 +80,17 @@ through \emph{overt} channels and, in effect, force malicious code to
 resort to using covert channels.
 
 
-COWL only relaxes existing policies with \lcors.
+COWL only relaxes existing policies when allowing users to override
+CORS as to permit cross-origin (labeled) sharing.
 %
-As described in Section~\toref{}, a compartment can use \lcors{} to
-read cross-origin XHR responses otherwise not be permitted by the SOP
-or (potentially) even CORS.
+At first this may appear as completely new risk.
 %
-Of course, COWL confines such code and restricts its ability to
-communicate once it inspects a response.
-%
-But, nevertheless, if the code is malicious it may potentially leak the
-sensitive information through a covert channel.
- 
-At first this may appear as new risk.
-%
-However, we remark that \lcors{} is user controlled (e.g., the user
-must explicitly allow \https{mint.com} to read \https{amazon.com} and
-\https{chase.com} data), and code reading cross-origin data is
-subject to MAC (e.g., \https{mint.com} will arbitrarily exfiltrate
-the \https{amazon.com} or \https{chase.com} data after reading it).
+However, we remark that the white-listing is user controlled (e.g.,
+the user must explicitly allow \https{mint.com} to read
+\https{amazon.com} and \https{chase.com} data), and code reading
+cross-origin data is subject to MAC (e.g., \https{mint.com} cannot
+arbitrarily exfiltrate the \https{amazon.com} or \https{chase.com}
+data after reading it).
 %
 This is in contrast to the approaches used by existing mash-up such as
 \https{mint.com} which ask users for their passwords.
@@ -111,28 +99,28 @@ Indeed, COWL is a strict improvement over existing approaches: when
 deciding to trust a mashup integrator such as \https{mint.com} users
 are only trusting the app to not leak their data through covert
 channels.
+%
+Nevertheless, users make poor security choices and whitelisting
+malicious origins will be no exception; we recognize this is as a
+limitation of COWL that must ultimately be communicated to the end-user
+(much like SSL certificates).
 
-Trustworthy developers can further leverage COWL's support for
+Trustworthy developers, can leverage COWL's support for
 \emph{clearance} when compartmentalizing their application to ensure
-that only code that actually relies on \lcors{} can access
-cross-origin responses.
+that only code that actually relies on cross-origin data has access to
+it.
 %
 Clearance is a label that serves as an upper bound on the (current)
 label of a compartment and since the current label is adjusted
 according to the sensitivity of the data being read, code cannot read
 (and thus leak) data labeled above the clearance.
 %
-Hence, apps like \https{mint.com} can assign a ``low'' clearance to
+With clearance, Mint can assign a ``low'' clearance to
 third-party libraries that they do not trust to keep (e.g.,
 \https{chase.com}) data confidential.
 %
 In turn, these libraries, even if they are malicious, will not be able
 to leak such data through covert channels.
-%
-While COWL fully implements clearance, we do not discuss it further;
-our treatment of it is standard and follows directly
-from~\cite{efstathopoulos:asbestos, Zeldovich:2006,
-stefan:2011:flexible, Breeze13}.
 
 %%%%
 
