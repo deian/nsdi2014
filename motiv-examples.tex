@@ -12,7 +12,8 @@ distrusted) third parties. To make concrete the diversity of potential
 trust relationships between scripts' authors and diverse ways page
 developers may structure amalgamations of scripts, we describe several
 example web applications, none of which can be implemented with strong
-privacy for the user in today's web browsers. These examples
+privacy \todo{}{What does it mean strong? Is there a weak privacy notion? why
+  not just privacy?} for the user in today's web browsers. These examples
 illustrate key requirements for the design of a flexible browser
 confinement mechanism. Before describing these examples, however, we
 offer a brief refresher on status-quo browser privacy polices.
@@ -74,7 +75,7 @@ origin should only be readable by content from the same
 origin~\cite{rfc6454, googlehandbook, VanKesteren2012}.  Browsers
 ensure that code executing in an \https{a.com} context can only
 inspect the DOM and cookies of another context if they share the same
-(i.e., \https{a.com}) origin. Similarly, such code can only inspect
+ origin, i.e., \https{a.com}. Similarly, such code can only inspect
 the response to a network request (performed with XHR) if the remote
 host's origin is \https{a.com}.
 %
@@ -162,6 +163,13 @@ the message.
 %% man-in-the-middle attack by navigating the context to whom the message
 %% was destined for to a page they control (wherein they read the
 %% message)~\cite{barth2009securing}.
+
+\todo{}{It would be better to emphazise who sets CORS. What about:
+  CORS~\cite{cors13} goes a step further, and allows web servers to extend the
+  (cross-) domains capable to observe its responses. Under CORS, a server may
+  include a header on returned content that explicitly whitelists other
+  origin(s) to read its responses.\footnote{Recall that the default SOP blocks a
+    context from reading a response from a different origin.}  }
 
 CORS~\cite{cors13} goes a step further, and allows controlled
 cross-origin communication between a browsing context of one origin
@@ -273,7 +281,14 @@ origins for which a script executing in that compartment is trusted,
 appears within a crown. Here, a top-level page at \js|fb.com|
 encapsulates a password-checker script from a third-party origin in a
 new compartment. The label of the new compartment is initially
-\js|public|. First, in step (1), the checker script is free to
+\js|public|. 
+\todo{}{Here, it would be clearer to refer explicitly to the message, e.g., 
+``In step (2), the top-level page sends the user's password to 
+the checker script's worker, denote by the message $[``password'']_{fp.com}$---
+we ignore the messages subindexes (to be explained in Section XXX)''}
+\todo{}{We need to describe better what is a label and a privilege in the
+  picture. A bit confusing with the underline. The crown is a good idea}
+First, in step (1), the checker script is free to
 download updated regular expressions from an arbitrary remote
 origin. In step (2), the top-level page sends the user's password to
 the checker script's worker using \js|postMessage|; the password is
