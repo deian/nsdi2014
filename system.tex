@@ -478,83 +478,157 @@ doing so may leak information.\footnote{To continuously process data
 \subsection{Privileges}
 \label{sec:system:privileges}
 
-% 
+While confinement handily enforces secrecy, there are occasions when
+an application must eschew confinement in order to achieve its goals,
+and yet can uphold secrecy while doing so. For example, a context may
+be confined with respect to some origin (say, \https{a.com}) as a
+result of having received data from that origin, but may need to send
+an encrypted version of that data to a third-party origin. Doing so
+does not disclose sensitive data, but COWL would normally prohibit
+such an operation. In such situations, how can a context
+\emph{declassify} data, and thus be permitted to send to an arbitrary
+recipient, or avoid the recipient's being confined?
 
-COWL provides every context with unforgeable objects called
-\emph{privileges} with which code can assert authority over
-origins.
+COWL's {\em privilege} primitive enables safe declassification. A
+context may hold one or more privileges, each with respect to some
+origin. Possession of a privilege for an origin by a context denotes
+trust that the scripts that execute within that context will not
+compromise the secrecy of data from that origin. Where might such
+trust come from (and hence how are privileges granted)? Under the SOP,
+when a browser retrieves a page from \https{a.com}, any script within
+the context for the page is trusted not to violate the secrecy of
+\https{a.com}'s data, as these scripts are deemed to be executing on
+behalf of \https{a.com}. COWL makes the analogous assumption by
+granting the privilege for \https{a.com} to the context that retrieves
+a top-level page from \https{a.com}: scripts executing in that context
+are similarly deemed to be executing on behalf of \https{a.com}, and
+thus are trusted not to leak \https{a.com}'s data to unauthorized
+parties---even though they can declassify data. Only the COWL runtime
+can create a new privilege upon retrieval of a page from an origin; a
+script cannot synthesize a valid privilege.
+
+To illustrate the role of privileges in declassification, consider the
+encrypted Google Documents example application. In the implementation
+of this application atop COWL, code executing on behalf of
+\https{nsa.gov} (i.e., in a compartment holding the \https{nsa.gov}
+privilege) with a current label \dcLabelS{\https{nsa.gov} $\land$
+  \https{gdoc.com}}{} is permitted to send messages to a context
+labeled \dcLabelS{\https{gdoc.com}}{}.
 %
-Privileges are used to allow flows otherwise not permitted by COWL's
-label checks.
+Without the \https{nsa.gov} privilege, this flow would not be allowed,
+as it may leak the NSA's information to Google.
 %
-For example, code executing on behalf of \https{nsa.gov} with a
-current label \dcLabelS{\https{nsa.gov} $\land$ \https{gdoc.com}}{}
-is allowed to send messages to a context labeled
-\dcLabelS{\https{gdoc.com}}{}.
-%
-Without the \https{nsa.gov} privilege this flow would not be
-allowed since it may be leaking NSA information to Google.
-%
-Indeed by using privileges NSA is declassifying the message, i.e., it
-no longer considers it sensitive (since, for instance, it may be
-encrypted).
-%
+%% NSA is declassifying the message by using privileges. i.e., it
+%% no longer considers it sensitive (since, for instance, it may be
+%% encrypted).
+
 Similarly, code can declassify information when unlabeling messages.
 %
-For example, Facebook leverages the \https{fb.com} privilege to
-declassify the password strength result, which is labeled with its
-origin, to avoid (unecessarily) raising its label to \https{fb.com}.
+Consider now the password checker example application. The left
+context in Figure~\ref{fig:checker} leverages its \https{fb.com}
+privilege to declassify the password strength result, which is labeled
+with its origin, to avoid (unecessarily) raising its label to
+\https{fb.com}.
 %
-(Alternatively it would need to use the privilege to lower its current
-label.)
+%% (Alternatively it would need to use the privilege to lower its current
+%% label.)
 
-In COWL, privileges are \emph{implicitly} exercised: if a context
-has a privilege, code will always attempt to use it.
+
+% COWL analog: when browser retrieves page from a.com, the context in
+% which the page resides is trusted not to violate secrecy of a.com's
+% data. COWL renders this trust explicit by granting this context the
+% \emph{privilege} for a.com. Scripts executing in that context are
+% deemed to be executing on behalf of a.com. They are therefore
+% trusted to perform two operations that would otherwise be vulnerable
+% to abuse by a potentially malicious script executing on behalf of an
+% untrusted principal: declassification and delegation.
+
+% Declassification denotes stripping a secrecy label from data, and
+% thus avoiding confinement of the data's recipient. Intuitively, if a
+% context has the privilege for an origin and scripts executing within
+% that context are thus trusted to be executing on behalf of that
+% origin, then they can be trusted not to leak sensitive information.
+% In some cases, a context within an application must declassify in
+% order to achieve the desired functionality. [gdocs example]
+
+% COWL exercises privileges implicitly upon message receipt (both of
+% postMessage messages and labeled Blobs). That is,
+% if a compartment holds the privilege for an origin, it always
+% declassifies data labeled with that origin upon receipt---i.e., it
+% need not raise its label to include that origin in order to read the
+% message's payload. COWL eschews implicit declassification on
+% sending messages, however, as errors of omission would then
+% result in 
+
+% A context that holds the privilege for
+% a.com declassifies data with respect to a.com before sending
+% it---that is, the receiving context need not raise its label to
+% include a.com to receive the data, and thus is not confined by
+% a.com. Because holding the privilege for a.com denotes being trusted
+% not to violate the secrecy of a.com's data, COWL permits this
+% declassification. 
+
+
+%% COWL provides every context with unforgeable objects called
+%% \emph{privileges} with which code can assert authority over
+%% origins.
+%% %
+%% Privileges are used to allow flows otherwise not permitted by COWL's
+%% label checks.
 %
-While the alternative approach of requiring privileges to be exercised
-explicitly (e.g., when sending messages) may be safer~\tocite{histar,
-lio}, we found this to over-complicate existing asynchronous web
-APIs.\footnote{
-  Exposing a new set of communication primitives would simplify this,
-  but one our goals with COWL is to avoid imposing new programming
-  models on developers.
-}
 %
-Instead, COWL gives code control over the use of privileges by
-allowing it to get and set the underlying context privileges.
+
+COWL generally exercises privileges \emph{implicitly:} if a context
+holds a privilege, code executing in that context will always attempt
+to use it.
 %
-Code can drop privileges by setting the context privileges to
+While the alternative approach of explicit exercise of privileges
+(e.g., when sending messages) may be
+safer~\cite{Zeldovich:2006}~\tocite{lio}, we find it a poor fit with
+existing asynchronous web APIs.
+%% \footnote{ Exposing a new set of communication primitives would
+%%   simplify this, but one our goals with COWL is to avoid imposing new
+%%   programming models on developers.  }
+%
+COWL instead lets code control the use of privileges by allowing code
+to get and set the underlying context's privileges.
+%
+Code can drop privileges by setting its context's privileges to
 \js|null|.
 %
-This is useful, for example, when confining a context that contains
-(intrusive) untrusted libraries such as jQuery; here, we drop the
-context privilege to ensure that jQuery cannot act on behalf of the
-origin and arbitrarily leak data.
+Dropping privileges is of practical use in confining closely
+coupled untrusted libraries like jQuery, as illustrated in
+Section~\ref{sec:apps-third-party}.
+%% Doing so is useful, for example, when confining a context that
+%% contains (intrusive) untrusted libraries such as jQuery; here, we drop
+%% the context privilege to ensure that jQuery cannot act on behalf of
+%% the origin and arbitrarily leak data.
 %
-In addition, we can provide a programming model wherein privileges
-must be explicitly exercised as a library that wraps functions (e.g.,
-\js|postMessage|), internally setting and dropping privileges.
+%% In addition, we can provide a programming model wherein privileges
+%% must be explicitly exercised as a library that wraps functions (e.g.,
+%% \js|postMessage|), internally setting and dropping privileges.
 
 % Initial privileges and privilege creation
-By default, a browsing context has the privilege corresponding to the
-page origin.
+%% By default, a browsing context has the privilege corresponding to the
+%% page origin.
 %
-While privileges for existing origins cannot be created, COWL allows 
-one context to grant its privileges (or a subset of them) to another.
+COWL allows one context to {\em delegate} its privileges (or a subset
+of them) to another; this functionality is also instrumental in
+confining untrusted libraries like jQuery.
 %
-In our jQuery example, the application delegates a child context its
-privileges before loading jQuery; this allows the context to act on
-its behalf, while leaving the main context confined.
+%% In our jQuery example, the application delegates a child context its
+%% privileges before loading jQuery; this allows the context to act on
+%% its behalf, while leaving the main context confined.
 %
-Equally important, COWL allows a context to create privileges for
-\emph{fresh} origins, i.e., unique origins that do not have a real
+COWL also allows a context to create privileges for \emph{fresh}
+origins, i.e., unique origins that do not correspond to a real URI
 scheme (and thus do not map to real servers).
 %
 These fresh origins are primarily used to \emph{completely} confine a
-context: the sender can label messages with this origin, which when
-inspected will raise the label to this ``fake'' origin, thereby
-ensuring that it cannot communicate except with the parent (who has
-the fresh origin privilege).
+context: the sender can label messages with this origin, which upon
+inspection will raise the receiver's label to this ``fake'' origin,
+thereby ensuring that it cannot communicate except with the parent
+(which holds the fresh origin's privilege).
 %
 %
 
