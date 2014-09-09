@@ -67,6 +67,7 @@ being created, the encryptor iframe must be placed in a separate
 pop-up window, so that the user can verify that encryption has been
 enabled.\footnote{This architecture might be desirable in any case to
   prevent phishing.}
+\Red{I still don't get how the user verifies this.}
 
 We have implemented a password manager atop COWL that lets users
 safely store passwords on third-party web-accessible storage. We elide
@@ -86,7 +87,7 @@ operates similarly to the encrypted document editor.
 \caption{\label{fig:mashup} Third-party mashup under \sys{}.}
 \end{figure}
 Labeled XHR as composed with CORS is central to COWL's support for
-third-p[arty mashups.
+third-party mashups.
 %
 Today's CORS policies are DAC-only, such that a server must either
 allow another origin to read its data and fully trust that origin not
