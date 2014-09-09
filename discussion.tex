@@ -5,6 +5,51 @@ In this section we discuss various design trade-offs, the limitations
 of \sys{} that arise as result of these trade-offs, and future work
 directions for addressing some of these limitations.
 
+\paragraph{User-Configured Confinement} \Red{bk: moved this here
+wholesale from 3, per discussion with Deian; probably needs tailoring
+to fit here, but definitely belongs here.} Recall that in the
+status-quo web security architecture, the SOP by default blocks an
+origin from reading the response from a server of a different
+origin. A server can use CORS to grant individual foreign origins
+access to its data in all-or-nothing, DAC fashion. How does COWL's MAC
+compose with the SOP and CORS's DAC? When a COWL-aware server grants a
+foreign origin access to its data, it confines the foreign origin's
+script(s) by setting a label on responses it sends the client. If a
+COWL-enabled browser encounters an unlabeled response, but a CORS
+header whitelisting the requesting foreign origin, COWL assumes that
+the server is not COWL-aware and COWL itself labels the response with
+a \emph{unique} origin.
+% (as described in Section~\ref{sec:system:privileges}).
+% no longer in that section!? -bk
+Doing so ensures that once the response has been inspected the code
+cannot communicate with \emph{any} server, including at the
+\emph{same} origin,
+% (e.g., \https{chase.com}),
+since such requests carry the risks of
+self-exfiltration~\cite{selfex} and cross-site request
+forgery~\cite{CSRF}.
+
+In both these cases, COWL's confinement system improves privacy over
+the status quo by preventing the foreign origin's scripts from
+straightforwardly disclosing the server's data. Absent a CORS header
+that whitelists a foreign origin, however, the SOP would still
+prohibit that foreign origin from reading responses from the server,
+even in a COWL-enabled browser. The result would be the same
+status-quo unpalatable choice between functionality and
+privacy---e.g., give one's bank login credentials to Mint, or one
+cannot use the Mint application. Given that COWL confines third-party
+scripts, why not have COWL {\em discard} the SOP, and treat {\em all}
+server responses as though they CORS-whitelist the requesting foreign
+origin? A malicious third-party script could attempt to leak sensitive
+data through covert channels, as we discuss below. As such, disabling
+the SOP by default is ill advised. A server's operator can
+CORS-whitelist specific remote origins, and COWL significantly
+improves privacy over the status quo in such cases. But a server's
+operator may not be aware of all applications its users may wish to
+use. For this reason, COWL also allows browser users to augment CORS
+by configuring for an origin any foreign origins they wish to
+additionally whitelist. COWL will confine these foreign origins'
+scripts as above, again improving privacy over the status quo.
 
 \paragraph{Covert Channels}
 In an ideal confinement system, it would always be safe to let untrusted
