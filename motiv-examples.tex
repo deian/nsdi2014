@@ -5,9 +5,9 @@ written by different authors.\footnote{Throughout we use ``web page''
   and ``web application'' interchangeably, and ``JavaScript code'' and
   ``script'' interchangeably.} Ideally, the browser should protect the
 user's sensitive data from unauthorized disclosure, yet afford page
-developers the greatest possible flexibility to construct richly
+developers the greatest possible flexibility to construct %richly
 featureful applications that reuse functionality implemented in
-scripts provided by (potentially distrusted) third parties. To make
+scripts provided by (potentially untrusted) third parties. To make
 concrete the diversity of potential trust relationships between
 scripts' authors and diverse ways page developers may structure
 amalgamations of scripts, we describe several example web
@@ -70,7 +70,7 @@ of a resource URL. For brevity, we elide the protocol and
 port from URLs throughout.
 
 The {\em same-origin policy} (SOP) specifies that an origin's
-resources should only be readable by content from the same
+resources should be readable only by content from the same
 origin~\cite{rfc6454, googlehandbook, VanKesteren2012}.  Browsers
 ensure that code executing in an \https{a.com} context can only
 inspect the DOM and cookies of another context if they share the same
@@ -96,7 +96,9 @@ of an \js|img| element to this URL.
 Modern browsers allow the developer to specify a CSP for a page that
 protects a user's privacy by limiting communication by the page's
 compartment---\emph{i.e.,} that disallows communication that would
-ordinarily be permitted by the default SOP.  Developers may set
+ordinarily be permitted by the default SOP\@.  \Red{I can't parse
+  previous sentence.  Is it the page (nearest antecedent) that
+  protects the user's privacy or the CSP\@?}  Developers may set
 individual CSP directives to restrict the origins to which a context
 may issue requests of specific types (for images or scripts, XHR
 destinations, \emph{etc.})~\cite{csp}. CSP policies suffer from two
@@ -149,7 +151,7 @@ that other context.
 
 \paragraph{postMessage \& Cross-Origin Resource Sharing (CORS)}
 
-As shown in Figure~\ref{fig:primer-browser-arch}, the HTML5
+As illustrated in Figure~\ref{fig:primer-browser-arch}, the HTML5
 \js|postMessage| API~\cite{webmessaging} allows developers to
 communicate between contexts of different origins in IPC-like fashion
 within the browser. A \js|postMessage| sender specifies the intended
@@ -219,7 +221,7 @@ system. %, as well as the overall intuition behind its design.
 (\emph{i.e.,} easily guessable) passwords, many web sites today incorporate
 functionality to check the strength of a password selected by a user
 and offer the user feedback (\emph{e.g.,} ``too weak; choose another,''
-``strong,'' \emph{etc.}). Suppose a developer at Facebook (at origin
+``strong,'' \emph{etc.}). Suppose a developer at Facebook (origin
 \js|fb.com|) wishes to re-use password-checking functionality provided
 in a JavaScript library by a third party, say, from origin
 \js|sketchy.ru|. If the developer at \js|fb.com| simply includes the
@@ -227,7 +229,7 @@ third party's code in a \js|<script>| tag referencing a resource at
 \js|sketchy.ru|, then the referenced script will have unfettered
 access to both the user's password (provided by the Facebook page,
 which the library {\em must} see to do its job) and to write to the
-network via XHR. This simple state of affairs is emblematic of the
+network via XHR\@. This simple state of affairs is emblematic of the
 ease with which na\"{\i}ve web developers can introduce leaks of
 sensitive data in applications.
 
@@ -262,7 +264,9 @@ meets this requirement.
 \begin{figure}
 \centerline{\includegraphics[width=\columnwidth]{checker}}
 \caption{\label{fig:checker} Third-party password checker architecture
-under \sys{}.}
+under \sys{}.
+\Red{The flash looks like it is part of step 3, should it be step 2?}
+}
 \end{figure}
 
 Figure~\ref{fig:checker} shows how such a design might look. In this
@@ -345,7 +349,10 @@ editor app. The editor app could allow the user to specify a JavaScript
 ``plugin'' library she trusts to perform cryptography correctly. In this design,
 one origin serves the JavaScript code for the editor app (say,
 \js|gdocs.com|) and a different origin serves the JavaScript code for
-the cryptography library (say, \js|nsa.gov|). Note that these two
+the cryptography library (say, \js|nsa.gov|).
+\Red{That joke could confuse people.  Maybe better to make the intent
+  clear\--e.g., \texttt{eff.org}.}
+Note that these two
 origins may be {\em mutually distrusting.}  \js|gdocs.com|'s script
 must pass the document's cleartext to a script from \js|nsa.gov| for
 encryption, and would like to confine the execution of the encryption
@@ -469,7 +476,7 @@ We have briefly introduced four motivating web applications that
 achieve rich functionality by combining code from one or more
 untrusted parties. The privacy challenges that arise in such
 applications are unfortunately unaddressed by status-quo browser
-security policies, such as the SOP. These applications clearly
+security policies, such as the SOP\@. These applications clearly
 illustrate the need for robust yet flexible confinement for untrusted
 code in browsers. To summarize, these applications would appear to be
 well served by a system that:
