@@ -12,7 +12,7 @@ This experiments were a series of micro-benchmarks on API functions,
 as well as macro-benchmarks on our example applications.
 %
 All our measurements were conducted on a 4-core i7-2620M machine
-running GNU/Linux 3.13, with 16GB of RAM\@; we used the NodeJS web
+running GNU/Linux 3.13, with 16GB of RAM\@; we used the Node.js web
 server for all our applications.
 
 \subsection{Micro benchmarks}
@@ -85,11 +85,11 @@ respectively) across iframes, workers, and the network.
 %
 For the XHR benchmark, we report the cost of using the labeled XHR
 constructor, i.e., XHR with the response type set to
-\verb|"labeled-blob"|, averaged over 10,000 requests.
+\verb|labeled-blob|, averaged over 10,000 requests.
 %
 Our Chromium implementation utilized a lightweight worker to wrap the XHR
 constructor, so the cost using labeled XHR accounts for an additional
-cross-compartment call.
+cross-contex call.
 
 Once again, communicating with lightweight workers ($\ddagger$)
 is
@@ -134,7 +134,7 @@ to be a rare occurrence.
 Moreover, there is much room for optimization: in some cases,
 we could avoid changing the underlying CSP policy and document
 origin upon a label range, if a compartment is already completely confined 
-\todo{}{What about examplifying like ``, i.e., when the CSP policy has been set to default-src `none`''}.
+%%\todo{}{What about examplifying like ``, i.e., when the CSP policy has been set to default-src `none`''}.
  
 \paragraph{DOM} We also executed the Dromaeo benchmark suite~\cite{dromaeo} on both
 Firefox and Chromium.
@@ -259,7 +259,7 @@ Furthermore, the latter library uses XHR in attempt to leak the page content.
 %
 The bank page is compartmentalized into a public outer component and
 a sensitive iframe containing the user's statement;
-in both compartments, the bank trusted code (which load the libraries)
+in both compartments, the bank trusted code (which loads the libraries)
 is placed in a labeled DOM worker, with access to the page document
 and privilege, treating the rest of the code as untrusted.
 %

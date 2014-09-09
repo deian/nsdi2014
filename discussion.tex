@@ -132,41 +132,52 @@ to leak such data through covert channels.
 % at a low bit rate)}
 
 
-\Red{
 
-
-\paragraph{DC Labels and Lattice-based Policies}
+\paragraph{DC labels and lattice-based Policies}
 \label{sec:discussion:lattice}
+
+COWL uses DC labels~\cite{stefan:2011:dclabels} to enforce
+confinement according to an information flow control discipline.
+%
+Although this approach capture a wide-set of confinement policies, it is not
+suitable for scenarios in which a circular flows of information is
+desired~\cite{Badger:1995}, or when more powerful logics (e.g., first order
+logic as used by Nexus~\cite{sirer2011logical}) are necessary.
+%
+Indeed, even allowing negative formulas in a label would permit more
+expressive policies (e.g., ``this labeled blob cannot be read by \https{a.com},
+but can be read by any other origin''); with DC labels, such policies must be
+encoded by `whitelisting'' all the permitted readers.
  
-Second, and more importantly, \sys{} only enforces latticed-based
-policies, i.e., DC labels dictate where information can be
-disseminated.
+Although DC labels are as expressive as other label
+models~\cite{GenLabels}, including Myer's and
+Liskov's~\emph{Decentralized Label Model}~\cite{dlm}, we
+primarily chose DC labels because of their close correspondence to web
+origins.
 %
-DC labels are similar in expressiveness as the \emph{Decentralized Label
-Model}~\cite{GenLabels}(DLM)\footnote{DLM secrecy policies can be encoded as DC
-  labels when no principals hierarchy is considered.}, but less expressive than first
-order logic. Nevertheless, they closely reflect existing web policies---allowing
-COWL to reuse CSP 
-to enforce them.
+This has two important benefits.
 %
-
-%Although DC labels captures a wide-set of policies, it does not capture 
-%all possible confinement policies.
+First, we believe that web developers will find DC labels intuitive
+and expressive enough to build real applications.
 %
-%For instance, 
-Although lattice-based policies capture a wide-set of confinement practices, 
-they 
-%Lattice-based policies 
-are not suitable for scenarios in which a circular flows of information is
-desired~\cite{Badger:1995}.
+(Recall the expressiveness of today's policies is mostly limited to
+origin-whitelists.)
 %
-Although we could have taken an approach similar to DCS~\cite{Akhawe2013}, where
-policies are given in the form of developer-provided code, we believe that the
-trade-off for DC labels' simplicity---that of simply specifying which origins
-are allowed to read a piece of data---outweighs the ability to specify
-arbitrarily policies and the accompanying complexities.
-
-}
+Our experience building applications, some of which we described in this
+paper, supports this hypothesis;
+their use in server-side applications is also
+encouraging~\cite{giffin:2012:hails, Breeze13, stoughton2014you,
+stefan:2011:flexible}.
+%
+Second, while modifying the browser to support more powerful logics
+and mechanisms is possible, DC labels have the advantage of mapping
+naturally to existing web policies:
+we were able to reuse existing security mechanisms, such as
+CSP, to implement most of the COWL design.
+%% %
+%% (This was a surprising given our previous work showed how IFC can be
+%% used to enforce existing policies, but not the
+%% converse~\cite{yang:2013:towards}.)
 
 
 % Local Variables:
