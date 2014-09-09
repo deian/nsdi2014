@@ -65,7 +65,7 @@ We implemented \sys{} for the Firefox 31.0a1 and Chromium 31.0.1612.0
 browsers.
 %
 Because of our coarse-grained approach,
-we were able to implement \sys{} as a new DOM API for the Gecko and
+we were able to implement \sys{} as a new DOM-level API for the Gecko and
 Blink layout engines, without modifying the JavaScript engines.
 %
 The core parts of this API are shown in Figure~\ref{fig:api}.
@@ -138,7 +138,7 @@ model, we can leverage these wrappers to introduce our new
 security policies.
 %
 A label, clearance, and privilege is now associated with compartments
-alongside the security principle.
+alongside the security principal.
 %
 All of these properties are taken together when making security decisions
 in the wrappers.
@@ -152,23 +152,22 @@ Once confinement-mode is enabled---by using any of the APIs of
 Figure~\ref{fig:api}---we ``recompute'' all the cross-compartment
 wrappers to use our MAC wrapper policy and thereby ensure that all
 subsequent cross-compartment access is mediated by confinement, i.e.,
-it uses labels, and not the SOP\@.
+it uses labels in addition to the SOP\@.
 %
-In addition to implementing the MAC wrapper policy (which simply
-performs label checks), we modified the function that recomputes
+In addition to implementing the MAC wrapper policy (which
+performs the label checks), we modified the function that recomputes
 wrappers to use \sys{}'s wrappers when confinement-mode is enabled.
 %
 When the cross-compartment communication is \js|postMessage|, our
 policy ensures that the receiver's label subsumes that of the sender
-(taking the sender's privileges into consideration); otherwise the
-message is dropped.
+(taking the receiver's privileges into consideration); otherwise the
+message is silently dropped.
 %
 When the communication is a DOM property access, we additionally check
 that the sender's label subsumes that of the receiver, i.e., the labels of
 the compartments are equivalent when considering the sender's
-privileges and that the receiver's DOM-access label and the sender's
-label are equivalent (again taking the sender's privilege into
-consideration).
+privileges (in addition to the same-origin check performed by the
+SOP).
 
 In Blink, the notion of a compartment roughly corresponds to an
 execution context.
@@ -212,7 +211,8 @@ And, second, CSP does not (yet) provide a directive for restricting
 in-browser communication, e.g., with \js|postMessage|.
 }
 it sufficiently addresses our external communication concern by
-precisely controlling from where a page loads content, performs XHR, etc.
+precisely controlling from where a page loads content, performs XHR
+requests to, etc.
 %
 To this end, we set a custom CSP policy whenever the compartment label
 changes, e.g., with \js|COWL.label|.
@@ -226,7 +226,7 @@ navigation~\cite{csp1.1,whatwg-html,html5}.
 %
 
 \paragraph{Storage access}
-As shown in Table~\ref{tab:comm}, we additionally rely on the HTML5
+As shown in Table~\ref{tab:comm}, we rely on the HTML5
 iframe \verb|sandbox| flag (which is the same as the CSP
 \verb|'sandbox'| directive) to restrict access to storage, such as cookies~\cite{html5}.
 %
@@ -239,7 +239,7 @@ iframe \verb|sandbox| flag (which is the same as the CSP
 %% context, and thus ensures that the document can no longer access its
 %% original storage.
 %
-Like~\cite{Akhawe2013}, this is a conservative approach.
+Like~\cite{Akhawe2013}, this is a conservative approach:
 %
 We leave the implementation of labeled storage (and API for it) to
 future work.
@@ -295,8 +295,8 @@ The \js|LWorker| API of Figure~\ref{fig:api:compartments} is used to
 create and communicate with light-weight labeled workers.
 %
 These are distinguished from ``normal'' workers, which create a new OS thread; the
-constructor code for \js|LWorker| simply create a new compartment
-(described below) which contains a fresh JavaScript global; the
+constructor code for \js|LWorker| simply creates a new compartment
+which contains a fresh JavaScript global; the
 execution of this code shares the event-loop with its parent (much
 like creating a callback with \js|setTimeout|).
 %
@@ -305,7 +305,7 @@ penalties of creating OS threads or full IPC for message
 passing---dispatching messages to/from light-weight workers is cheap
 since the data is on the same heap.
 %
-(Of course, this also means that the worker no longer runs in parallel.)
+(Of course, this also means that the worker cannot run in parallel.)
 %
 More importantly, the sharing of the event loop also allows a page to
 give workers access their DOM\@.
