@@ -139,29 +139,31 @@ to leak such data through covert channels.
 COWL uses DC labels~\cite{stefan:2011:dclabels} to enforce
 confinement according to an information flow control discipline.
 %
-Although this approach capture a wide-set of confinement policies, it is not
-suitable for scenarios in which a circular flows of information is
-desired~\cite{Badger:1995}, or when more powerful logics (e.g., first order
-logic as used by Nexus~\cite{sirer2011logical}) are necessary.
+Although this approach captures a wide-set of confinement policies, it
+is not expressive enough to handle policies with a circular flow of
+information~\cite{Badger:1995}, policies expressible in
+more powerful logics (e.g., first order logic, as used by
+Nexus~\cite{sirer2011logical}), etc.
 %
 Indeed, even allowing negative formulas in a label would permit more
-expressive policies (e.g., ``this labeled blob cannot be read by \https{a.com},
+expressive policies (e.g., ``this labeled Blob cannot be read by \https{a.com},
 but can be read by any other origin''); with DC labels, such policies must be
 encoded by `whitelisting'' all the permitted readers.
- 
-Although DC labels are as expressive as other label
+%
+DC labels are, however, as expressive as other popular label
 models~\cite{GenLabels}, including Myer's and
-Liskov's~\emph{Decentralized Label Model}~\cite{dlm}, we
-primarily chose DC labels because of their close correspondence to web
-origins.
+Liskov's~\emph{Decentralized Label Model}~\cite{dlm}.
+
+We primarily chose DC labels because of their close correspondence to
+web origins.
 %
 This has two important benefits.
 %
 First, we believe that web developers will find DC labels intuitive
 and expressive enough to build real applications.
 %
-(Recall the expressiveness of today's policies is mostly limited to
-origin-whitelists.)
+(Recall that developers typically express policies by whitelisting
+origins.)
 %
 Our experience building applications, some of which we described in this
 paper, supports this hypothesis;
