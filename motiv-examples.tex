@@ -270,7 +270,7 @@ arrows denote communication (either between a compartment and the
 network, or IPC-style between compartments), and events during
 execution are numbered sequentially in time. As we proposed
 previously~\cite{yang:2013:towards}, compartments may be
-\emph{labeled} (Section~\ref{sec:labels}) with the origins to whose
+\emph{labeled} (Section~\ref{sec:system:contexts}) with the origins to whose
 sensitive data they have been exposed. A compartment that has not yet
 observed sensitive data is denoted \js|public|; however, when it
 wishes to incorporate sensitive data, the compartment \emph{raises}
@@ -309,6 +309,9 @@ However, the checker script is free to compute the result, which
 it then returns via \js|postMessage| to the top-level page in step (4); the
 result carries the label \js|fb.com| to reflect that the sender may be
 sending data derived from sensitive data owned by \js|fb.com|.
+%
+Since the top-level page has the \js|fb.com| privilege, it can simply
+read the data (without raising its label).
 % bk: unneeded to clutter this first simple example with the below, as
 % other examples illustrate the need for hierarchical confinement?
 %  We note further the requirement of a {\em hierarchical}
