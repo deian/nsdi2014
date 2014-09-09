@@ -84,7 +84,7 @@ cost of sending and receiving a message (\js|PING| and \js|PONG|,
 respectively) across iframes, workers, and the network.
 %
 For the XHR benchmark, we report the cost of using the labeled XHR
-constructor, i.e., XHR with the response type set to
+constructor, \emph{i.e.,} XHR with the response type set to
 \verb|labeled-blob|, averaged over 10,000 requests.
 %
 Our Chromium implementation utilized a lightweight worker to wrap the XHR
@@ -125,7 +125,7 @@ For a random label with a handful of origins, these operations are on
 the order of 1 microsecond.
 %
 The primary cost is recomputing cross-compartment wrappers and
-underlying CSP policy, which ends up costing up to 13ms (e.g., when
+underlying CSP policy, which ends up costing up to 13ms (\emph{e.g.,} when
 the label is raised from public to a third-party origin).
 %
 For many real applications, we expect the raising the current label
@@ -134,7 +134,7 @@ to be a rare occurrence.
 Moreover, there is much room for optimization: in some cases,
 we could avoid changing the underlying CSP policy and document
 origin upon a label range, if a compartment is already completely confined 
-%%\todo{}{What about examplifying like ``, i.e., when the CSP policy has been set to default-src `none`''}.
+%%\todo{}{What about examplifying like ``, \emph{i.e.,} when the CSP policy has been set to default-src `none`''}.
  
 \paragraph{DOM} We also executed the Dromaeo benchmark suite~\cite{dromaeo} on both
 Firefox and Chromium.

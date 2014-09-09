@@ -33,7 +33,7 @@ application example in Figure~\ref{fig:checker}.
 %
 
 {\em Labeled browsing contexts} enforce MAC-based confinement of
-JavaScript at the granularity of a browsing context (e.g., a worker or
+JavaScript at the granularity of a browsing context (\emph{e.g.,} a worker or
 iframe). The rectangular frames in Figure~\ref{fig:checker} are
 labeled browsing contexts. As contexts may be nested, labeled browsing
 contexts allow hierarchical confinement, whose importance for
@@ -55,7 +55,7 @@ denotes the data's label.
 COWL may grant a labeled browsing context one or more {\em
   privileges,} each with respect to an origin, and each of which
 reflects trust that the scripts executing within that context will not
-violate the secrecy of that origin's data, e.g., because the browser
+violate the secrecy of that origin's data, \emph{e.g.,} because the browser
 retrieved them from that origin. A privilege authorizes scripts within
 a context to execute certain operations whose abuse would permit the
 release of sensitive information to unauthorized parties, such as {\em
@@ -73,7 +73,7 @@ unconfined by declassifying the checker response labeled {\tt fb.com}.
 %% privileged, and the right to invoke them as a {\em privilege.} For
 %% example, if a script {\em declassifies} messages it receives from
 %% another context, it will retain the ability to do as it pleases with
-%% the data received in those messages---i.e., the sending context will
+%% the data received in those messages---\emph{i.e.,} the sending context will
 %% not have confined the receiving context. One must trust the script
 %% invoking a privileged operation like declassification not to abuse
 %% it. 
@@ -98,7 +98,7 @@ We now describe these three constructs in greater detail.
 A COWL application consists of multiple labeled contexts.
 %
 Labeled contexts naturally extend today's browser contexts, used to
-isolate iframes, pages, etc., with MAC \emph{labels}.
+isolate iframes, pages, \emph{etc.}, with MAC \emph{labels}.
 %
 A context's label specifies the security policy for all data within
 the context, which COWL enforces by restricting the flow of
@@ -146,7 +146,7 @@ otherwise trusted by the target. That is, the source must be at least
 as trustworthy as the target.
 %
 We say that such a target label ``subsumes'' the source
-label.\footnote{ If communication is bidirectional, e.g., when a
+label.\footnote{ If communication is bidirectional, \emph{e.g.,} when a
   script accesses the DOM in a different context (but of the same
   origin), then both the target and source must subsume each other.}
 %
@@ -165,7 +165,7 @@ comment on integrity where relevant; we refer the interested reader
 to~\cite{stefan:2011:dclabels} for a full description of the label
 model.
 
-A context can freely \emph{raise} its label, i.e., change its label to
+A context can freely \emph{raise} its label, \emph{i.e.,} change its label to
 any label that is more restricting, in order to receive a message
 from an otherwise prohibited context.
 %
@@ -191,7 +191,7 @@ channels in Section~\ref{sec:discussion}.
 
 As noted, COWL allows a labeled context to create additional labeled contexts,
 much like existing browsing contexts can create sub-compartments
-in the form of iframes, workers, etc.
+in the form of iframes, workers, \emph{etc.}
 %
 This functionality is crucial for compartmentalizing a system
 hierarchically, where the developer places code of different degrees
@@ -213,7 +213,7 @@ parent's, to confine the child further.
 %
 To ensure compatibility with pages written for the legacy SOP, a
 COWL-enabled browser assigns a default label of public to top-level
-contexts (i.e., to pages).
+contexts (\emph{i.e.,} to pages).
 %
 Finally, a web server can restrict browsing contexts by setting a
 \js|COWL-label| HTTP response header, which dictates the minimal
@@ -222,7 +222,7 @@ document label the browser must enforce on the associated content.
 COWL applications can create two types of context.
 %
 First, an application can create standard (but labeled) contexts in
-the form of pages, iframes, workers, etc.
+the form of pages, iframes, workers, \emph{etc.}
 %
 Indeed, it may do so because a COWL application is merely a regular
 web application that additionally uses the COWL API. It thus is
@@ -246,14 +246,14 @@ executes in the same thread as its parent, sharing its event loop.
 %
 This sharing has the added benefit of allowing the parent to give the
 child (labeled) access to its DOM, any access to which is treated as
-both a read and a write, i.e., bidirectional communication.
+both a read and a write, \emph{i.e.,} bidirectional communication.
 %
 Our third-party library example uses such a \emph{DOM worker} to
 isolate the trusted application code, which requires access to the DOM
 through the untrusted jQuery library.
 %
 In general, LWorkers---especially when given DOM access---simplify the
-isolation and confinement of scripts (e.g., the password strength
+isolation and confinement of scripts (\emph{e.g.,} the password strength
 checker) that would otherwise run in a shared context, as when loaded
 with \js|<script>| tags.
 
@@ -523,7 +523,7 @@ script cannot synthesize a valid privilege.
 To illustrate the role of privileges in declassification, consider the
 encrypted Google Documents example application. In the implementation
 of this application atop COWL, code executing on behalf of
-\https{nsa.gov} (i.e., in a compartment holding the \https{nsa.gov}
+\https{nsa.gov} (\emph{i.e.,} in a compartment holding the \https{nsa.gov}
 privilege) with a current label \dcLabelS{\https{nsa.gov} $\land$
   \https{gdoc.com}}{} is permitted to send messages to a context
 labeled \dcLabelS{\https{gdoc.com}}{}.
@@ -531,7 +531,7 @@ labeled \dcLabelS{\https{gdoc.com}}{}.
 Without the \https{nsa.gov} privilege, this flow would not be allowed,
 as it may leak the NSA's information to Google.
 %
-%% NSA is declassifying the message by using privileges. i.e., it
+%% NSA is declassifying the message by using privileges. \emph{i.e.,} it
 %% no longer considers it sensitive (since, for instance, it may be
 %% encrypted).
 
@@ -567,7 +567,7 @@ with its origin, to avoid (unecessarily) raising its label to
 % COWL exercises privileges implicitly upon message receipt (both of
 % postMessage messages and labeled Blobs). That is,
 % if a compartment holds the privilege for an origin, it always
-% declassifies data labeled with that origin upon receipt---i.e., it
+% declassifies data labeled with that origin upon receipt---\emph{i.e.,} it
 % need not raise its label to include that origin in order to read the
 % message's payload. COWL eschews implicit declassification on
 % sending messages, however, as errors of omission would then
@@ -595,7 +595,7 @@ COWL generally exercises privileges \emph{implicitly:} if a context
 holds a privilege, code executing in that context will always attempt
 to use it.\footnote{
 While the alternative approach of explicit exercise of privileges
-(e.g., when registering an \js|onmessage| handler) may be
+(\emph{e.g.,} when registering an \js|onmessage| handler) may be
 safer~\cite{Zeldovich:2006, stefan:2011:flexible}, we find it a poor fit with
 existing asynchronous web APIs.}
 %% \footnote{ Exposing a new set of communication primitives would
@@ -622,7 +622,7 @@ of them) to another; this functionality is also instrumental in
 confining untrusted libraries like jQuery.
 %
 Finally, COWL also allows a context to create privileges for \emph{fresh}
-origins, i.e., unique origins that do not correspond to a real URI
+origins, \emph{i.e.,} unique origins that do not correspond to a real URI
 scheme (and thus do not map to real servers).
 %
 These fresh origins are primarily used to \emph{completely} confine a
@@ -639,7 +639,7 @@ thereby ensuring that it cannot communicate except with the parent
 %% %
 %% \js|postMessage|,
 %% same-origin cross-compartment DOM object access,
-%% content loading (via {\tt img} tags, CSS, etc.),
+%% content loading (via {\tt img} tags, CSS, \emph{etc.}),
 %% form submission,
 %% use of the \js|XMLHttpRequest| object,
 %% navigation, and

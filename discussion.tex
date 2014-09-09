@@ -14,7 +14,7 @@ all-or-nothing, DAC fashion.
 %
 COWL improves this state of affairs
 by allowing a COWL-aware server to impose restrictions on how its
-shared data is disseminated, i.e., when the server
+shared data is disseminated, \emph{i.e.,} when the server
 grants a foreign origin access to its data, it can confine the foreign
 origin's script(s) by setting a label on responses it sends the
 client.
@@ -26,16 +26,16 @@ even in a COWL-enabled browser.
 %
 Since a server's operator may not be aware of all applications its
 users may wish to use, the result is usually the same status-quo
-unpalatable choice between functionality and privacy---e.g., give
+unpalatable choice between functionality and privacy---\emph{e.g.,} give
 one's bank login credentials to Mint, or one cannot use the Mint
 application.
 %
 For this reason, we allow browser users to augment CORS
-by configuring for an origin (e.g., \https{chase.com}) any foreign
-origins (e.g., \https{mint.com}, \https{geko-cash.com}) they wish to
+by configuring for an origin (\emph{e.g.,} \https{chase.com}) any foreign
+origins (\emph{e.g.,} \https{mint.com}, \https{geko-cash.com}) they wish to
 additionally whitelist.
 %
-In turn, COWL will confine these client-whitelisted origins (e.g.,
+In turn, COWL will confine these client-whitelisted origins (\emph{e.g.,}
 \https{mint.com}) by labeling every response from the configured
 origin (\https{chase.com}).
 %
@@ -85,10 +85,10 @@ CORS as to permit cross-origin (labeled) sharing.
 %
 At first this may appear as a completely new risk.
 %
-However, we remark that the white-listing is user controlled (e.g.,
+However, we remark that the white-listing is user controlled (\emph{e.g.,}
 the user must explicitly allow \https{mint.com} to read
 \https{amazon.com} and \https{chase.com} data), and code reading
-cross-origin data is subject to MAC (e.g., \https{mint.com} cannot
+cross-origin data is subject to MAC (\emph{e.g.,} \https{mint.com} cannot
 arbitrarily exfiltrate the \https{amazon.com} or \https{chase.com}
 data after reading it).
 %
@@ -116,7 +116,7 @@ according to the sensitivity of the data being read, code cannot read
 (and thus leak) data labeled above the clearance.
 %
 With clearance, Mint can assign a ``low'' clearance to
-third-party libraries that they do not trust to keep (e.g.,
+third-party libraries that they do not trust to keep (\emph{e.g.,}
 \https{chase.com}) data confidential.
 %
 In turn, these libraries, even if they are malicious, will not be able
@@ -142,11 +142,11 @@ confinement according to an information flow control discipline.
 Although this approach captures a wide-set of confinement policies, it
 is not expressive enough to handle policies with a circular flow of
 information~\cite{Badger:1995}, policies expressible in
-more powerful logics (e.g., first order logic, as used by
-Nexus~\cite{sirer2011logical}), etc.
+more powerful logics (\emph{e.g.,} first order logic, as used by
+Nexus~\cite{sirer2011logical}), \emph{etc.}
 %
 Indeed, even allowing negative formulas in a label would permit more
-expressive policies (e.g., ``this labeled Blob cannot be read by \https{a.com},
+expressive policies (\emph{e.g.,} ``this labeled Blob cannot be read by \https{a.com},
 but can be read by any other origin''); with DC labels, such policies must be
 encoded by `whitelisting'' all the permitted readers.
 %

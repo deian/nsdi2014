@@ -22,12 +22,12 @@ it in a tainted \emph{protection zone}---a group
 of iframes that share a common label.
 %
 However, unlike \sys{}, BFlow cannot mediate between mutually
-distrustful principals: e.g., one cannot directly implement the
+distrustful principals: \emph{e.g.,} one cannot directly implement the
 encrypted document editor with BFlow.
 %
 This is because BFlow does not provide symmetric confinement---a
 sub-frame cannot impose any restrictions on its parent---and its
-labels do not support conjunctions of multiple origins (e.g., BFlow
+labels do not support conjunctions of multiple origins (\emph{e.g.,} BFlow
 cannot encode a policy that states that sensitive data may derive from
 data from two web sites).\footnote{ The mutually distrusting scenario
   is further complicated by BFlow's reliance on top-level
@@ -100,11 +100,11 @@ from a sensitive context can leak into a less sensitive context by
 executing a program multiple times.
 %
 Unlike JSFlow and \sys{}, SME is not amenable to
-scenarios where declassification plays a key role (e.g., the encrypted
+scenarios where declassification plays a key role (\emph{e.g.,} the encrypted
 editor or the password manager).
 %
 FlowFox's labeling of user interactions and metadata (history, screen
-size, etc.) do allow it to mitigate history sniffing and behavior
+size, \emph{etc.}) do allow it to mitigate history sniffing and behavior
 tracking;
 these attacks are not addressed by \sys{}, where developers must
 impose policy on the data to be shared.
@@ -132,13 +132,13 @@ dealing with legacy JavaScript code, JSFlow could be used within
 a COWL context to confine the code in a more fine-grained fashion.
 
 \paragraph{Sandboxing}
-There is much work on sandboxing and developing subsets of JavaScript (e.g.,
+There is much work on sandboxing and developing subsets of JavaScript (\emph{e.g.,}
 Caja~\cite{GoogleCaja}, BrowserShield~\cite{Reis:2007},
 WebJail~\cite{VanAcker:2011}, TreeHouse~\cite{Ingram:2012},
 JSand~\cite{Agten:2012:JCC}, SafeScript~\cite{SafeScript}, Defensive
 JavaScript~\cite{djs}, and Embassies~\cite{Howell:2013}). 
 %
-While our design has been inspired by some of these systems (e.g.,
+While our design has been inspired by some of these systems (\emph{e.g.,}
 TreeHouse), the usual goals of these systems are to mediate
 security-critical operations, restrict access to the DOM, and restrict
 communication APIs\@.

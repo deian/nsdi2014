@@ -98,7 +98,7 @@ XHR                        & CSP + DOM interposition
 \\\hline%--------------------------------------------------------
 Browser storage            & SOP + iframe sandbox
 \\\hline%--------------------------------------------------------
-Other (e.g., iframe height)& DOM interposition
+Other (\emph{e.g.,} iframe height)& DOM interposition
 \\\bottomrule
 \end{tabular}
 }
@@ -107,12 +107,12 @@ mechanisms.}
 \label{tab:comm}
 \end{table}
  
-Gecko's existing isolation model relies on JavaScript compartments, i.e.,
+Gecko's existing isolation model relies on JavaScript compartments, \emph{i.e.,}
 disjoint JavaScript heaps, for both efficient garbage collection and
 security isolation~\cite{wagner2011compartmental}.
 %
 The isolation is enforced by ensuring that all cross-compartment
-communication (e.g., \js|postMessage| between iframes) is done through
+communication (\emph{e.g.,} \js|postMessage| between iframes) is done through
 \emph{wrappers}, that implement the object-capability \emph{membrane}
 pattern~\cite{miller2003paradigm,miller2006robust}; membranes enable
 sound reasoning about ``border crossing'' between compartments. 
@@ -151,7 +151,7 @@ confine cross-compartment (which includes cross-iframe) communication.
 Once confinement-mode is enabled---by using any of the APIs of
 Figure~\ref{fig:api}---we ``recompute'' all the cross-compartment
 wrappers to use our MAC wrapper policy and thereby ensure that all
-subsequent cross-compartment access is mediated by confinement, i.e.,
+subsequent cross-compartment access is mediated by confinement, \emph{i.e.,}
 it uses labels in addition to the SOP\@.
 %
 In addition to implementing the MAC wrapper policy (which
@@ -164,7 +164,7 @@ policy ensures that the receiver's label subsumes that of the sender
 message is silently dropped.
 %
 When the communication is a DOM property access, we additionally check
-that the sender's label subsumes that of the receiver, i.e., the labels of
+that the sender's label subsumes that of the receiver, \emph{i.e.,} the labels of
 the compartments are equivalent when considering the sender's
 privileges (in addition to the same-origin check performed by the
 SOP).
@@ -208,18 +208,18 @@ confinement,\footnote{
 This is shortcoming is primarily due to two reasons. First,
 JavaScript code cannot (yet) modify the page CSP\@.
 And, second, CSP does not (yet) provide a directive for restricting 
-in-browser communication, e.g., with \js|postMessage|.
+in-browser communication, \emph{e.g.,} with \js|postMessage|.
 }
 it sufficiently addresses our external communication concern by
 precisely controlling from where a page loads content, performs XHR
-requests to, etc.
+requests to, \emph{etc.}
 %
 To this end, we set a custom CSP policy whenever the compartment label
-changes, e.g., with \js|COWL.label|.
+changes, \emph{e.g.,} with \js|COWL.label|.
 %
 For instance, if the effective compartment label is
 \js|Label("https://bank.ch").and("https://amazon.com")|, all the
-underlying CSP directive are set to \verb|'none'| (e.g.,
+underlying CSP directive are set to \verb|'none'| (\emph{e.g.,}
 \verb|default-src 'none'|) as to disallow all network communication;
 we additionally use the \verb|'sandbox'| directive to disable
 navigation~\cite{csp1.1,whatwg-html,html5}.
@@ -272,7 +272,7 @@ future work.
 %allow sending labeled data across browsing contexts, we modified the
 %layout engine to add support for structurally cloning labeled blobs;
 %this allows us to flexibly use labeled blobs where other structurally
-%clonable objects (e.g., JSON) can be used, including \js|postMessage|.
+%clonable objects (\emph{e.g.,} JSON) can be used, including \js|postMessage|.
 %%
 %Second, we modified the XHR code to allow arbitrary cross-origin reading
 %when the response type is set to \verb|labeled-blob|;
