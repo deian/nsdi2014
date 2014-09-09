@@ -40,7 +40,7 @@ mashup example.
 %
 These differences reflect different goals for the two systems: BFlow's
 authors set out to confine untrusted third-party scripts; in contrast,
-we seek to support applications that incorporate code from mutually
+we also seek to support applications that incorporate code from mutually
 distrusting parties.
 
 
@@ -74,8 +74,9 @@ information flow at the level of objects, allowing applications
 to take advantage of information flow control without explicitly
 compartmentalizing their applications. This makes it easier to
 confine untrusted libraries which are closely coupled with trusted
-code on a page (as is jQuery) and helps avoid the issue of \emph{over-taint},
-where a single compartment repeatedly accumulates taint as it interacts
+code on a page (as is jQuery) and helps avoid the issue of
+\emph{over-tainting}, or \emph{label creep},
+where a single context repeatedly accumulates taint as it interacts
 with more data.
 
 % JSFlow 
@@ -100,7 +101,7 @@ executing a program multiple times.
 %
 Unlike JSFlow and \sys{}, SME is not amenable to
 scenarios where declassification plays a key role (e.g., the encrypted
-editor, password manager, or third-party mashup).
+editor or the password manager).
 %
 FlowFox's labeling of user interactions and metadata (history, screen
 size, etc.) do allow it to mitigate history sniffing and behavior
@@ -108,16 +109,27 @@ tracking;
 these attacks are not addressed by \sys{}, where developers must
 impose policy on the data to be shared.
 
-In general, fine-grained IFC systems are more convenient for users;
-however, the performance benefits of coarse-grained IFC are compelling.
+In general, fine-grained IFC systems may be more convenient for
+developers since they do not require thinking about
+compartmentalization.
+%
+However, these systems do imposes a new language semantics that
+developers would need to learn; this is in contrast to COWL's approach
+of re-purposing already-familiar isolation units.
+%
+By their nature, coarse-grained IFC systems are also more
+amendable to fast (and less intrustive) implementations.
+%
 Furthermore, many of the downsides of coarse-grained IFC can be overcome
 in practice: we conjecture that coarse-grained and fine-grained IFC are
 equally expressive, provided one can use arbitrarily many compartments;
 additionally, the fact that browsing compartments are short-lived helps
-avoid excessive accumulation of taint.  In any case, coarse- and
+avoid excessive accumulation of taint. 
+%
+Ultimately, however, coarse- and
 fine-grained mechanisms are not mutually exclusive; for instance, when
-dealing with legacy JavaScript code, JSFlow could be implemented within
-a COWL compartment.
+dealing with legacy JavaScript code, JSFlow could be used within
+a COWL context to confine the code in a more fine-grained fashion.
 
 \paragraph{Sandboxing}
 There is much work on sandboxing and developing subsets of JavaScript (e.g.,
