@@ -384,7 +384,7 @@ party. Today, if one of the two providers implements the mashup, its
 application code must bypass the SOP to allow sharing of data across
 origin boundaries, \emph{e.g.,} by communicating between iframes with
 \js|postMessage| or setting a permissive CORS policy.
-This approach forfeits robust confinement: one
+This approach forfeits privacy: one
 origin sends sensitive data to the other, after which the receiving
 origin may exfiltrate that sensitive data at will. Alternatively, a
 third-party developer may wish to implement and offer this mashup

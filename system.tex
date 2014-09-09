@@ -204,8 +204,8 @@ which we execute the untrusted checker script.
 Importantly, however, code should not be able to leak information by
 laundering data through a newly created context.
 %
-Hence, newly created contexts implicitly inherit the current label of
-their parent.
+Hence, a newly created context implicitly inherits the current label of
+its parent.
 %
 When creating a child, however, a parent may specify an initial
 current label for the child that is {\em more} restrictive than the
