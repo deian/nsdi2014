@@ -18,12 +18,10 @@ script(s) by setting a label on responses it sends the client. If a
 COWL-enabled browser encounters an unlabeled response, but a CORS
 header whitelisting the requesting foreign origin, COWL assumes that
 the server is not COWL-aware and COWL itself labels the response with
-a \emph{unique} origin.
-% (as described in Section~\ref{sec:system:privileges}).
-% no longer in that section!? -bk
-Doing so ensures that once the response has been inspected the code
-cannot communicate with \emph{any} server, including at the
-\emph{same} origin,
+a \emph{unique} origin (as described in
+Section~\ref{sec:system:privileges}). Doing so ensures that once the
+response has been inspected the code cannot communicate with
+\emph{any} server, including at the \emph{same} origin,
 % (e.g., \https{chase.com}),
 since such requests carry the risks of
 self-exfiltration~\cite{selfex} and cross-site request
