@@ -1,8 +1,19 @@
 \section{The \sys{} Confinement System}
 \label{sec:system}
 
-The COWL confinement system augments today's web browser with three
-primitives, all of which appear in the simple password-checker
+The COWL confinement system extends the browser security model while
+leaving the browser fully compatible with today's ``legacy'' web
+applications.\footnote{In prior work, we described how confinement can
+  subsume today's browser security primitives, and advocated replacing
+  them entirely with a clean-slate, confinement-based
+  model~\cite{yang:2013:towards}. In this paper, we instead prioritize
+  incremental deployability, which requires coexistence alongside the
+  status quo model.} Under COWL, the browser treats a page exactly
+like a legacy browser does unless the page executes a COWL API
+operation, at which point the browser records that page as running in
+{\em confinement mode,} and all further operations by that page are
+subject to confinement by COWL. COWL augments today's web browser with
+three primitives, all of which appear in the simple password-checker
 application example in Figure~\ref{fig:checker}.
 % need to introduce "structural" primitives (ones that are visible in
 % figures for example apps):
@@ -517,18 +528,19 @@ a top-level page from \https{a.com}: scripts executing in that context
 are similarly deemed to be executing on behalf of \https{a.com}, and
 thus are trusted not to leak \https{a.com}'s data to unauthorized
 parties---even though they can declassify data. Only the COWL runtime
-can create a new privilege upon retrieval of a page from an origin; a
-script cannot synthesize a valid privilege.
+can create a new privilege for a valid remote origin upon
+retrieval of a page from that origin; a script cannot synthesize a
+privilege for a valid remote origin.
 
 To illustrate the role of privileges in declassification, consider the
 encrypted Google Documents example application. In the implementation
 of this application atop COWL, code executing on behalf of
-\https{nsa.gov} (\emph{i.e.,} in a compartment holding the \https{nsa.gov}
-privilege) with a current label \dcLabelS{\https{nsa.gov} $\land$
+\https{eff.org} (\emph{i.e.,} in a compartment holding the \https{eff.org}
+privilege) with a current label \dcLabelS{\https{eff.org} $\land$
   \https{gdoc.com}}{} is permitted to send messages to a context
 labeled \dcLabelS{\https{gdoc.com}}{}.
 %
-Without the \https{nsa.gov} privilege, this flow would not be allowed,
+Without the \https{eff.org} privilege, this flow would not be allowed,
 as it may leak the NSA's information to Google.
 %
 %% NSA is declassifying the message by using privileges. \emph{i.e.,} it
@@ -625,9 +637,6 @@ confining untrusted libraries like jQuery.
 Finally, COWL also allows a context to create privileges for \emph{fresh}
 origins, \emph{i.e.,} unique origins that do not correspond to a real URI
 scheme (and thus do not map to real servers).
-\Red{Fresh origins would seem to contradict that script cannot
-  synthesize valid privileges.  Perhaps the use of synthesize is too
-  subtle.}
 %
 These fresh origins are primarily used to \emph{completely} confine a
 context: the sender can label messages with this origin, which upon

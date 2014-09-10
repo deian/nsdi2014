@@ -1,22 +1,26 @@
+DM: in eval, *significance*/*implications* of results are hard to glean.
+a) are these e2e applications workloads that would tend to emphasize
+   COWL's overhead, or deemphasize it? (Answer: *emphasize* it, i.e.,
+   harsh workloads for COWL, because the simple apps illustrate partitionings,
+   which means they have almost no compute in each compartment, and lots of
+   crossings between compartments. Real-world apps would have way more compute
+   within each compartment, so COWL's overhead would decrease as a fraction
+   of total compute.
+b) what are the take-aways from the numbers? what's the good news, and what's
+   our worst news? (Answer: could say 16% overhead on some operation as
+   highest overhead. And remind people this is a very harsh workload per
+   above. And could say that overall, e2e completion times change
+   imperceptibly for users.)
+concrete suggestions:
+a) state at *start* of section why these workloads are harsh for COWL's
+   overhead (explanation above)
+b) maybe a bullet or two summarizing two take-aways from numbers at end
+   of "preamble" to eval section.
+
 BK: need to state that read-only API for Chase (e.g.) is
 *authenticated*.  And probably need to explain that Mint's labeled XHR
 to Chase causes cookie for Chase to be inserted in HTTP GET sent to
 Chase. Not necessarily intuitive!
-
-5. "I am wondering whether in practice using mashups composed of lots
-of different libraries can lead to a proliferation of complex policies
-about which the developers may have trouble reasoning."
-
-This is an interesting question to address in the expanded discussion
-and we intend to do so.  Developers definitely need to understand
-COWL's primitives when using them. However, our experience to date is
-that a relatively small set of canonical design patterns captures many
-common web application (and mashup) behaviors. If space permits, we
-wish to highlight that as part of future work, we're interested in a
-higher-level policy language which could let developers express
-intricate policies (e.g., that involve many libraries and mutual
-distrust among them) in a straightforward way, and that a compiler
-could then compile such policies into the COWL primitives.
 
 2. I suggest removing all footnotes about integrity and adding a
 separate section. (Also raised by reviewers D and E)
@@ -30,24 +34,6 @@ We will update the explanation of the table to note that this
 difference (14.5 ms unlabeled, 14.4 ms labeled) is small enough to be
 explained by variability in the distribution of completion times.
 
-4. Why "at 90 messages" you exhaust the call stack?  Is the 90 stack
-frames thing in javascript spec?
-
-We will clarify that the LWorkers run in the same context as the
-parent which spawns them, so messaging is actually a function call
-which runs-to-completion.  The stack limit depends on the underlying
-JavaScript engine implementation and is not specified in the
-specification.
-
-5. Why did you use a "simplified version" of the encrypted document
-editor?
-
-We will update the measurements section to note that it was unclear
-how to securely re-implement the application without COWL, so we
-decided to be generous and implement a version with no privacy
-guarantees, which one would expect to run faster (it utilized no
-cryptographic operations).
-
 2. SOP "provides some degree of integrity" for DOM changes, what
 about COWL?
 
@@ -58,17 +44,3 @@ COWL is at least as restricting as the SOP.
 
 DS: maybe go a bit into priv and delegation to note that SOP is still
 enforced first
-
-3. Is your vision to co-exist or replace all existing security
-mechanisms?
-
-We will try to clarity that COWL is explicitly designed to allow for
-an incremental deployment path in the backwards-compatibility section.
-While in our prior work [40] we discussed how a label system can
-subsume the policies that can be implemented with today's SOP, CSP,
-CORS, etc., COWL co-exists with these mechanisms, offering MAC to
-pages which opt-in to this new functionality. This confusion may have
-been, in part, due to the fact that we only mentioned [40]; we hope to
-further clarify this by comparing with [40].
-
-DS: we did not emphasize this enough

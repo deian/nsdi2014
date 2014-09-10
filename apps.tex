@@ -2,10 +2,10 @@
 \label{sec:apps}
 
 In Section~\ref{sec:motivating-examples}, we characterized four
-applications and explained why they cannot be accommodated satisfactorily
-in the status-quo web architecture. We then described the COWL system's
-new browser primitives. We now close the loop by demonstrating how
-to build the aforementioned applications with the COWL primitives.
+applications and explained why the status-quo web architecture cannot
+accommodate them satisfactorily. We then described the COWL system's
+new browser primitives. We now close the loop by demonstrating how to
+build the aforementioned applications with the COWL primitives.
 
 \subsection{Encrypted Document Editor}
 
@@ -24,8 +24,8 @@ Figure~\ref{fig:editor} depicts the architecture for an encrypted
 document editor. The editor has three components: a component which
 has the user's Google Documents credentials and communicates with the
 server (\https{gdoc.com}), the editor proper (also \https{gdoc.com}),
-and the component that performs encryption (\https{nsa.gov}). COWL
-provides privacy as follows: if \https{nsa.gov} is honest, then COWL
+and the component that performs encryption (\https{eff.org}). COWL
+provides privacy as follows: if \https{eff.org} is honest, then COWL
 ensures that the clear text of the user's document is not leaked to
 any origin. If only \https{gdoc.com} is honest, then \https{gdoc.com}
 may be able to recover cleartext (\emph{e.g.,} the encryptor may have
@@ -38,8 +38,8 @@ Initially, \https{gdoc.com} downloads (1) the encrypted document from
 Google's servers.
 %
 As the document is encrypted, it opens an iframe to
-\https{nsa.gov}, with initial label 
-\js|public| so it can communicate with the \https{nsa.gov} server and
+\https{eff.org}, with initial label 
+\js|public| so it can communicate with the \https{eff.org} server and
 download the private key (2) which will be used to decrypt the document.
 %
 Next, it sends the encrypted document as a labeled Blob, with the label
@@ -47,7 +47,7 @@ Next, it sends the encrypted document as a labeled Blob, with the label
 raises its label (4) so it can decrypt the document.
 %
 Finally, the iframe passes the decrypted document (labeled as
-\dcLabelS{\https{gdoc.com} $\land$ \https{nsa.gov}}{}) to a new iframe (5) which
+\dcLabelS{\https{gdoc.com} $\land$ \https{eff.org}}{}) to a new iframe (5) which
 implements the editor proper.
 
 To save the document, these steps proceed in reverse: the editor sends
@@ -55,7 +55,7 @@ a decrypted document to the encryptor (5), which encrypts it with the
 private key.  Next, the critical step occurs: the encryptor exercises
 its privileges to send a labeled blob of the encrypted document which
 is \emph{only} labeled \dcLabelS{\https{gdoc.com}}{} (3).  Since the
-encryptor is the only compartment with the \https{nsa.gov} privilege,
+encryptor is the only compartment with the \https{eff.org} privilege,
 all documents must pass through it for encryption before being sent
 elsewhere; conversely, it itself cannot exfiltrate any data, as it is
 confined by \https{gdoc.com} in its label.
