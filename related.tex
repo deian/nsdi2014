@@ -78,9 +78,9 @@ applications like third-party mashups.
 %% information flow at the level of objects, allowing developers to take
 %% advantage of information flow control without explicit
 %% compartmentalization of applications.
-Because the per-object granularity of the fine-grained approach eases
-confining untrusted libraries that are closely coupled with trusted
-code on a page (as is jQuery) and helps avoid the problem of
+In general, the per-object granularity of fine-grained IFC makes
+it easier to confine untrusted libraries that are closely coupled with trusted
+code on a page (\emph{e.g.,} jQuery) and avoid the problem of
 \emph{over-tainting}, or \emph{label creep}, where a single context
 repeatedly accumulates taint as it interacts with more data.
 
@@ -113,24 +113,21 @@ behavior tracking; \sys{} does not address these attacks.
 %% , where
 %% developers must impose policy on the data to be shared.
 
-In general, fine-grained IFC systems may be more convenient for
-developers since they do not require thinking about
-compartmentalization.
+While fine-grained IFC systems may be more convenient for
+developers, these systems impose new language semantics for
+developers to learn and require more invasive and slower
+implementations.
 %
-However, these systems do impose new language semantics that
-developers would need to learn. In contrast, COWL repurposes familiar
-isolation constructs.
-%
-By their nature, coarse-grained IFC systems are also amenable to
-faster, less invasive implementations, because they eschew JavaScript
-engine modifications.
+In contrast, \sys{} repurposes familiar isolation constructs
+and can be given a fast implementation by eschewing JavaScript engine modifications.
 %
 %% We believe that coarse-grained IFC suffers few limitations in
 %% practice.
-We conjecture that coarse-grained and fine-grained IFC are
+While there is a difference in programmer convenience,
+we conjecture that coarse-grained and fine-grained IFC are
 equally expressive, provided one may use arbitrarily many
-compartments. In addition, browsing contexts' typically short
-lifetimes help avoid excessive accumulation of taint.
+compartments. Similarly, the typically short lifetime of a browsing context
+helps avoid excessive accumulation of taint.
 %
 Ultimately, coarse- and fine-grained mechanisms are not mutually
 exclusive. For instance, to confine legacy (non-compartmentalized)
