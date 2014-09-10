@@ -97,14 +97,14 @@ the \https{amazon.com} or \https{chase.com} data after reading it).
 In contract, today's mashups like \https{mint.com} ask users for their
 passwords.
 %
-COWL is a strict improvement over such existing approaches: under
+COWL is strictly an improvement: under
 COWL, when a user decides to trust a mashup integrator such as
 \https{mint.com}, she {\em only} trusts the app to not leak her data
 through covert channels.
 %
 Nevertheless, users can make poor security choices. Whitelisting
-malicious origins will be no exception; we recognize this as a
-limitation of COWL that must ultimately be communicated to the
+malicious origins would be no exception; we recognize this as a
+limitation of COWL that must be communicated to the
 end-user.% (much like accepting SSL certificates).
 
 A trustworthy developer can leverage COWL's support for
@@ -134,7 +134,7 @@ channels, even if they are malicious.
 
 
 
-\paragraph{DC labels and lattice-based Policies}
+\paragraph{Expressivity of Label Model}
 \label{sec:discussion:lattice}
 
 COWL uses DC labels~\cite{stefan:2011:dclabels} to enforce
@@ -142,40 +142,42 @@ confinement according to an information flow control discipline.
 %
 Although this approach captures a wide set of confinement policies, it
 is not expressive enough to handle policies with a circular flow of
-information~\cite{Badger:1995} or policies expressible in more
+information~\cite{Badger:1995} or some policies expressible in more
 powerful logics (\emph{e.g.,} first order logic, as used by
 Nexus~\cite{sirer2011logical}).
 %
-Indeed, even allowing negative formulas in a label would permit more
-expressive policies (\emph{e.g.,} ``this labeled Blob cannot be read
-by \https{a.com}, but can be read by any other origin''); with DC
-labels, such policies must be encoded by `whitelisting'' all permitted
-readers.
+%% Indeed, even allowing negative formulas in a label would permit more
+%% expressive policies (\emph{e.g.,} ``this labeled Blob cannot be read
+%% by \https{a.com}, but can be read by any other origin''); with DC
+%% labels, such policies must be encoded by `whitelisting'' all permitted
+%% readers.
 %
 DC labels are, however, as expressive as other popular label
 models~\cite{GenLabels}, including Myers and Liskov's Decentralized
-Label Model~\cite{dlm}.
+Label Model~\cite{dlm}. Our experience implementing security policies
+with them thus far suggests they are expressive enough to support
+featureful web applications.
 
-We primarily adopted DC labels because they correspond closely to
-web origins.
+We adopted DC labels largely because their fit with web origins pays
+practical dividends.
 %
-That correspondence yields two important benefits.
+%That correspondence yields two important benefits.
 %
-First, we believe that web developers will find DC labels intuitive
-and expressive enough to build real applications.
+First, as developers already typically express policies by whitelisting
+origins, we believe they will find DC labels intuitive to use.
+%and expressive enough to build real applications.
 %
-(Recall that developers typically express policies by whitelisting
-origins.)
+%% (Recall that developers typically express policies by whitelisting
+%% origins.)
 %
-Our experience building applications, some described in this paper,
-supports this hypothesis. Their use in server-side applications is
-also encouraging~\cite{giffin:2012:hails, Breeze13, stoughton2014you,
-  stefan:2011:flexible}.
+%% Our experience building applications, some described in this paper,
+%% supports this hypothesis. Their use in server-side applications is
+%% also encouraging~\cite{giffin:2012:hails, Breeze13, stoughton2014you,
+%%   stefan:2011:flexible}.
 %
-Second, while one can modify the browser to support more powerful
-logics and mechanisms, DC labels map naturally to existing web
-policies: we were able to reuse implementations of existing security
-mechanisms, such as CSP, to implement most of COWL's design.
+Second, because both DC labels and today's web policies are defined in
+terms of origins, the implementation of COWL can straightforwardly
+reuse the implementation of existing security mechanisms, such as CSP.
 %% %
 %% (This was a surprising given our previous work showed how IFC can be
 %% used to enforce existing policies, but not the
