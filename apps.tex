@@ -101,12 +101,12 @@ Figure~\ref{fig:mashup} depicts an application that reconciles a
 user's Amazon purchases and bank statement.
 %
 Here, Chase and Amazon respectively expose authenticated read-only
-APIS for bank statements and purchase histories that whitelist known
+APIs for bank statements and purchase histories that whitelist known
 applications' origins, such as \https{mint.com}, but set MAC labels on
 responses.\footnote{On authentication: note that when the browser
   sends any XHR (labeled or not) from a foreign origin to origin
-  \https{chase.com}, it still includes any cookies cached for
-  \https{chase.com} in the request.}
+  \texttt{chase.com}, it still includes any cookies cached for
+  \texttt{chase.com} in the request.}
 %
 As discussed in Section~\ref{sec:discussion}, with MAC in place, COWL
 allows users to otherwise augment CORS by whitelisting foreign origins
@@ -118,14 +118,14 @@ The mashup makes requests to both web sites using labeled XHR (1)
 to receive the bank statement and
 purchase history as labeled Blobs.
 %
-Once all of the information is received, the mashup unlabels it and
-raises its context's label accordingly (2--3); doing so restricts
-communication to the web at large.
+Once all of the information is received, the mashup unlabels the
+responses and raises its context's label accordingly (2--3); doing so
+restricts communication to the web at large.
 
 Note that in contrast to when solely using CORS, by setting MAC labels
 on responses, Chase and Amazon need not trust Mint to write bug-free
 code---COWL confines the Mint code to ensure that it cannot
-arbitrarily leak bank statements or purchase histories. As we discuss
+arbitrarily leak sensitive data. As we discuss
 in Section~\ref{sec:discussion}, however, a malicious Mint application
 could potentially leak data through covert channels.  We emphasize
 that COWL nevertheless offers a significant improvement over the
