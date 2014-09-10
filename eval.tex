@@ -38,7 +38,7 @@ over a loopback interface for all our applications.
 New iframe         & 14.4    &  14.5    &  14.4   &   50.6 &   48.7 & 51.8  %% avg of 10 runs
 \\
 % cost of creating a worker                                          
-New worker         & 15.9    &  15.4   &   0.90$\dagger$    &  18.9  &  18.9  & 3.3$\dagger$  %% avg of 10 runs
+New worker         & 15.9    &  15.4   &   0.9$\dagger$    &  18.9  &  18.9  & 3.3$\dagger$  %% avg of 10 runs
 \\\midrule%--------------------------------------------------------------------
 % cost of labeled postMessage                                        
 Iframe comm.       &  0.11   &  0.11   &   0.12  &  0.04  &  0.04  & 0.04 %% avg # messages/10seconds
@@ -74,17 +74,16 @@ Table~\ref{microbench} shows micro-benchmarks for the stock
 browsers (vanilla), the \sys{} browsers with confinement mode turned
 off (unlabeled), and with confinement mode enabled (labeled).
 %
-\sys{} adds negligible latency (less than 1ms) to compartment
-creation.
+\sys{} adds negligible latency to compartment creation; indeed, except
+for LWorkers ($\dagger$) the differences in creation times are largely
+due to noise.
 %
-We omit the measurements for labeled ``normal'' Workers since they are
-the same as those for unlabeled Workers.
+(We omit the measurements for labeled ``normal'' Workers since they
+are the same as those for unlabeled Workers.)
 %
-We attribute the iframe-creation speedup for Chromium to noise.
-%
-More interestingly, we highlight that the cost of creating LWorkers is
-considerably smaller than that for ``normal'' Workers, which run on
-separate OS threads ($\dagger$).
+We highlight that the cost of creating LWorkers is considerably
+smaller than that for ``normal'' Workers, which run on separate OS
+threads ($\dagger$).
 
 \paragraph{Communication} The iframe, worker, and XHR communication measurements evaluate the
 round-trip latencies across iframes, workers, and the network.
