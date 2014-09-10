@@ -147,6 +147,8 @@ jQuery by delegating privileges to a trusted context and subsequently
 dropping them from the main page. In doing so, COWL completely
 confines the main page, and ensures that it can only communicate with
 the trusted and unconfined context.
+Here, the main page may start out with sensitive data in context, or
+alternatively, receive it from the trusted compartment.
 
 Figure~\ref{fig:jquery} shows how to use COWL to confine the untrusted
 jQuery library referenced by a web page. The goal is to establish a
