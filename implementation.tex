@@ -61,8 +61,7 @@ interface LWorker :
   \label{fig:api}
 \end{figure}
 
-We implemented \sys{} for the Firefox 31.0a1 and Chromium 31.0.1612.0
-browsers.
+We implemented \sys{} in Firefox 31.0a1 and Chromium 31.0.1612.0.
 %
 Because \sys{} operates at a context granularity, it admits an
 implementation as a new DOM-level API for the Gecko and Blink layout
@@ -121,16 +120,12 @@ sound reasoning about ``border crossing'' between compartments.
 %
 Wrappers ensure that an object in one compartment can
 never directly reference another object in a different compartment.
-And they include a security policy.
-%
-Thus wrappers enforce all inter-compartment access control checks
+Wrappers also include a security policy,
+which enforces all inter-compartment access control checks
 specified by the SOP\@.
 %
-Each compartment has a security
-principal used by the wrapper policy when making security
-decisions at compartment boundaries.
-%
-This principal contains the origin and CSP of the compartment.
+Security decisions are made with respect to a compartment's
+security principle, which contains the origin and CSP of the compartment.
 
 Since \sys{}'s security model is very similar to this existing
 model, we can leverage these wrappers to introduce \sys{}'s new
@@ -144,13 +139,13 @@ security decisions.
 
 \paragraph{Intra-Browser Confinement}
 %
-As shown in Table~\ref{tab:comm}, we rely on compartment wrappers to
+As shown in Table~\ref{tab:comm}, we rely on wrappers to
 confine cross-compartment communication.
 %
 Once confinement mode is enabled, we ``recompute'' all
 cross-compartment wrappers to use our MAC wrapper policy and thereby
-ensure that all subsequent cross-compartment access is, in addition to
-the SOP, also mediated by confinement.
+ensure that all subsequent cross-compartment access is confined \Red{(in
+addition to the existing SOP checks)}.
 %
 %%In addition to implementing the MAC wrapper policy (which
 %%performs label checks), we modified the function that recomputes
@@ -173,8 +168,8 @@ Instead, Blink implements the SOP security checks in the DOM binding
 code for a limited subset of DOM elements that may allow cross-origin
 access.
 %
-This ensures that the performance penalty of wrappers between pages of
-the same origin does not exist.
+This implementation eliminates the performance penalty of wrappers between pages of
+the same origin.
 %
 Since COWL policies are more fine-grained, we modified the binding
 code to extend the security checks to all DOM objects and also
@@ -183,7 +178,7 @@ perform label checks if confinement mode is enabled.
 \todo{ds}{Note here on what we do to address lack of revocation.}
 
 Our implementations of LWorkers, the API for which is given in
-Figure~\ref{fig:api:compartments}, reuses these labeled
+Figure~\ref{fig:api:compartments}, reuses labeled
 contexts in a straightforward way.
 %
 In fact, the \js|LWorker| constructor simply creates a new
@@ -197,14 +192,14 @@ wrappers distinguish them from other contexts to bypass SOP checks and
 only restrict DOM access according to MAC.
 %
 This implementation is very similar to content scripts used by Chrome
-and Firefox extension~\cite{Carlini:2012, addon-sdk}; in fact, our
+and Firefox extensions~\cite{Carlini:2012, addon-sdk}; in fact, our
 Firefox implementation uses the same \js|Sandbox|
 objects~\cite{mdn-sandbox} used by the Add-on SDK content scripts.
  
 \paragraph{Browser-Server Confinement}%External Communication}
 %
 As shown in Table~\ref{tab:comm}, we confine external communication
-via XHR, content loading, and navigation using CSP\@.
+(including XHR, content loading and navigation) using CSP\@.
 %
 %% CSP provides developers with a
 %% means for whitelisting the origins from which their application is
@@ -232,7 +227,7 @@ changes, \emph{e.g.,} with \js|COWL.label|.
 For instance, if the effective compartment label is
 \js|Label("https://bank.ch").and("https://amazon.com")|, all the
 underlying CSP directives are set to \js|'none'| (\emph{e.g.,}
-\js|default-src 'none'|) as to disallow all network communication;
+\js|default-src 'none'|), disallowing all network communication;
 we also use the \js|'sandbox'| directive to disable
 navigation~\cite{csp1.1,whatwg-html,html5}.
 %
@@ -240,7 +235,7 @@ navigation~\cite{csp1.1,whatwg-html,html5}.
 \paragraph{Browser Storage Confinement}
 As shown in Table~\ref{tab:comm}, we also use the \js|sandbox|
 directive to restrict access to storage, such as cookies and HTML5
-local storage~\cite{html5}.
+local storage~\cite{html5}, an approach that has been taken by other systems as well~\cite{Akhawe2013}.
 %
 %% Specifically, when the effective compartment label is a conjunctive
 %% label (or a singleton whose origin is not the initially set origin),
@@ -250,8 +245,6 @@ local storage~\cite{html5}.
 %% This effectively amounts to changing the origin of the browsing
 %% context, and thus ensures that the document can no longer access its
 %% original storage.
-%
-This conservative approach has seen prior use~\cite{Akhawe2013}.
 %
 We leave the implementation of labeled storage as
 future work.
