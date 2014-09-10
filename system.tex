@@ -43,20 +43,23 @@ application example in Figure~\ref{fig:checker}.
 % section ....
 %
 
+\Red{EZY: suggest condensing this into a single paragraph, no need
+to repeat what we're going to say; we've already laid out the outline
+in the previous section}
+
 {\em Labeled browsing contexts} enforce MAC-based confinement of
 JavaScript at the granularity of a context (\emph{e.g.,} a worker or
 iframe). The rectangular frames in Figure~\ref{fig:checker} are
 labeled contexts. As contexts may be nested, labeled browsing
 contexts allow hierarchical confinement, whose importance for
 supporting nesting of untrusted libraries we discussed in
-Section~\ref{sec:motivating-examples}. Throughout this paper, when
+Section~\ref{sec:motivating-examples}. \Red{EZY: suggest cutting, we already said this: Throughout this paper, when
 describing a COWL-enabled browser, we use the terms compartment,
-(browsing) context, and labeled (browsing) context interchangeably.
+(browsing) context, and labeled (browsing) context interchangeably.}
 
-When one browsing context sends sensitive information to another, {\em
-  labeled communication} allows the sending context to confine the
-potentially untrusted code within the receiving context. Explicitly
-carrying labels in this fashion allows symmetric confinement, whose
+When one browsing context sends sensitive information to another, 
+a sending context can use \emph{labeled communication} to confine the
+potentially untrusted code receiving the information. This enables symmetric confinement, whose
 importance in building applications that compose mutually distrusting
 scripts we articulated in Section~\ref{sec:motivating-examples}. In
 Figure~\ref{fig:checker}, the arrows between compartments indicate
@@ -109,7 +112,7 @@ We now describe these three constructs in greater detail.
 \label{sec:system:contexts}
 A COWL application consists of multiple labeled contexts.
 %
-Labeled contexts naturally extend today's browser contexts, used to
+Labeled contexts naturally extend today's browser contexts which are used to
 isolate iframes, pages, \emph{etc.}, with MAC \emph{labels}.
 %
 A context's label specifies the security policy for all data within
@@ -144,7 +147,7 @@ data produced by the third-party mashup will be
 %
 This secrecy label component specifies that the data may be sensitive
 to both parties, and without both their consent (see
-Section~\ref{sec:system:privileges}), should only be read by the user;
+Section~\ref{sec:system:privileges}), it should only be read by the user;
 the integrity label component, on the other hand, permits only code
 hosted by Mint to modify the resulting data.
  
@@ -155,10 +158,10 @@ least as restricting. (A server's ``label'' is simply its origin.)
 Intuitively, when a context wishes to send a message, the target must
 not allow additional origins to read the data (preserving secrecy);
 dually, the source context must not be writable by origins not
-otherwise trusted by the target. That is, the source must be at least
+otherwise trusted by the target: the source must be at least
 as trustworthy as the target.
 %
-We say that such a target label ``subsumes'' the source
+In such cases, we say that such a target label ``subsumes'' the source
 label.
 %%\footnote{ If communication is bidirectional, \emph{e.g.,} when a
 %%  script accesses the DOM in a different context (but of the same
@@ -627,8 +630,7 @@ Code can drop privileges by setting its context's privileges to
 \js|null|.
 %
 Dropping privileges is of practical use in confining closely
-coupled untrusted libraries like jQuery, as illustrated in
-Section~\ref{sec:apps-third-party}.
+coupled untrusted libraries like jQuery.
 %
 Setting privileges, on the other hand, increases the
 trust placed in a context by authorizing it act on behalf of

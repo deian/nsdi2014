@@ -148,7 +148,7 @@ leakage of information between LWorkers to be no worse than that of
 iframes.
 
 ALE: CHECK (Although we do not introduce new (timing) covert channels with the 
-introduction of LWorkers, it is not explicit mention in Section 7. It would be 
+introduction of LWorkers, it is not explicited mention in Section 7. It would be 
 a good idea to do so). 
 
 e13479dfd75953f6b25b82ca207b91165ebbe062
