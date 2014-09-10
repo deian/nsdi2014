@@ -152,13 +152,11 @@ browsers to be on par: the greatest slowdown was under 4\%.
 \label{sec:eval:macro}
 
 To assess \sys{}'s impact on end-to-end performance, we measured
-page load times for simplified versions of the example applications.
+page load times for simplified versions of our example applications.
 %
-To focus our comparison on \sys{}'s overhead, as opposed to on the
-overhead of compartmentalizing an application, we compared the example
-applications against modified versions running on vanilla browsers
-that skip security-related checks, but structured as the same set of
-compartments.
+To focus on measuring \sys{}'s overhead, we compare our secure apps
+against similarly-compartmentalized, but insecure, apps---\emph{i.e.,}
+apps that perform no security checks.
 %
 %We acknowledge that compartmentalization
 
@@ -167,61 +165,50 @@ compartments.
 %% Firefox: With \sys{} it take 59.5ms, Vanilla: 61.4
 %% Chome: With \sys{} it take 80.5ms, Vanilla:  71.5
 %
-We built the password-strength checker of
-Section~\ref{sec:motivating-examples} using the checker script
-from~\cite{checker1}.
+%%We built the password-strength checker of
+%%Section~\ref{sec:motivating-examples} using the checker script
+%%from~\cite{checker1}.
 %
-We measure the average duration of creating a new LWorker, fetching
-the 8KB checker script, and checking a password sixteen characters in
-length.
+We measured the average duration of creating a new worker, fetching a
+8KB checker script (modified~\ref{sec:motivating-examples}), and
+checking a password sixteen characters in length.
 %
-\sys{}-enabled Firefox runs the checker in an average of 18 ms (averaged
-over ten runs), whereas the checker takes 4 ms longer to run in a
-normal Web Worker in vanilla, unmodified Firefox. The speedup derives
-from \sys{}'s LWorkers.
+The checker takes an average of 18 ms (averaged over ten runs) on
+Firefox (labeled), 4 ms less than using a Worker on vanilla Firefox.
 %
-%% This figure, is roughly 4ms faster than the strength checker,
-%% which ran in a normal Web Worker on a vanilla, unmodified, browser,
-%% on account of the speed-up attribute to LWorkers.
+Similarly, the checker running on labeled Chromium is 5ms faster than
+the vanilla counterpart (measured at 54 ms).
 %
-Similarly, the checker runs 5 ms faster in the \sys{} Chromium
-implementation (which solely uses the compartment labels) than in the
-vanilla Chromium (measured at 54 ms).
+In both cases the speedup is due to the fact that our LWorkers are
+cheaper than normal Workers.
 %
-We note that \sys{}'s lightweight worker is 5 ms slower than simply
-using an inline script, though the latter provides no confinement.
+However, these measurements are roughly 5 ms slower than simply loading
+the checker using an unsafe \js|script| tag.
 
 \paragraph{Encrypted Document Editor}
 %% Vanilla: removed the sandbox stuff.
 %% Firefox: With \sys{} it take 114.8, Vanilla: 100.2
 %% Chome: With \sys{} it take 248.1, Vanilla; 257.8
 
-We implemented a simple encrypted document editor after the
-design in Section~\ref{sec:apps}.
 %
-Our benchmark measures the end-to-end time taken to load the
-application and encrypt a new 4KB document using
-the SJCL AES-128 library~\cite{sjcl}.
-%
-This workload completes in 116 ms on the \sys{}-enabled
-version of Firefox. A simplified, non-confined version of the app
-running on vanilla Firefox completes in 100ms.
+We measured the end-to-end time taken to load the application and
+encrypt a 4KB document using the SJCL AES-128 library~\cite{sjcl}.
 %
 The total run time includes the time taken to load the document editor
-page, which in turn loads the encryption layer as an iframe, which
-further loads the actual editor.
+page, which in turn loads the encryption-layer iframe, which further
+loads the editor proper.
 %
-The most expensive operation in the secured application is raising the
-current label, since it requires changing the CSP, the underlying
-document origin, and most importantly, recomputing the
-cross-compartment wrappers and CSP (to ensure that DOM and network
-access is restricted according to confinement).
+On Firefox (labeled) the workload completes in 116 ms;  on vanilla
+Firefox, a simplified and unconfined version completes in 100ms.
 %
-In Chromium, the performance of the \sys{} and insecure applications
-were comparable; the measured completion time was within 1ms of 244ms.
+On Chromium, the performance measurements were comparable; the
+completion time was within 1ms of 244ms.
 %
-As the Chrome implementation does not use cross-compartment
-wrappers, no recomputation is necessary.
+The most expensive operation in the COWL-enabled Firefox app is
+raising the current label, since it requires changing the underlying
+document origin and recomputing the cross-compartment wrappers and CSP
+(to ensure that DOM and network access is restricted according to
+confinement).
 
 
 \paragraph{Third-Party Mashup}
@@ -231,23 +218,24 @@ wrappers, no recomputation is necessary.
 %% Vanilla: just remove sandbox stuff + add CORS
 
 We implemented a very simple third-party mashup application that makes
-an XHR request to two unaffiliated origins, each of which produces a
-response containing a 27-byte JSON Blob object with a numerical
-property, and sums the responses together.
+a labeled XHR request to two unaffiliated origins, each of which produces a
+response containing a 27-byte JSON object with a numerical property,
+and sums the responses together.
 %
-The corresponding vanilla application is identical, but uses the
-normal XHR object; in this case, we use CORS to permit cross-origin
-access.
+The corresponding vanilla app is identical, but uses the normal XHR
+object.
 %
-In Firefox, the \sys{}-enabled version completed in 41 ms while the
-vanilla version completed in 35ms. The slowdown derives from \sys{}'s
-raising the current label twice to incorporate sensitive data within
-the context.
+In both cases we use CORS to permit cross-origin access.
 %
-In Chromium, the \sys{}-enabled version completed in 55 ms, 2 ms
-slower than the vanilla one. The slowdown derives from \sys{}'s
-creating and communicating with the lightweight worker that wraps the
-XHR object.
+The Firefox (labeled) workload completed in 41 ms, which is 6ms slower
+than the vanilla version.
+%
+As in the document editor the slowdown derives from raising the
+current label, though in this, case only for a single iframe.
+%
+On Chromium (labeled), the workload completed in 55 ms, 2 ms
+slower than the vanilla one; the main slowdown here is due to our
+implementation of labeled XHR using a wrapping LWorker.
 
 \paragraph{Untrusted Third-Party Library}
 %% Vanilla: incorporate script directly, no sandboxes.
@@ -255,31 +243,27 @@ XHR object.
 %% Firefox: With \sys{} it take 164.8ms, Vanilla:  160.2ms
 
 We measured the load time of a banking application that incorporates
-jQuery and a library that traverses the DOM to replace phone numbers
-with links.
+jQuery and an untrusted library that traverses the DOM to replace
+phone numbers with links.
 %
-Furthermore, the latter library uses XHR in attempt to leak the page's
-content.
+The latter library uses XHR in attempt to leak the page's content.
 %
-We compartmentalize the bank page into a public outer component and a
-sensitive iframe containing the user's statement. In both
+We compartmentalize the main page into a public outer component and a
+sensitive iframe containing the bank statement. In both
 compartments, we place the bank's trusted code (which loads the
-libraries) in a labeled DOM worker with access to the page document
-and privilege. We treat the rest of the code as untrusted.
+libraries) in a trusted labeled DOM worker with access to the page's
+DOM. We treat the rest of the code as untrusted.
 %
 As our current Chromium implementation does not yet support DOM access
 for lightweight workers, we only report measurements of Firefox.
 %
-Firefox loaded the \sys{}-enabled application in 164.8 ms, 4.6 ms
-longer than a non-confined version of the application running on
-vanilla Firefox.
+The measured latency on Firefox (labeld) was 164.8 ms, a 4.6 ms
+slowdown when compared to the unconfined version running on vanilla
+Firefox.
 %
 %
 This slowdown is negligible considering that the application contains
-mixed-sensitivity content---the main banking page is public, while the
-bank statement iframe is labeled with the origin of the page. \sys{}
-prevents the statement from being leaked; in the vanilla case, the
-untrusted library trivially leaks the bank statement with XHR\@.
+mixed-sensitivity content which COWL prevents from being exfiltrated.
 
 %% Vanilla: incorporate script directly, no sandboxes.
 %% 
