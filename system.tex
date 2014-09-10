@@ -283,7 +283,7 @@ context's label) and thereafter send the desired message. To read this
 message, the target context must confine itself by raising its label
 accordingly. These semantics can make interactions between contexts
 cumbersome, however. For example, a sending context may wish to
-communicate with multiple target contexts, and need to confine those
+communicate with multiple contexts, and need to confine those
 target contexts with different labels, or even confine the same target
 context with different labels for different messages. And a receiving
 context may need unfettered communication with one or more origins for
@@ -316,7 +316,7 @@ context may receive a labeled Blob with no immediate effect on the
 origins with which it can communicate, it may only inspect the label,
 not the payload.\footnote{The label itself cannot leak
 information---COWL still ensures that the target context's label is at
-least as restricting as that of the source context.}
+least as restricting as that of the source.}
 Only after raising its label as needed may the receiving context read
 the payload.
 %
@@ -391,7 +391,7 @@ every request the browser sends to a server.\footnote{COWL also
 Section~\ref{sec:system:contexts}, a COWL-aware web server may elect
 to label a response it sends the client by including a \js|COWL-label|
 header on it. In such cases, the COWL-aware browser will only allow
-the receiving context to read the response if its current label
+the receiving context to read an XHR response if its current label
 subsumes that on the response.
 
 %% The ability of a context to impose confinement restrictions on
@@ -529,7 +529,7 @@ the context for the page is trusted not to violate the secrecy of
 \https{a.com}'s data, as these scripts are deemed to be executing on
 behalf of \https{a.com}. COWL makes the analogous assumption by
 granting the privilege for \https{a.com} to the context that retrieves
-a top-level page from \https{a.com}: scripts executing in that context
+a from \https{a.com}: scripts executing in that context
 are similarly deemed to be executing on behalf of \https{a.com}, and
 thus are trusted not to leak \https{a.com}'s data to unauthorized
 parties---even though they can declassify data. Only the COWL runtime
@@ -538,7 +538,7 @@ retrieval of a page from that origin; a script cannot synthesize a
 privilege for a valid remote origin.
 
 To illustrate the role of privileges in declassification, consider the
-encrypted Google Documents example application. In the implementation
+encrypted Google Docs example application. In the implementation
 of this application atop COWL, code executing on behalf of
 \https{eff.org} (\emph{i.e.,} in a compartment holding the \https{eff.org}
 privilege) with a current label \dcLabelS{\https{eff.org} $\land$
@@ -609,10 +609,10 @@ with its origin, to avoid (unecessarily) raising its label to
 %
 
 COWL generally exercises privileges \emph{implicitly:} if a context
-holds a privilege, code executing in that context will always attempt
-to use it.\footnote{
+holds a privilege, code executing in that context will, with the
+exception of sending a message, always attempt to use it.\footnote{
 While the alternative approach of explicit exercise of privileges
-(\emph{e.g.,} when registering an \js|onmessage| handler) may be
+(\emph{e.g.,} when registering an \texttt{onmessage} handler) may be
 safer~\cite{Zeldovich:2006, stefan:2011:flexible, miller:capability},
 we find it a poor fit with 
 existing asynchronous web APIs.}
@@ -620,7 +620,7 @@ existing asynchronous web APIs.}
 %%   simplify this, but one our goals with COWL is to avoid imposing new
 %%   programming models on developers.  }
 %
-COWL, however,  lets code control the use of privileges by allowing code
+COWL, however, lets code control the use of privileges by allowing code
 to get and set the underlying context's privileges.
 %
 Code can drop privileges by setting its context's privileges to
@@ -639,12 +639,18 @@ COWL allows one context to {\em delegate} its privileges (or a subset
 of them) to another; this functionality is also instrumental in
 confining untrusted libraries like jQuery.
 %
+%%XXX(ds): this may be relevant, but maybe too focused on
+%% implementation vs. design:
+%%(Since COWL is applied atop the SOP, delegating a privilege to a
+%%cross-origin context will not give it the authority to, for instance,
+%%bypass the SOP and access the DOM of the delegating context.)
+%
 Finally, COWL also allows a context to create privileges for \emph{fresh}
-origins, \emph{i.e.,} unique origins that do not correspond to a real URI
-scheme (and thus do not map to real servers).
+origins, \emph{i.e.,} unique origins that do not have a real protocol
+(and thus do not map to real servers).
 %
 These fresh origins are primarily used to \emph{completely} confine a
-context: the sender can label messages with this origin, which upon
+context: the sender can label messages with such an origin, which upon
 inspection will raise the receiver's label to this ``fake'' origin,
 thereby ensuring that it cannot communicate except with the parent
 (which holds the fresh origin's privilege).
