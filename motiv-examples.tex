@@ -24,14 +24,13 @@ refresher on status-quo browser privacy polices.
 \label{sec:backgd}
 
 \paragraph{Browsing contexts}
-\iffigures
 \begin{figure}
 \begin{center}
 \includegraphics[width=\columnwidth]{arch.pdf}
 %\includegraphics[scale=0.35]{setting.pdf}
 \end{center}
 \vspace{-10pt}
-\caption{\label{fig:primer-browser-arch} Browser
+\caption{\label{fig:primer-browser-arch} Simplified browser
 architecture.}
 \vspace{-5pt}
 \end{figure}
@@ -174,8 +173,9 @@ CORS~\cite{cors13} goes a step further, and allows controlled
 cross-origin communication between a browsing context of one origin
 and a remote server with a different origin. Under CORS, a server may
 include a header on returned content that explicitly whitelists other
-origin(s) allow to read the response.\footnote{Recall that the default SOP
-  blocks a context from reading a response from a different origin.}
+origin(s) allow to read the response.
+%%\footnote{Recall that the default SOP
+%%  blocks a context from reading a response from a different origin.}
 
 %
 %% Specifically, with CORS, code can read cross-origin resources,
@@ -214,7 +214,7 @@ These examples
 illuminate key design requirements for the \sys{} confinement
 system. %, as well as the overall intuition behind its design.
 
-\paragraph{Password Checker} Given users' propensity for choosing poor
+\paragraph{Password Strength Checker} Given users' propensity for choosing poor
 (\emph{i.e.,} easily guessable) passwords, many web sites today incorporate
 functionality to check the strength of a password selected by a user
 and offer the user feedback (\emph{e.g.,} ``too weak; choose another,''
@@ -222,7 +222,7 @@ and offer the user feedback (\emph{e.g.,} ``too weak; choose another,''
 \js|fb.com|) wishes to re-use password-checking functionality provided
 in a JavaScript library by a third party, say, from origin
 \js|sketchy.ru|. If the developer at \js|fb.com| simply includes the
-third party's code in a \js|<script>| tag referencing a resource at
+third party's code in a \js|script| tag referencing a resource at
 \js|sketchy.ru|, then the referenced script will have unfettered
 access to both the user's password (provided by the Facebook page,
 which the library {\em must} see to do its job) and to write to the
@@ -245,14 +245,14 @@ remote origin.
 Yet a CSP policy that permits such communication, even with the
 top-level page's same origin, is \emph{too permissive:} a malicious
 script could potentially carry out a \emph{self-exfiltration attack}
-and write the password to a public part of a trusted
-origin~\cite{Yip:2009:PBS, selfex}.
+and write the password to a public part of the trusted
+server~\cite{Yip:2009:PBS, selfex}.
 
 This trade-off between flexibility and privacy, while inherent to
 CSP, need not be fundamental to the web model.
 %
 The key insight is that it is entirely safe and useful for an untrusted script to
-communicate with remote origins {\em before} it obtains sensitive
+communicate with remote origins {\em before} it reads sensitive
 data. We note, then, the requirement of a confinement mechanism that
 allows code in a compartment to communicate with the network {\em
   until it has been exposed to sensitive data.} MAC-based confinement
@@ -305,7 +305,13 @@ is about to be exposed to sensitive data from \js|fb.com|, and
 inspects the password.
 %
 When the label is raised, \sys{} atomically denies the context further
-access to the network in step (3).
+access to the network in step (3).\footnote{
+  For clarity, we use \texttt{fb.com} as the label on the data.  This
+  label still allows the checker to send XHR requests to
+  \texttt{fb.com}; to ensure that the checker cannot communicate with
+  \emph{any} origin, COWL provides fresh origins (see
+  Section~\ref{sec:system:privileges}).
+}
 %
 However, the checker script is free to compute the result, which
 it then returns via \js|postMessage| to the top-level page in step (4); the
@@ -345,15 +351,15 @@ editor app. The editor app could allow the user to specify a JavaScript
 one origin serves the JavaScript code for the editor app (say,
 \js|gdocs.com|) and a different origin serves the JavaScript code for
 the cryptography library (say, \js|eff.org|). Note that these two
-origins may be {\em mutually distrusting.}  \js|gdocs.com|'s script
-must pass the document's cleartext to a script from \js|eff.org| for
-encryption, and would like to confine the execution of the encryption
-script so that it cannot exfiltrate the document to any origin {\em
-other} than \js|gdocs.com|. And \js|eff.org|'s cryptography library
-does not trust \js|gdocs.com| with the cleartext document---it would
-like to confine \js|gdocs.com|'s editor script to prevent
-exfiltration of the cleartext document to \js|gdocs.com| (or to any
-other origin).
+origins may be {\em mutually distrusting.}
+\js|gdocs.com|'s script must pass the document's cleartext to a script
+from \js|eff.org| for encryption, but would like to confine the
+execution of the encryption script so that it cannot exfiltrate the
+document to any origin {\em other} than \js|gdocs.com|. Similarly,
+\js|eff.org|'s cryptography library may not trust \js|gdocs.com| with
+the cleartext document---it would like to confine \js|gdocs.com|'s
+editor to prevent exfiltration of the cleartext document to
+\js|gdocs.com| (or to any other origin).
 %
 This simple use case highlights the need for {\em
   symmetric confinement:} when two mutually distrusting scripts from
@@ -372,30 +378,29 @@ different origins communicate, {\em each must be able to confine the
 \paragraph{Third-Party Mashup}
 Some of the most useful web applications are {\em mashups}; these
 applications integrate and compute over data hosted by multiple
-origins. For
-example, consider an application that reconciles a user's Amazon
-purchases (the data for which are hosted by \js|amazon.com|) against a
-user's bank statement (the data for which are hosted by
+origins. For example, consider an application that reconciles a user's
+Amazon purchases (the data for which are hosted by \js|amazon.com|)
+against a user's bank statement (the data for which are hosted by
 \js|chase.com|). The user may well deem both these categories of data
 sensitive, and furthermore, will not want data from Amazon to be
-exposed to her bank or vice-versa, nor to any other remote
-party. Today, if one of the two providers implements the mashup, its
+exposed to her bank or vice-versa, nor to any other remote party.
+Today, if one of the two providers implements the mashup, its
 application code must bypass the SOP to allow sharing of data across
 origin boundaries, \emph{e.g.,} by communicating between iframes with
-\js|postMessage| or setting a permissive CORS policy.
-This approach forfeits privacy: one
-origin sends sensitive data to the other, after which the receiving
-origin may exfiltrate that sensitive data at will. Alternatively, a
-third-party developer may wish to implement and offer this mashup
-application. But users of such a {\em third-party mashup} give up
-their privacy, usually by simply handing off credentials, as again today's browser enforces no policy that
-confines the sensitive data the mashup's code observes within the
-browser. To enable third-party mashups that do not sacrifice the
-user's privacy, we note again the need for an untrusted script to be
-able to issue requests to multiple remote origins (\emph{e.g.,} Amazon and
-the bank), but to lose the privilege to communicate over the network
-once it has read the responses from those origins. Here, too, MAC-based confinement
-  addresses the shortcomings of DAC. 
+\js|postMessage| or setting a permissive CORS policy.  This approach
+forfeits privacy: one origin sends sensitive data to the other, after
+which the receiving origin may exfiltrate that sensitive data at will.
+Alternatively, a third-party developer may wish to implement and offer
+this mashup application. Users of such a {\em third-party mashup} give
+up their privacy, usually by simply handing off credentials, as again
+today's browser enforces no policy that confines the sensitive data
+the mashup's code observes within the browser. To enable third-party
+mashups that do not sacrifice the user's privacy, we note again the
+need for an untrusted script to be able to issue requests to multiple
+remote origins (\emph{e.g.,} \js|amazon.com| and \js|chase.com|), but
+to lose the privilege to communicate over the network once it has read
+the responses from those origins. Here, too, MAC-based confinement
+addresses the shortcomings of DAC. 
 
 \paragraph{Untrusted Third-Party Library}
 Web application developers today make extensive use of third-party
@@ -411,7 +416,7 @@ in a separate compartment from the parent's, as we did for the
 password-checker example. Instead, we observe that jQuery demands a
 design that is a mirror image of that for confining the password
 checker: we place the {\em trusted} code for a page in a separate
-context and deem the rest of the page (including the untrusted jQuery
+compartment and deem the rest of the page (including the untrusted jQuery
 code) as untrusted. The trusted code can then communicate with remote
 origins and inject sensitive data into the untrusted page, but the
 untrusted page (including jQuery) cannot communicate with remote
