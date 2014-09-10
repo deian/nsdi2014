@@ -17,6 +17,11 @@ a) state at *start* of section why these workloads are harsh for COWL's
 b) maybe a bullet or two summarizing two take-aways from numbers at end
    of "preamble" to eval section.
 
+DM/Mihai: need to make clear that apps ran over loopback i/f. That, too,
+means the results of these experiments emphasize COWL's overhead; in a real
+network environment with, say, several tens of ms of RTT, COWL's overhead
+will become a much smaller fraction of e2e latency.
+
 2. I suggest removing all footnotes about integrity and adding a
 separate section. (Also raised by reviewers D and E)
 
