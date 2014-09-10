@@ -1,0 +1,74 @@
+
+5. "I am wondering whether in practice using mashups composed of lots
+of different libraries can lead to a proliferation of complex policies
+about which the developers may have trouble reasoning."
+
+This is an interesting question to address in the expanded discussion
+and we intend to do so.  Developers definitely need to understand
+COWL's primitives when using them. However, our experience to date is
+that a relatively small set of canonical design patterns captures many
+common web application (and mashup) behaviors. If space permits, we
+wish to highlight that as part of future work, we're interested in a
+higher-level policy language which could let developers express
+intricate policies (e.g., that involve many libraries and mutual
+distrust among them) in a straightforward way, and that a compiler
+could then compile such policies into the COWL primitives.
+
+2. I suggest removing all footnotes about integrity and adding a
+separate section. (Also raised by reviewers D and E)
+
+DS: high-integrity labeled blob; go into it a bit
+
+1. Writing is good, but can be better.  I particularly wanted to see some
+code examples using COWL.  For example, consider showing the code for your
+password checker. ...
+
+3. Table 2: some unexpected speedups are not explained, such as "New
+iframe - Firefox - labeled" and "New worker - Firefox - unlabeled[c]."
+
+We will update the explanation of the table to note that this
+difference (14.5 ms unlabeled, 14.4 ms labeled) is small enough to be
+explained by variability in the distribution of completion times.
+
+4. Why "at 90 messages" you exhaust the call stack?  Is the 90 stack
+frames thing in javascript spec?
+
+We will clarify that the LWorkers run in the same context as the
+parent which spawns them, so messaging is actually a function call
+which runs-to-completion.  The stack limit depends on the underlying
+JavaScript engine implementation and is not specified in the
+specification.
+
+5. Why did you use a "simplified version" of the encrypted document
+editor?
+
+We will update the measurements section to note that it was unclear
+how to securely re-implement the application without COWL, so we
+decided to be generous and implement a version with no privacy
+guarantees, which one would expect to run faster (it utilized no
+cryptographic operations).
+
+2. SOP "provides some degree of integrity" for DOM changes, what
+about COWL?
+
+We intend to address this question by clarifying the first reviewer's
+question on what check is performed when modifying the DOM since the
+motivation for the DOM integrity label was very much to ensure that
+COWL is at least as restricting as the SOP.
+
+DS: maybe go a bit into priv and delegation to note that SOP is still
+enforced first
+
+3. Is your vision to co-exist or replace all existing security
+mechanisms?
+
+We will try to clarity that COWL is explicitly designed to allow for
+an incremental deployment path in the backwards-compatibility section.
+While in our prior work [40] we discussed how a label system can
+subsume the policies that can be implemented with today's SOP, CSP,
+CORS, etc., COWL co-exists with these mechanisms, offering MAC to
+pages which opt-in to this new functionality. This confusion may have
+been, in part, due to the fact that we only mentioned [40]; we hope to
+further clarify this by comparing with [40].
+
+DS: we did not emphasize this enough
