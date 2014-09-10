@@ -47,8 +47,8 @@ Next, it sends the encrypted document as a labeled Blob, with the label
 raises its label (4) so it can decrypt the document.
 %
 Finally, the iframe passes the decrypted document (labeled as
-\dcLabelS{\https{gdoc.com} $\land$ \https{eff.org}}{}) to a new iframe (5) which
-implements the editor proper.
+\dcLabelS{\https{gdoc.com} $\land$ \https{eff.org}}{}) to the iframe (5) 
+implementing the editor proper.
 
 To save the document, these steps proceed in reverse: the editor sends
 a decrypted document to the encryptor (5), which encrypts it with the
@@ -60,14 +60,14 @@ all documents must pass through it for encryption before being sent
 elsewhere; conversely, it itself cannot exfiltrate any data, as it is
 confined by \https{gdoc.com} in its label.
 
-Note that this design permits the user to verify that Google Documents
-appropriately loaded the encryptor: without it, displaying the
-decrypted text would be impossible. However, when a new document is
-being created, the encryptor iframe must be placed in a separate
-pop-up window, so that the user can verify that encryption has been
-enabled.\footnote{This architecture might be desirable in any case to
-  prevent phishing.}
-\Red{I still don't get how the user verifies this.}
+%%Note that this design permits the user to verify that Google Documents
+%%appropriately loaded the encryptor: without it, displaying the
+%%decrypted text would be impossible. However, when a new document is
+%%being created, the encryptor iframe must be placed in a separate
+%%pop-up window, so that the user can verify that encryption has been
+%%enabled.\footnote{This architecture might be desirable in any case to
+%%  prevent phishing.}
+%%\Red{I still don't get how the user verifies this.}
 
 We have implemented a password manager atop COWL that lets users
 safely store passwords on third-party web-accessible storage. We elide
