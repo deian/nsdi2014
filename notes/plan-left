@@ -17,11 +17,6 @@ a) state at *start* of section why these workloads are harsh for COWL's
 b) maybe a bullet or two summarizing two take-aways from numbers at end
    of "preamble" to eval section.
 
-BK: need to state that read-only API for Chase (e.g.) is
-*authenticated*.  And probably need to explain that Mint's labeled XHR
-to Chase causes cookie for Chase to be inserted in HTTP GET sent to
-Chase. Not necessarily intuitive!
-
 2. I suggest removing all footnotes about integrity and adding a
 separate section. (Also raised by reviewers D and E)
 

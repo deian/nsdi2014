@@ -100,13 +100,17 @@ appropriately confine the foreign origin's scripts in the browser.
 Figure~\ref{fig:mashup} depicts an application that reconciles a
 user's Amazon purchases and bank statement.
 %
-Here, Chase and Amazon respectively expose read-only APIS for bank
-statements and purchase histories that whitelist known applications'
-origins, such as \https{mint.com}, but set MAC labels on responses.
+Here, Chase and Amazon respectively expose authenticated read-only
+APIS for bank statements and purchase histories that whitelist known
+applications' origins, such as \https{mint.com}, but set MAC labels on
+responses.\footnote{On authentication: note that when the browser
+  sends any XHR (labeled or not) from a foreign origin to origin
+  \https{chase.com}, it still includes any cookies cached for
+  \https{chase.com} in the request.}
 %
-(As discussed in Section~\ref{sec:discussion}, with MAC in place, COWL
+As discussed in Section~\ref{sec:discussion}, with MAC in place, COWL
 allows users to otherwise augment CORS by whitelisting foreign origins
-on a per-origin basis.)
+on a per-origin basis.
 %
 % The rest is very simple.
 %
