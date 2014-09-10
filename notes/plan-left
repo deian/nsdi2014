@@ -22,25 +22,9 @@ means the results of these experiments emphasize COWL's overhead; in a real
 network environment with, say, several tens of ms of RTT, COWL's overhead
 will become a much smaller fraction of e2e latency.
 
-2. I suggest removing all footnotes about integrity and adding a
-separate section. (Also raised by reviewers D and E)
-
-DS: high-integrity labeled blob; go into it a bit
-
 3. Table 2: some unexpected speedups are not explained, such as "New
 iframe - Firefox - labeled" and "New worker - Firefox - unlabeled[c]."
 
 We will update the explanation of the table to note that this
 difference (14.5 ms unlabeled, 14.4 ms labeled) is small enough to be
 explained by variability in the distribution of completion times.
-
-2. SOP "provides some degree of integrity" for DOM changes, what
-about COWL?
-
-We intend to address this question by clarifying the first reviewer's
-question on what check is performed when modifying the DOM since the
-motivation for the DOM integrity label was very much to ensure that
-COWL is at least as restricting as the SOP.
-
-DS: maybe go a bit into priv and delegation to note that SOP is still
-enforced first
