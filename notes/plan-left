@@ -1,3 +1,7 @@
+BK: need to state that read-only API for Chase (e.g.) is
+*authenticated*.  And probably need to explain that Mint's labeled XHR
+to Chase causes cookie for Chase to be inserted in HTTP GET sent to
+Chase. Not necessarily intuitive!
 
 5. "I am wondering whether in practice using mashups composed of lots
 of different libraries can lead to a proliferation of complex policies
@@ -18,10 +22,6 @@ could then compile such policies into the COWL primitives.
 separate section. (Also raised by reviewers D and E)
 
 DS: high-integrity labeled blob; go into it a bit
-
-1. Writing is good, but can be better.  I particularly wanted to see some
-code examples using COWL.  For example, consider showing the code for your
-password checker. ...
 
 3. Table 2: some unexpected speedups are not explained, such as "New
 iframe - Firefox - labeled" and "New worker - Firefox - unlabeled[c]."
