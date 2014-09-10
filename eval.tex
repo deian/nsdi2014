@@ -96,8 +96,8 @@ incurs less latency than with Web Workers.
 This speedup arises because a lightweight worker shares
  an OS thread and event loop with their parent.
 %
-However, this sharing means that at 90 messages, we exhaust the call
-stack.
+%% However, this sharing means that at 90 messages, we exhaust the call
+%% stack.
 
 %%As shown in the table, we measured the cost of getting the current
 %%label, setting the current label and performing a label comparison
