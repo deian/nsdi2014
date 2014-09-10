@@ -90,7 +90,7 @@ Similarly, code can exfiltrate data by encoding it in the path of a
 URL whose origin is \https{b.com}, and setting the \js|src| property
 of an \js|img| element to this URL.
 
-\paragraph{Content Security Policy}
+\paragraph{Content Security Policy (CSP)}
 
 Modern browsers allow the developer to protects a user's privacy by
 specifying a CSP that limits the communication of a page, \emph{i.e,}
@@ -145,10 +145,10 @@ sensitive data with that other context.
 %% its context, or the policy of another context when, for instance,
 %% deciding to share sensitive data with the latter party.
 
-\paragraph{postMessage and Cross-Origin Resource Sharing}
+\paragraph{postMessage and Cross-Origin Resource Sharing (CORS)}
 
 As illustrated in Figure~\ref{fig:primer-browser-arch}, the
-\js|postMessage| API~\cite{webmessaging} enables cross-origin
+HTML5 \js|postMessage| API~\cite{webmessaging} enables cross-origin
 communication in IPC-like fashion within the browser. To prevent
 unintended leaks~\cite{barth2009securing}, a sender always
 specifies the origin of the intended recipient; only a context with
