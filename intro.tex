@@ -68,7 +68,7 @@ flexibility because the browser doesn't offer primitives that let them
 opt for both. For example, a developer may want to include untrusted
 JavaScript from another origin in his application. All-or-nothing DAC
 leads the developer to include the untrusted library with a
-\js|<script>| tag, which effectively bypasses the SOP, interpolating
+\js|script| tag, which effectively bypasses the SOP, interpolating
 untrusted code into the enclosing page and granting it unfettered
 access to the enclosing page's origin's content.\footnote{Indeed,
   jQuery \emph{requires} such access to the enclosing page's content!}
@@ -81,7 +81,7 @@ privacy.''
 
 In this paper, we present \sys{} (Confinement with Origin Web Labels),
 a mandatory access control (MAC) system that confines untrusted
-Javascript in web browsers. \sys{} allows untrusted code to compute
+JavaScript in web browsers. \sys{} allows untrusted code to compute
 over sensitive data and display results to the user, but prohibits the
 untrusted code from exfiltrating sensitive data (\emph{e.g.,} by sending it
 to an untrusted remote origin). It thus allows web developers to opt
@@ -93,14 +93,14 @@ jQuery library, an encrypted cloud-based document editor, and a
 third-party mashup, none of which can be implemented in a way that
 preserves the user's privacy in the status-quo web security
 architecture. These examples drive the design requirements for \sys{},
-particularly MAC with \emph{symmetric and hierarchical confinement} and
-{\em delegation.}  Symmetric confinement allows \emph{mutually}
-distrusting principals each to pass sensitive data to the other, and
-confine the other's use of the passed sensitive data. Hierarchical
-confinement allows any developer to confine code she does not trust,
-and confinement to be nested to arbitrary depths. And delegation
-allows a developer explicitly to confer the privileges of one execution
-context on a separate execution context.
+particularly MAC with \emph{symmetric and hierarchical confinement}
+that supports {\em delegation.}  Symmetric confinement allows
+\emph{mutually} distrusting principals each to pass sensitive data to
+the other, and confine the other's use of the passed sensitive data.
+Hierarchical confinement allows any developer to confine code she does
+not trust, and confinement to be nested to arbitrary depths. And
+delegation allows a developer explicitly to confer the privileges of
+one execution context on a separate execution context.
 %
 No prior browser security architecture offers this combination of
 properties.
