@@ -12,8 +12,8 @@ Our experiments consist of micro-benchmarks on API functions and
 end-to-end benchmarks of our example applications.
 %
 We conducted our measurements on a 4-core i7-2620M machine with 16GB
-of RAM\@ running GNU/Linux 3.13; we used the Node.js web server for
-all our applications.
+of RAM\@ running GNU/Linux 3.13; we used the Node.js web server
+over a loopback interface for all our applications.
 
 \subsection{Micro-Benchmarks}
 \label{sec:eval:micro}
@@ -69,6 +69,7 @@ Worker comm.       &  0.20    &   0.24  &  0.03$\ddagger$   &  0.07  &  0.07  & 
 \label{microbench} 
 \end{table}
 
+\paragraph{Context Creation}
 Table~\ref{microbench} shows micro-benchmarks for the stock
 browsers (vanilla), the \sys{} browsers with confinement mode turned
 off (unlabeled), and with confinement mode enabled (labeled).
@@ -76,22 +77,27 @@ off (unlabeled), and with confinement mode enabled (labeled).
 \sys{} adds negligible latency (less than 1ms) to compartment
 creation.
 %
-Furthermore, the cost of creating lightweight workers is considerably
-less than that for ``normal'' workers ($\dagger$).
+We omit the measurements for labeled ``normal'' Workers since they are
+the same as those for unlabeled Workers.
+%
+We attribute the iframe-creation speedup for Chromium to noise.
+%
+More interestingly, we highlight that the cost of creating LWorkers is
+considerably smaller than that for ``normal'' Workers, which run on
+separate OS threads ($\dagger$).
 
 \paragraph{Communication} The iframe, worker, and XHR communication measurements evaluate the
 round-trip latencies across iframes, workers, and the network.
 %
 For the XHR benchmark, we report the cost of using the labeled XHR
-constructor---\emph{i.e.,} XHR with the response type set to
-\verb|labeled-blob|---averaged over 10,000 requests.
+constructor averaged over 10,000 requests.
 %
-Our Chromium implementation uses a lightweight worker to wrap the XHR
-constructor, so the cost of labeled XHR incorporates an additional
+Our Chromium implementation uses an  LWorker to wrap the unmodified
+XHR constructor, so the cost of labeled XHR incorporates an additional
 cross-context call.
-
-As with creation, communicating with lightweight workers ($\ddagger$)
-incurs less latency than with Web Workers.
+%
+As with creation, communicating with LWorkers ($\ddagger$)
+is considerably faster than for ``normal'' Workers.
 %
 This speedup arises because a lightweight worker shares
  an OS thread and event loop with their parent.
@@ -115,9 +121,8 @@ This speedup arises because a lightweight worker shares
 %%The cost of all these ``core'' label operations are within
 %%1 microsecond.
 
-\paragraph{Labels} While not pictured in Table~\ref{microbench},
-we also measured the cost of setting/getting the current label and the
-average cost of a label check.
+\paragraph{Labels} We measured the cost of setting/getting the current
+label and the average cost of a label check, on Firefox.
 %
 For a randomly generated label with a handful of origins, these
 operations take on the order of one microsecond.
@@ -129,20 +134,19 @@ the label is raised from public to a third-party origin).
 For many real applications, we expect raising the current label
 to be a rare occurrence.
 %
-Moreover, there is much room for optimization: {\em e.g.,} in some cases,
-we could avoid changing the underlying CSP policy and document
-origin upon a label change when a compartment is already completely confined.
-%%\todo{}{What about examplifying like ``, \emph{i.e.,} when the CSP policy has been set to default-src `none`''}.
+Moreover, there is much room for optimization (\emph{e.g.,}
+porting COWL newest version of the CSP, which for
+setting policies is $15\times$ faster~\cite{faster-csp}).
+%%{\em e.g.,} in some cases,
+%%we could avoid changing the underlying CSP policy and document
+%%origin upon a label change when a compartment is already completely confined.
+%%%%\todo{}{What about examplifying like ``, \emph{i.e.,} when the CSP policy has been set to default-src `none`''}.
  
 \paragraph{DOM} We also executed the Dromaeo benchmark suite~\cite{dromaeo},
-which evaluates the performance of core functionality
-such as querying, traversing, and manipulating the DOM, on Firefox
-and Chromium. We compared the performance of the browsers with
-\sys{} disabled {\em vs.}~with \sys{} enabled.
-%
-The \sys{}-enabled browsers' DOM performance is on par with that of
-the vanilla browsers; the greatest slowdown for either browsers was
-under 4\%.
+which evaluates the performance of core functionality such as
+querying, traversing, and manipulating the DOM, on Firefox and
+Chromium. We compared the performance of the vanilla and unlabeled
+browsers to be on par: the greatest slowdown was under 4\%.
 
 \subsection{End-to-End Benchmarks}
 \label{sec:eval:macro}
