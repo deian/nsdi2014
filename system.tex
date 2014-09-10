@@ -56,15 +56,16 @@ supporting nesting of untrusted libraries we discussed in
 Section~\ref{sec:motivating-examples}. \Red{EZY: suggest cutting, we already said this: Throughout this paper, when
 describing a COWL-enabled browser, we use the terms compartment,
 (browsing) context, and labeled (browsing) context interchangeably.}
+%% BK: I do not think we've said this previously! (Where exactly, if so?)
 
-When one browsing context sends sensitive information to another, 
-a sending context can use \emph{labeled communication} to confine the
-potentially untrusted code receiving the information. This enables symmetric confinement, whose
-importance in building applications that compose mutually distrusting
-scripts we articulated in Section~\ref{sec:motivating-examples}. In
-Figure~\ref{fig:checker}, the arrows between compartments indicate
-labeled communication, where a subscript on the communicated data
-denotes the data's label.
+When one browsing context sends sensitive information to another, a
+sending context can use \emph{labeled communication} to confine the
+potentially untrusted code receiving the information. This enables
+symmetric confinement, whose importance in building applications that
+compose mutually distrusting scripts we articulated in
+Section~\ref{sec:motivating-examples}. In Figure~\ref{fig:checker},
+the arrows between compartments indicate labeled communication, where
+a subscript on the communicated data denotes the data's label.
 
 COWL may grant a labeled browsing context one or more {\em
 privileges,} each with respect to an origin, and each of which
@@ -112,8 +113,8 @@ We now describe these three constructs in greater detail.
 \label{sec:system:contexts}
 A COWL application consists of multiple labeled contexts.
 %
-Labeled contexts naturally extend today's browser contexts which are used to
-isolate iframes, pages, \emph{etc.}, with MAC \emph{labels}.
+Labeled contexts extend today's browser contexts, used to isolate
+iframes, pages, \emph{etc.}, with MAC \emph{labels}.
 %
 A context's label specifies the security policy for all data within
 the context, which COWL enforces by restricting the flow of
@@ -156,12 +157,12 @@ to communicate with other contexts or servers whose labels are at
 least as restricting. (A server's ``label'' is simply its origin.)
 %
 Intuitively, when a context wishes to send a message, the target must
-not allow additional origins to read the data (preserving secrecy);
-dually, the source context must not be writable by origins not
-otherwise trusted by the target: the source must be at least
+not allow additional origins to read the data (preserving secrecy).
+Dually, the source context must not be writable by origins not
+otherwise trusted by the target. That is, the source must be at least
 as trustworthy as the target.
 %
-In such cases, we say that such a target label ``subsumes'' the source
+We say that such a target label ``subsumes'' the source
 label.
 %%\footnote{ If communication is bidirectional, \emph{e.g.,} when a
 %%  script accesses the DOM in a different context (but of the same
