@@ -3,13 +3,13 @@
 A single top-level web page often incorporates multiple scripts
 written by different authors.\footnote{Throughout we use ``web page''
   and ``web application'' interchangeably, and ``JavaScript code'' and
-  ``script'' interchangeably.} Ideally, the browser should protect the
+  ``script'' interchangeably.} \Red{EZY suggests cutting: Ideally, the browser should protect the
 user's sensitive data from unauthorized disclosure, yet afford page
 developers the greatest possible flexibility to construct %richly
 featureful applications that reuse functionality implemented in
-scripts provided by (potentially untrusted) third parties. To make
+scripts provided by (potentially untrusted) third parties.} To make
 concrete the diversity of potential trust relationships between
-scripts' authors and the diverse ways page developers may structure
+scripts' authors and the many ways page developers structure
 amalgamations of scripts, we describe several example web
 applications, none of which can be implemented with strong privacy for
 the user in today's web browsers. These examples illustrate key
@@ -97,11 +97,11 @@ specifying a CSP that limits the communication of a page, \emph{i.e,}
 disallows certain communication ordinarily permitted by the SOP\@.
 Developers may set individual CSP directives to restrict the origins
 to which a context may issue requests of specific types (for images or
-scripts, XHR destinations, \emph{etc.})~\cite{csp}. CSP policies
-suffer from two limitations, however. They are {\em static:} they
+scripts, XHR destinations, \emph{etc.})~\cite{csp}. However, CSP policies
+suffer from two limitations. The first limitation is that they are {\em static:} they
 cannot change during a page's lifetime (\emph{e.g.,} a page may not
 drop the privilege to communicate with untrusted origins before
-reading potentially sensitive data). And they are {\em inaccessible:}
+reading potentially sensitive data). The second limitation is that they are {\em inaccessible:}
 JavaScript code cannot inspect the CSP of its enclosing context or
 some other context, \emph{e.g.,} when determining whether to share
 sensitive data with that other context.
@@ -169,7 +169,7 @@ that origin may read the message.
 %%  origin(s) to read its responses.\footnote{Recall that the default SOP blocks a
 %%    context from reading a response from a different origin.}  }
 
-CORS~\cite{cors13} goes a step further, and allows controlled
+CORS~\cite{cors13} goes a step further and allows controlled
 cross-origin communication between a browsing context of one origin
 and a remote server with a different origin. Under CORS, a server may
 include a header on returned content that explicitly whitelists other
@@ -187,8 +187,8 @@ origin(s) allowed to read the response.
  
 Note that both \js|postMessage|'s target origin and CORS are purely
 discretionary in nature: they allow static selection of which
-cross-origin communication is allowed and which denied, but enforce no
-confinement on the receiving compartment of differing origin. Thus, in
+cross-origin communication is allowed and which denied but enforce no
+confinement on a receiving compartment of differing origin. Thus, in
 the status-quo web security architecture, a privacy-conscious
 developer should only send sensitive data to a compartment of
 differing origin if she completely trusts that origin. 
@@ -301,7 +301,7 @@ this origin (Section~\ref{sec:system:communication}).
 %%the context is about to be exposed to sensitive data from \js|fb.com|. 
 %
 In step (3) the checker raises its label to reflect that the context
-is about to be exposed to sensitive data from \js|fb.com|, and
+is about to be exposed to sensitive data from \js|fb.com| and
 inspects the password.
 %
 When the label is raised, \sys{} atomically denies the context further
@@ -339,7 +339,7 @@ by cloud-based storage (\emph{e.g.,} Google Docs), typically require the user
 to trust the app developer/cloud-based storage provider (often the
 same principal under the SOP) with the data in her documents. That is,
 the provider's server observes the user's data in cleartext. Suppose
-an organization wished to use an in-browser document editor, but did
+an organization wished to use an in-browser document editor but did
 {\em not} want to reveal its users' document data to the editor
 provider's server. How might the provider offer a privacy-preserving
 editor app that would satisfy the needs of such a privacy-conscious
@@ -382,7 +382,7 @@ origins. For example, consider an application that reconciles a user's
 Amazon purchases (the data for which are hosted by \js|amazon.com|)
 against a user's bank statement (the data for which are hosted by
 \js|chase.com|). The user may well deem both these categories of data
-sensitive, and furthermore, will not want data from Amazon to be
+sensitive and---furthermore---will not want data from Amazon to be
 exposed to her bank or vice-versa, nor to any other remote party.
 Today, if one of the two providers implements the mashup, its
 application code must bypass the SOP to allow sharing of data across
@@ -397,21 +397,21 @@ today's browser enforces no policy that confines the sensitive data
 the mashup's code observes within the browser. To enable third-party
 mashups that do not sacrifice the user's privacy, we note again the
 need for an untrusted script to be able to issue requests to multiple
-remote origins (\emph{e.g.,} \js|amazon.com| and \js|chase.com|), but
+remote origins (\emph{e.g.,} \js|amazon.com| and \js|chase.com|) but
 to lose the privilege to communicate over the network once it has read
 the responses from those origins. Here, too, MAC-based confinement
 addresses the shortcomings of DAC. 
 
 \paragraph{Untrusted Third-Party Library}
 Web application developers today make extensive use of third-party
-libraries like jQuery (whose prevalence we cite in the
-introduction). Simply importing a library into a page provides no
+libraries like jQuery \Red{EZY suggest cut: (whose prevalence we cite in the
+introduction)}. Simply importing a library into a page provides no
 isolation whatsoever between the untrusted third-party code and any
 sensitive data within the page. Developers of applications that
 process sensitive data want the convenience of reusing popular
 libraries. But such reuse risks exfiltration of sensitive data by
 these untrusted libraries. Note that because jQuery requires access to
-the content of the entire page that uses it, we cannot isolate jQuery
+the content of the entire page that uses it: we cannot isolate jQuery
 in a separate compartment from the parent's, as we did for the
 password-checker example. Instead, we observe that jQuery demands a
 design that is a mirror image of that for confining the password
@@ -427,8 +427,8 @@ untrusted page).
 This refactoring highlights the need for a confinement system that
 supports {\em delegation} and {\em dropping privilege}: a page should
 be able to create a compartment and confer its privileges to
-communicate with remote origins on that compartment, then give up
-those privileges itself.
+communicate with remote origins on that compartment, after which it gives up
+its own privileges.
 
 We note further that any {\em library} author
 may wish to reuse functionality from another untrusted
