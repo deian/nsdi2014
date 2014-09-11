@@ -256,7 +256,7 @@ Second, a COWL application can create labeled contexts in the form of
 \emph{lightweight labeled workers (LWorkers)}.
 %
 Like normal workers~\cite{workers}, the API exposed to LWorkers is
-compact; it consists only of constructs for communicating with
+minimal; it consists only of constructs for communicating with
 the parent, the XHR constructor, and the COWL API\@.
 %
 Unlike normal workers, which execute in separate threads, an LWorker
@@ -312,7 +312,8 @@ raises heretofore necessary in both sending and receiving contexts
 before a message may even be sent or received. Instead, COWL allows
 the developer sending a message from a context to specify the label to
 be attached to a labeled Blob; any label as or more restrictive than the
-sending context's current label may be specified. While the receiving
+sending context's current label may be specified (modulo its
+clearance). While the receiving
 context may receive a labeled Blob with no immediate effect on the
 origins with which it can communicate, it may only inspect the label,
 not the payload.\footnote{The label itself cannot leak
@@ -392,7 +393,7 @@ every request the browser sends to a server.\footnote{COWL also
 Section~\ref{sec:system:contexts}, a COWL-aware web server may elect
 to label a response it sends the client by including a \js|COWL-label|
 header on it. In such cases, the COWL-aware browser will only allow
-the receiving context to read an XHR response if its current label
+the receiving context to read the XHR response if its current label
 subsumes that on the response.
 
 %% The ability of a context to impose confinement restrictions on
@@ -530,7 +531,7 @@ the context for the page is trusted not to violate the secrecy of
 \https{a.com}'s data, as these scripts are deemed to be executing on
 behalf of \https{a.com}. COWL makes the analogous assumption by
 granting the privilege for \https{a.com} to the context that retrieves
-a from \https{a.com}: scripts executing in that context
+a page from \https{a.com}: scripts executing in that context
 are similarly deemed to be executing on behalf of \https{a.com}, and
 thus are trusted not to leak \https{a.com}'s data to unauthorized
 parties---even though they can declassify data. Only the COWL runtime
