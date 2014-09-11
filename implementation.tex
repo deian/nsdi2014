@@ -177,16 +177,15 @@ Since COWL policies are more fine-grained, we modified the binding
 code to extend the security checks to all DOM objects and also
 perform label checks when confinement mode is enabled.
 %
-Unfortunately, the lack of wrappers has the additional implication
-that shared references cannot be revoked.
+Unfortunately, without wrappers, shared references cannot be revoked.
 %
 Hence, before enabling confinement mode, a page can create a
-same-origin iframe with whom it shares references; the iframe can
+same-origin iframe with which it shares references, and the iframe can
 thereafter leak any data from the parent even if the latter's label is
 raised.
 %
-To mitigate this, our current Chromium API allows senders to disallow
-unlabeling Blobs if the target created children before entering
+To prevent this eventuality, our current Chromium API allows senders to disallow
+unlabeling Blobs if the target created any children before entering
 confinement mode.
 
 
