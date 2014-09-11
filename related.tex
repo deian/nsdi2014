@@ -78,11 +78,12 @@ applications like third-party mashups.
 %% information flow at the level of objects, allowing developers to take
 %% advantage of information flow control without explicit
 %% compartmentalization of applications.
-The per-object-granularity IFC makes
+Per-object-granularity IFC makes
 it easier to confine untrusted libraries that are closely coupled with trusted
 code on a page (\emph{e.g.,} jQuery) and avoid the problem of
-\emph{over-tainting}, or \emph{label creep}, where a single context
-repeatedly accumulates taint as it interacts with more data.
+\emph{over-tainting,}
+%or \emph{label creep},
+where a single context accumulates taint as it inspects more data.
 
 % JSFlow 
 JSFlow~\cite{JSFlow} is one such fine-grained JavaScript IFC system, which

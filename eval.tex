@@ -178,11 +178,11 @@ browsers to be on par: the greatest slowdown was under 4\%.
 \subsection{End-to-End Benchmarks}
 \label{sec:eval:macro}
 
-%%To assess \sys{}'s impact on end-to-end performance, we measured
+%%To assess \sys{}'s impact on end-to-end performance, we measure
 %%page load times for simplified versions of our example applications.
 %
 To focus on measuring \sys{}'s overhead, we compare our secure apps
-against similarly-compartmentalized, but insecure, apps---\emph{i.e.,}
+against similarly compartmentalized but non-secure apps---\emph{i.e.,}
 apps that perform no security checks.
 %
 %We acknowledge that compartmentalization
@@ -196,17 +196,17 @@ apps that perform no security checks.
 %%Section~\ref{sec:motivating-examples} using the checker script
 %%from~\cite{checker1}.
 %
-We measured the average duration of creating a new worker, fetching a
-8KB checker script (modified~\ref{sec:motivating-examples}), and
-checking a password sixteen characters in length.
+We measure the average duration of creating a new Worker, fetching an
+8 KB checker script based on~\cite{checker1}, and checking a password
+sixteen characters in length.
 %
 The checker takes an average of 18 ms (averaged over ten runs) on
 Firefox (labeled), 4 ms less than using a Worker on vanilla Firefox.
 %
-Similarly, the checker running on labeled Chromium is 5ms faster than
+Similarly, the checker running on labeled Chromium is 5 ms faster than
 the vanilla counterpart (measured at 54 ms).
 %
-In both cases the speedup is due to the fact that our LWorkers are
+In both cases \sys{} achieves a speedup because its LWorkers are
 cheaper than normal Workers.
 %
 However, these measurements are roughly 5 ms slower than simply loading
@@ -218,8 +218,8 @@ the checker using an unsafe \js|script| tag.
 %% Chome: With \sys{} it take 248.1, Vanilla; 257.8
 
 %
-We measured the end-to-end time taken to load the application and
-encrypt a 4KB document using the SJCL AES-128 library~\cite{sjcl}.
+We measure the end-to-end time taken to load the application and
+encrypt a 4 KB document using the SJCL AES-128 library~\cite{sjcl}.
 %
 The total run time includes the time taken to load the document editor
 page, which in turn loads the encryption-layer iframe, which further
@@ -233,9 +233,9 @@ completion time was within 1ms of 244ms.
 %
 The most expensive operation in the COWL-enabled Firefox app is
 raising the current label, since it requires changing the underlying
-document origin and recomputing the cross-compartment wrappers and CSP
-(to ensure that DOM and network access is restricted according to
-confinement).
+document origin and recomputing the cross-compartment wrappers and CSP.
+%% (to ensure that DOM and network access is restricted according to
+%% confinement).
 
 
 \paragraph{Third-Party Mashup}
@@ -254,15 +254,15 @@ object.
 %
 In both cases we use CORS to permit cross-origin access.
 %
-The Firefox (labeled) workload completed in 41 ms, which is 6ms slower
+The Firefox (labeled) workload completes in 41 ms, which is 6 ms slower
 than the vanilla version.
 %
 As in the document editor the slowdown derives from raising the
-current label, though in this, case only for a single iframe.
+current label, though in this case only for a single iframe.
 %
-On Chromium (labeled), the workload completed in 55 ms, 2 ms
-slower than the vanilla one; the main slowdown here is due to our
-implementation of labeled XHR using a wrapping LWorker.
+On Chromium (labeled) the workload completes in 55 ms, 2 ms
+slower than the vanilla one; the main slowdown here derives from
+our implementing labeled XHR with a wrapping LWorker.
 
 \paragraph{Untrusted Third-Party Library}
 %% Vanilla: incorporate script directly, no sandboxes.
@@ -282,15 +282,15 @@ libraries) in a trusted labeled DOM worker with access to the page's
 DOM. We treat the rest of the code as untrusted.
 %
 As our current Chromium implementation does not yet support DOM access
-for lightweight workers, we only report measurements of Firefox.
+for LWorkers, we only report measurements for Firefox.
 %
-The measured latency on Firefox (labeld) was 164.8 ms, a 4.6 ms
+The measured latency on Firefox (labeled) is 165 ms, a 5 ms
 slowdown when compared to the unconfined version running on vanilla
 Firefox.
 %
 %
-This slowdown is negligible considering that the application contains
-mixed-sensitivity content which COWL prevents from being exfiltrated.
+COWL prevents sensitive content from being exfiltrated and incurs
+negligible slowdown.
 
 %% Vanilla: incorporate script directly, no sandboxes.
 %% 
