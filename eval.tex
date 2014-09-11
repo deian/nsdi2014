@@ -122,7 +122,7 @@ cross-context call.
 As with creation, communicating with LWorkers ($\ddagger$)
 is considerably faster than with ``normal'' Workers.
 %
-This speedup arises because a lightweight worker shares
+This speedup arises because a lightweight LWorker shares
  an OS thread and event loop with their parent.
 %
 %% However, this sharing means that at 90 messages, we exhaust the call
