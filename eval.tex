@@ -1,43 +1,39 @@
 \section{Evaluation}
 \label{sec:eval}
 
-%%Performance largely determines acceptance of new browser features
-%%in practice.
+Performance largely determines acceptance of new browser features
+in practice.
 %
 We evaluate the performance of \sys{} by measuring the cost of our
 new primitives as well as their impact on legacy web sites that do
 not use \sys{}'s features.
 %
-Our experiments consist of micro-benchmarks on API functions and
+Our experiments consist of micro-benchmarks of API functions and
 end-to-end benchmarks of our example applications.
 %
-All our measurements were conducted on a 4-core i7-2620M machine with
-16GB of RAM\@ running GNU/Linux 3.13. We used the Node.js web server
-over a loopback interface for all applications.
+We conducted all measurements on a 4-core i7-2620M machine with 16GB
+of RAM\@ running GNU/Linux 3.13. The browser retrieved applications
+from the Node.js web server over the loopback interface.
 %
-Before delving into the benchmarks, however, we summarize
-the implications of the results:
+We note that these measurements are harsh for COWL, in that they omit
+network latency and the complex intra-context computation and DOM
+rendering of real-world applications, all of which would mask COWL's
+overhead further.
+%
+Our key findings include:
 \begin{CompactItemize}
-  \item COWL's impact on legacy sites is negligible.
-  \item Confining code with LWorkers is extremely cheap, especially
+  \item COWL's latency impact on legacy sites is negligible.
+  \item Confining code with LWorkers is inexpensive, especially
     when compared to iframes/Workers.
     %
     Indeed, the performance of our end-to-end confined password
-    checker is only 5ms slower than an inlined \js|script| version.
+    checker is only 5 ms slower than that of an inlined \js|script| version.
     %
-    While already unperceivable, this cost becomes even more
-    negligible when accounting for network latency, DOM
-    rendering times, \emph{etc.} of real-world applications.
+  \item COWL's incurs low overhead when enforcing confinement on mashups.
     %
-    (Our apps run on loopback, do not use the DOM in an interesting
-    way, nor perform any heavy computations.)
-  \item The impact of COWL's confinement informant on mashups is minimal.
+    The greatest overhead observed is 16\% (for the encrypted document editor).
     %
-    Our highest overhead is 16\%, for the encrypted document editor.
-    %
-    Again, the absolute slowdown of 16ms is unperceivable for users;
-    when accounting our setup (serving content over loopback with
-    no interesting DOM manipulation), this figure is negligible.
+    Again, the absolute slowdown of 16 ms is imperceptible by users.
 \end{CompactItemize}
 
 \subsection{Micro-Benchmarks}
