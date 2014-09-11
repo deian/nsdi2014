@@ -11,6 +11,7 @@ interface Label :
   Label or(String or Label)
   bool subsumes(Label [,Privilege])
     \end{webidl}
+    \vspace*{-8pt}
     \begin{webidl}
 interface Privilege :
   Privilege FreshPrivilege()
@@ -45,6 +46,7 @@ interface COWL :
   static attribute Label clearance 
   static attribute Privilege privilege
     \end{webidl}
+    \vspace*{-8pt}
     \begin{webidl}
 interface LWorker :
   LWorker LWorker(String, Label
@@ -168,14 +170,25 @@ Instead, Blink implements the SOP security checks in the DOM binding
 code for a limited subset of DOM elements that may allow cross-origin
 access.
 %
-This approach eliminates the cost of wrapper invocation for communication
-between pages of the same origin.
+%%This approach eliminates the cost of wrapper invocation for communication
+%%between pages of the same origin.
 %
 Since COWL policies are more fine-grained, we modified the binding
 code to extend the security checks to all DOM objects and also
 perform label checks when confinement mode is enabled.
 %
-\todo{ds}{Note here on what we do to address lack of revocation.}
+Unfortunately, the lack of wrappers has the additional implication
+that shared references cannot be revoked.
+%
+Hence, before enabling confinement mode, a page can create a
+same-origin iframe with whom it shares references; the iframe can
+thereafter leak any data from the parent even if the latter's label is
+raised.
+%
+To mitigate this, our current Chromium API allows senders to disallow
+unlabeling Blobs if the target created children before entering
+confinement mode.
+
 
 Our implementations of LWorkers, whose API appears in
 Figure~\ref{fig:api:compartments}, reuse labeled contexts
@@ -191,10 +204,10 @@ Since LWorkers may have access to their parents' DOM, however, our
 wrappers distinguish them from other contexts to bypass SOP checks and
 only restrict DOM access according to MAC.
 %
-This implementation is very similar to that of the content scripts
+This implementation is very similar to the content scripts
 used by Chrome and Firefox extensions~\cite{Carlini:2012, addon-sdk}.
-In fact, our Firefox implementation uses the same \js|Sandbox|
-objects~\cite{mdn-sandbox} used by the Add-on SDK's content scripts.
+%%In fact, our Firefox implementation uses the same \js|Sandbox|
+%%objects~\cite{mdn-sandbox} used by the Add-on SDK's content scripts.
  
 \paragraph{Browser-Server Confinement}%External Communication}
 %
