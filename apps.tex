@@ -22,14 +22,14 @@ realizing this application.
 
 Figure~\ref{fig:editor} depicts the architecture for an encrypted
 document editor. The editor has three components: a component which
-has the user's Google Documents credentials and communicates with the
+has the user's Google Docs credentials and communicates with the
 server (\https{gdoc.com}), the editor proper (also \https{gdoc.com}),
 and the component that performs encryption (\https{eff.org}). COWL
 provides privacy as follows: if \https{eff.org} is honest, then COWL
-ensures that the clear text of the user's document is not leaked to
+ensures that the cleartext of the user's document is not leaked to
 any origin. If only \https{gdoc.com} is honest, then \https{gdoc.com}
 may be able to recover cleartext (\emph{e.g.,} the encryptor may have
-used the null cipher), but the encryptor should not be able to
+used the null ``cipher''), but the encryptor should not be able to
 exfiltrate the cleartext to anyone else.
 
 How does execution of the encrypted document editor proceed?
