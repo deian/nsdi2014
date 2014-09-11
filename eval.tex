@@ -192,7 +192,7 @@ apps that perform no security checks.
 %%Section~\ref{sec:motivating-examples} using the checker script
 %%from~\cite{checker1}.
 %
-We measure the average duration of creating a new Worker, fetching an
+We measure the average duration of creating a new LWorker, fetching an
 8 KB checker script based on~\cite{checker1}, and checking a password
 sixteen characters in length.
 %
@@ -266,8 +266,8 @@ our implementing labeled XHR with a wrapping LWorker.
 %% Firefox: With \sys{} it take 164.8ms, Vanilla:  160.2ms
 
 We measured the load time of a banking application that incorporates
-jQuery and an untrusted library that traverses the DOM to replace
-phone numbers with links.
+jQuery and a library that traverses the DOM to replace phone numbers
+with links.
 %
 The latter library uses XHR in attempt to leak the page's content.
 %
@@ -285,7 +285,7 @@ slowdown when compared to the unconfined version running on vanilla
 Firefox.
 %
 %
-COWL prevents sensitive content from being exfiltrated and incurs
+Again, COWL prevents sensitive content from being exfiltrated and incurs
 negligible slowdown.
 
 %% Vanilla: incorporate script directly, no sandboxes.
