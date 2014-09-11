@@ -17,24 +17,18 @@ with existing coarse-grained systems.
 % BFlow
 %
 BFlow~\cite{Yip:2009:PBS}, for example, allows web sites to enforce confinement policies
-stricter than the SOP\@.
+stricter than the SOP via \emph{protection zones}---groups of iframes sharing a common label.
 %
-BFlow can confine third-party code by placing
-it in a tainted \emph{protection zone}---a group
-of iframes that share a common label.
+%   BFlow can confine third-party code by placing
+%   it in a tainted \emph{protection zone}---a group
+%   of iframes that share a common label.
 %
-However, unlike \sys{}, BFlow cannot mediate between mutually
-distrustful principals---\emph{e.g.,} one cannot directly implement the
-encrypted document editor with BFlow.
+However, BFlow cannot mediate between mutually
+distrustful principals---\emph{e.g.,} the
+encrypted document editor is not directly implementable with BFlow.
 %
-This is because BFlow only provides asymmetric confinement---a
-sub-frame cannot impose any restrictions on its parent---and its
-labels do not support conjunctions of multiple origins (\emph{e.g.,}
-BFlow cannot encode a policy that states that sensitive data may
-derive from data from two web sites).\footnote{ The mutually
-  distrusting scenario is further complicated by BFlow's reliance on
-  top-level \emph{trusted zones} that can always \emph{completely}
-  declassify the data in their corresponding page.}
+This is because only asymmetric confinement is supported---a
+sub-frame cannot impose any restrictions on its parent.
 %
 For the same reasons, BFlow cannot support applications that require
 security policies more flexible than the SOP, such as our third-party
@@ -49,14 +43,10 @@ distrusting parties.
 % DCS 
 More recently, Akhawe \emph{et al.}~propose the data-confined sandbox
 (DCS) system~\cite{Akhawe2013}, which allows pages to intercept and
-monitor the network, storage, and cross-origin channels of certain
-iframes.
+monitor the network, storage, and cross-origin channels of \verb|data:| URI iframes.
 %
-Such monitoring can in principle confine code such as the
-password-strength checker.
-%
-However, DCS's confinement implementation is fundamentally limited to
-\verb|data:| URI iframes, and as a result, DCS cannot confine the
+The limitation to
+\verb|data:| URI iframes means DCS cannot confine the
 common case of a service provided in an iframe~\cite{postman}.
 %% ---the common case, both to isolate the
 %% enclosing page from the script and because the checker's author may
